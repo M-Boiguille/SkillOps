@@ -4,8 +4,6 @@ notes.md
 .personal-notes/
 storage/*
 !storage/.gitkeep
-best-practices/*
-!best-practices/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
