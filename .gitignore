@@ -2,6 +2,7 @@
 LMS-*
 notes.md
 .personal-notes/
+best-practices/
 storage/*
 !storage/.gitkeep
 
