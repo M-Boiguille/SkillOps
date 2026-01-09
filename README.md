@@ -62,6 +62,19 @@ Un **outil CLI Python** qui :
 
 ---
 
+## 📚 Documentation du Cycle de Vie Projet
+
+**⭐ Pour les recruteurs** : Ce projet suit une méthodologie professionnelle complète, documentée dans [project-lifecycle/](project-lifecycle/).
+
+Ce dossier démontre ma compréhension du cycle de développement logiciel en entreprise :
+- 📋 [Product Discovery](project-lifecycle/01-product-discovery-session.md) - Clarification des besoins entre PM et PO
+- 📝 [User Requirements Document (URD)](project-lifecycle/02-urd-user-requirements-document.md) - User stories, NFRs, KPIs
+- 🏗️ [Architecture Decision Records (ADR)](project-lifecycle/03-adr-architecture-decision-records.md) - Décisions techniques justifiées
+
+**Pourquoi c'est important** : Je ne code pas "au feeling", je suis un processus structuré (Discovery → Specs → Architecture → Dev) comme dans une vraie entreprise tech.
+
+---
+
 ## 🎨 Fonctionnalités Principales
 
 ### 1️⃣ **Review Metrics** 📊
