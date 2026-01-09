@@ -1,6 +1,9 @@
 # My files to ignore
 LMS-*
 notes.md
+.personal-notes/
+storage/*
+!storage/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
