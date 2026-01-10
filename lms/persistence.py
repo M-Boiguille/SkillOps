@@ -1,6 +1,5 @@
 """State management for SkillOps using YAML persistence."""
 
-import os
 from pathlib import Path
 import yaml
 
