@@ -128,7 +128,7 @@ class ProgressManager:
         try:
             with self.file_path.open("r") as file:
                 self.current_progress = json.load(file)
-                return self.current_progress
+                return self.current_progress.copy()
         except (json.JSONDecodeError, OSError) as e:
             raise IOError(f"Error loading progress: {self.file_path}") from e
 
