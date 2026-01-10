@@ -73,7 +73,7 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
       def get_yesterday_progress() -> dict
   ```
   - Lecture/écriture `.progress.json`
-  - Format : `[{date, steps, time, cards, streak}, ...]`
+  - Format : `[{date, steps, time, cards}, ...]` (streak calculé par MetricsManager)
   - Tests unitaires
 
 - [ ] **T010-4:** Implémenter métriques agrégées (1h)
