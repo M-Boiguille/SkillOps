@@ -178,7 +178,7 @@ class ProgressManager:
         """
         for entry in self.current_progress:
             if entry.get("date") == date_str:
-                return entry
+                return entry.copy()
         return None
 
     def get_yesterday_progress(self) -> dict | None:
