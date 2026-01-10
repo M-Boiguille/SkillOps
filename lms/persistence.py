@@ -1,6 +1,7 @@
 """State management for SkillOps using YAML persistence."""
 
 from pathlib import Path
+from typing import Any
 import yaml
 
 # Constants to define default storage paths
@@ -26,19 +27,21 @@ class StateManager:
         """Return current state or None."""
         return self.current_state
 
-    def is_valid_state(self, state: dict | None) -> bool:
-        """Check if state has all required keys.
+    def is_valid_state(self, state: Any) -> bool:
+        """Check if state is a dict and has all required keys.
 
         Args:
-            state: State dictionary to validate
+            state: current_state checked at runtime
 
         Returns:
             True if state has session_id, step_id, timestamp keys
         """
         if state is None:
             return False
-        # State is valid if it has all required keys
-        return {"session_id", "step_id", "timestamp"}.issubset(state.keys())
+        if not isinstance(state, dict):
+            return False
+        required_keys = {"session_id", "step_id", "timestamp"}
+        return required_keys.issubset(state.keys())
 
     def load_state(self) -> None:
         """Load state from YAML file. Creates default if file doesn't exist."""
@@ -57,6 +60,7 @@ class StateManager:
                     return
 
                 # Validate and use loaded state
+
                 if self.is_valid_state(loaded_state):
                     self.current_state = loaded_state
                 else:
