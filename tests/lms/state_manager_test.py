@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from lms.persistence import StateManager
