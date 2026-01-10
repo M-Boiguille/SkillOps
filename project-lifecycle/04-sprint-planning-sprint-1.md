@@ -69,11 +69,13 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
   ```python
   class ProgressManager:
       def load_progress() -> list
-      def save_daily_progress(date, data)
+      def save_daily_progress(data)  # data contains {date, steps, time, cards}
       def get_yesterday_progress() -> dict
+      def get_progress_by_date(date) -> dict
   ```
   - Lecture/écriture `.progress.json`
-  - Format : `[{date, steps, time, cards, streak}, ...]`
+  - Format : `[{date, steps, time, cards}, ...]` (streak calculé par MetricsManager)
+  - Date incluse dans l'objet data pour cohérence (voir SCR-001)
   - Tests unitaires
 
 - [ ] **T010-4:** Implémenter métriques agrégées (1h)
