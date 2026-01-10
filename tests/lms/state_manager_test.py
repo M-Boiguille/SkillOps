@@ -69,45 +69,39 @@ def test_save_state_does_nothing_if_state_is_none(tmp_path):
     assert not state_file.exists()
 
 
-def test_permission_error_on_read(monkeypatch, tmp_path):
-    """Test that PermissionError is raised when file exists but can't be read."""
+def test_permission_error_on_read(tmp_path):
+    """Test that IOError wraps PermissionError when file can't be read."""
     state_file = tmp_path / "state.yaml"
-    # Create the file first so it exists
     state_file.write_text("session_id: test\nstep_id: 1\ntimestamp: 123\n")
+    
+    # Make file unreadable (only works on Unix-like systems)
+    state_file.chmod(0o000)
     
     sm = StateManager(state_file)
     
-    # Mock os.access to return False for read permission
-    def mock_access(path, mode):
-        if mode == os.R_OK:
-            return False
-        return True
-    
-    monkeypatch.setattr(os, "access", mock_access)
-    
-    with pytest.raises(PermissionError, match="Permission denied"):
+    with pytest.raises(IOError, match="Error loading state"):
         sm.load_state()
+    
+    # Cleanup: restore permissions for tmp_path cleanup
+    state_file.chmod(0o644)
 
 
-def test_permission_error_on_write(monkeypatch, tmp_path):
-    """Test that PermissionError is raised when file exists but can't be written."""
+def test_permission_error_on_write(tmp_path):
+    """Test that IOError wraps PermissionError when file can't be written."""
     state_file = tmp_path / "state.yaml"
-    # Create the file first so it exists
     state_file.write_text("session_id: test\nstep_id: 1\ntimestamp: 123\n")
     
     sm = StateManager(state_file)
     sm.load_state()
     
-    # Mock os.access to return False for write permission
-    def mock_access(path, mode):
-        if mode == os.W_OK:
-            return False
-        return True
+    # Make file read-only
+    state_file.chmod(0o444)
     
-    monkeypatch.setattr(os, "access", mock_access)
-    
-    with pytest.raises(PermissionError, match="Permission denied"):
+    with pytest.raises(IOError, match="Error writing state"):
         sm.save_state()
+    
+    # Cleanup: restore permissions for tmp_path cleanup
+    state_file.chmod(0o644)
 
 
 def test_is_valid_state_with_valid_state():

@@ -48,10 +48,6 @@ class StateManager:
             self.current_state = self.template.copy()
             return
 
-        # Check read permissions
-        if not os.access(self.file_path, os.R_OK):
-            raise PermissionError(f"Permission denied: {self.file_path}")
-
         try:
             with self.file_path.open("r") as file:
                 loaded_state = yaml.safe_load(file)
@@ -77,10 +73,6 @@ class StateManager:
 
         # Create parent directory if it doesn't exist
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Check write permissions (only if file already exists)
-        if self.file_path.exists() and not os.access(self.file_path, os.W_OK):
-            raise PermissionError(f"Permission denied: {self.file_path}")
 
         try:
             with self.file_path.open("w") as file:
