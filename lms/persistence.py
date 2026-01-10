@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import yaml
 
-# Constantes a garder pour les prochains fichiers
+# Constants to define default storage paths
 BASE_DIR = Path(__file__).resolve().parents[1]
 STORAGE_DIR = BASE_DIR / "storage"
 STATE_FILE = STORAGE_DIR / ".state.yaml"
@@ -50,7 +50,7 @@ class StateManager:
         # Check read permissions
         if not os.access(self.file_path, os.R_OK):
             raise PermissionError(
-                f"Impossible de lire le state: {self.file_path}"
+                f"Permission denied: {self.file_path}"
             )
         
         try:
@@ -69,7 +69,7 @@ class StateManager:
                     self.current_state = self.template.copy()
         except Exception as e:
             raise IOError(
-                f"Erreur lors du chargement du state: {self.file_path}"
+                f"Error loading state: {self.file_path}"
             ) from e
 
     def save_state(self) -> None:
@@ -84,7 +84,7 @@ class StateManager:
         # Check write permissions (only if file already exists)
         if self.file_path.exists() and not os.access(self.file_path, os.W_OK):
             raise PermissionError(
-                f"Impossible d'écrire le state: {self.file_path}"
+                f"Permission denied: {self.file_path}"
             )
         
         try:
@@ -92,5 +92,5 @@ class StateManager:
                 yaml.safe_dump(self.current_state, file, default_flow_style=False)
         except Exception as e:
             raise IOError(
-                f"Erreur lors de l'écriture du state: {self.file_path}"
+                f"Error writing state: {self.file_path}"
             ) from e
