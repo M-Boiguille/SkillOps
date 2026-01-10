@@ -87,7 +87,7 @@ def test_permission_error_on_read(monkeypatch, tmp_path):
     
     monkeypatch.setattr(os, "access", mock_access)
     
-    with pytest.raises(PermissionError, match="Impossible de lire"):
+    with pytest.raises(PermissionError, match="Permission denied"):
         sm.load_state()
 
 
@@ -108,7 +108,7 @@ def test_permission_error_on_write(monkeypatch, tmp_path):
     
     monkeypatch.setattr(os, "access", mock_access)
     
-    with pytest.raises(PermissionError, match="Impossible d'écrire"):
+    with pytest.raises(PermissionError, match="Permission denied"):
         sm.save_state()
 
 
@@ -155,7 +155,7 @@ def test_load_state_with_invalid_yaml(tmp_path):
     
     sm = StateManager(state_file)
     
-    with pytest.raises(IOError, match="Erreur lors du chargement"):
+    with pytest.raises(IOError, match="Error loading state"):
         sm.load_state()
 
 

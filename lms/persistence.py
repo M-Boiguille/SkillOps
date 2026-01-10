@@ -1,4 +1,5 @@
 """State management for SkillOps using YAML persistence."""
+
 import os
 from pathlib import Path
 import yaml
@@ -14,7 +15,7 @@ class StateManager:
 
     def __init__(self, path=STATE_FILE):
         """Initialize StateManager with file path.
-        
+
         Args:
             path: Path to state file (default: storage/.state.yaml)
         """
@@ -28,10 +29,10 @@ class StateManager:
 
     def is_valid_state(self, state: dict | None) -> bool:
         """Check if state has all required keys.
-        
+
         Args:
             state: State dictionary to validate
-            
+
         Returns:
             True if state has session_id, step_id, timestamp keys
         """
@@ -46,51 +47,43 @@ class StateManager:
         if not self.file_path.exists():
             self.current_state = self.template.copy()
             return
-        
+
         # Check read permissions
         if not os.access(self.file_path, os.R_OK):
-            raise PermissionError(
-                f"Permission denied: {self.file_path}"
-            )
-        
+            raise PermissionError(f"Permission denied: {self.file_path}")
+
         try:
             with self.file_path.open("r") as file:
                 loaded_state = yaml.safe_load(file)
-                
+
                 # Handle empty file (yaml.safe_load returns None)
                 if loaded_state is None or loaded_state == {}:
                     self.current_state = self.template.copy()
                     return
-                
+
                 # Validate and use loaded state
                 if self.is_valid_state(loaded_state):
                     self.current_state = loaded_state
                 else:
                     self.current_state = self.template.copy()
-        except Exception as e:
-            raise IOError(
-                f"Error loading state: {self.file_path}"
-            ) from e
+        except (yaml.YAMLError, OSError) as e:
+            raise IOError(f"Error loading state: {self.file_path}") from e
 
     def save_state(self) -> None:
         """Save current state to YAML file."""
         # Don't save if state is invalid
         if not self.is_valid_state(self.current_state):
             return
-        
+
         # Create parent directory if it doesn't exist
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Check write permissions (only if file already exists)
         if self.file_path.exists() and not os.access(self.file_path, os.W_OK):
-            raise PermissionError(
-                f"Permission denied: {self.file_path}"
-            )
-        
+            raise PermissionError(f"Permission denied: {self.file_path}")
+
         try:
             with self.file_path.open("w") as file:
                 yaml.safe_dump(self.current_state, file, default_flow_style=False)
-        except Exception as e:
-            raise IOError(
-                f"Error writing state: {self.file_path}"
-            ) from e
+        except (yaml.YAMLError, OSError) as e:
+            raise IOError(f"Error writing state: {self.file_path}") from e
