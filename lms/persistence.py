@@ -149,7 +149,7 @@ class ProgressManager:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Check if entry for this date already exists
-        existing_entry = self.get_progress_by_date(data.get("date", self.get_today_date()))
+        existing_entry = self.get_progress_by_date(data["date"])
         
         if existing_entry:
             # Update existing entry
