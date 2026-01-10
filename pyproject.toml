@@ -1,0 +1,10 @@
+[project]
+name = "skillops"
+version = "0.1.0"
+
+[project.dependencies]
+PyYAML = "*"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
