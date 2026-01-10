@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from lms.ProgressManager import ProgressManager
+from lms.persistence import ProgressManager
 
 
 def test_load_progress_creates_empty_list_if_file_does_not_exist(tmp_path):
