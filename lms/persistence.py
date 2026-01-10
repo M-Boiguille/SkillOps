@@ -176,6 +176,8 @@ class ProgressManager:
         Returns:
             Progress entry or None if not found
         """
+        if self.current_progress == []:
+            self.load_progress()
         for entry in self.current_progress:
             if entry.get("date") == date_str:
                 return entry.copy()
@@ -187,6 +189,8 @@ class ProgressManager:
         Returns:
             Progress entry or None if not found
         """
+        if self.current_progress == []:
+            self.load_progress()
         return self.get_progress_by_date(self.get_yesterday_date())
 
     def get_today_date(self) -> str:
