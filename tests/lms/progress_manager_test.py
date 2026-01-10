@@ -25,8 +25,7 @@ def test_save_daily_progress_creates_file(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
@@ -43,8 +42,7 @@ def test_save_and_load_progress_roundtrip(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
@@ -64,15 +62,13 @@ def test_save_multiple_daily_progress_entries(tmp_path):
         "date": "2026-01-09",
         "steps": 3,
         "time": 90,
-        "cards": 8,
-        "streak": 1
+        "cards": 8
     }
     progress2 = {
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 2
+        "cards": 10
     }
     
     pm.save_daily_progress(progress1)
@@ -97,15 +93,13 @@ def test_get_yesterday_progress_returns_correct_entry(tmp_path):
         "date": yesterday,
         "steps": 3,
         "time": 90,
-        "cards": 8,
-        "streak": 1
+        "cards": 8
     }
     progress_today = {
         "date": today,
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 2
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_yesterday)
@@ -125,8 +119,7 @@ def test_get_yesterday_progress_returns_none_if_not_found(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
@@ -167,8 +160,7 @@ def test_save_progress_creates_parent_directories(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
@@ -205,8 +197,7 @@ def test_permission_error_on_write(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     with pytest.raises(IOError, match="Error writing progress"):
@@ -223,8 +214,7 @@ def test_is_valid_progress_with_valid_data():
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     assert pm.is_valid_progress(valid_progress) is True
@@ -237,7 +227,7 @@ def test_is_valid_progress_with_missing_keys():
     invalid_progress = {
         "date": "2026-01-10",
         "steps": 5
-        # Missing time, cards, streak
+        # Missing time, cards
     }
     
     assert pm.is_valid_progress(invalid_progress) is False
@@ -259,7 +249,6 @@ def test_is_valid_progress_with_extra_keys():
         "steps": 5,
         "time": 120,
         "cards": 10,
-        "streak": 1,
         "notes": "Great progress today"
     }
     
@@ -293,15 +282,13 @@ def test_get_progress_by_date(tmp_path):
         "date": "2026-01-08",
         "steps": 3,
         "time": 90,
-        "cards": 8,
-        "streak": 1
+        "cards": 8
     }
     progress2 = {
         "date": "2026-01-09",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 2
+        "cards": 10
     }
     
     pm.save_daily_progress(progress1)
@@ -321,8 +308,7 @@ def test_get_progress_by_date_returns_none_if_not_found(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
@@ -341,8 +327,7 @@ def test_load_progress_returns_new_instance_each_time(tmp_path):
         "date": "2026-01-10",
         "steps": 5,
         "time": 120,
-        "cards": 10,
-        "streak": 1
+        "cards": 10
     }
     
     pm.save_daily_progress(progress_data)
