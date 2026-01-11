@@ -88,7 +88,7 @@ class TestStepChoices:
 class TestDisplayHeader:
     """Tests for header display."""
 
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.console.print")
     def test_display_header_calls_print(self, mock_print):
         """
         Given: Console is available
@@ -103,8 +103,8 @@ class TestDisplayHeader:
 class TestMainMenu:
     """Tests for the main menu interaction."""
 
-    @patch("lms.cli.inquirer.prompt")
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.console.print")
     def test_main_menu_returns_none_on_exit(self, mock_print, mock_prompt):
         """
         Given: User selects Exit option
@@ -118,7 +118,7 @@ class TestMainMenu:
         assert result is None
         mock_prompt.assert_called_once()
 
-    @patch("lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.inquirer.prompt")
     def test_main_menu_returns_step_on_selection(self, mock_prompt):
         """
         Given: User selects step 1 (Review)
@@ -134,8 +134,8 @@ class TestMainMenu:
         assert result.name == "Review"
         assert result.emoji == "📊"
 
-    @patch("lms.cli.inquirer.prompt")
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.console.print")
     def test_main_menu_handles_keyboard_interrupt(self, mock_print, mock_prompt):
         """
         Given: User presses Ctrl+C
@@ -148,8 +148,8 @@ class TestMainMenu:
 
         assert result is None
 
-    @patch("lms.cli.inquirer.prompt")
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.console.print")
     def test_main_menu_handles_none_answer(self, mock_print, mock_prompt):
         """
         Given: Prompt returns None (Ctrl+D or similar)
@@ -162,7 +162,7 @@ class TestMainMenu:
 
         assert result is None
 
-    @patch("lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.inquirer.prompt")
     def test_main_menu_multiple_steps(self, mock_prompt):
         """
         Given: User selects different steps
@@ -185,7 +185,7 @@ class TestMainMenu:
 class TestExecuteStep:
     """Tests for step execution."""
 
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.console.print")
     def test_execute_step_displays_message(self, mock_print):
         """
         Given: A valid step
@@ -198,7 +198,7 @@ class TestExecuteStep:
 
         assert mock_print.call_count >= 2
 
-    @patch("lms.cli.console.print")
+    @patch("src.lms.cli.console.print")
     def test_execute_step_includes_emoji(self, mock_print):
         """
         Given: A step with emoji

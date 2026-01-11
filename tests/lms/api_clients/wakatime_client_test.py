@@ -54,7 +54,7 @@ class TestWakaTimeClientInit:
 class TestMakeRequest:
     """Tests for _make_request method."""
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_success(self, mock_get):
         """
         Given: Successful API response
@@ -72,7 +72,7 @@ class TestMakeRequest:
         assert result == {"data": "test"}
         mock_get.assert_called_once()
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_401_raises_auth_error(self, mock_get):
         """
         Given: API returns 401 Unauthorized
@@ -90,7 +90,7 @@ class TestMakeRequest:
 
         assert "Invalid WakaTime API key" in str(exc_info.value)
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_429_raises_rate_limit_error(self, mock_get):
         """
         Given: API returns 429 Too Many Requests
@@ -108,7 +108,7 @@ class TestMakeRequest:
 
         assert "rate limit exceeded" in str(exc_info.value)
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_other_error_code(self, mock_get):
         """
         Given: API returns non-200/401/429 status code
@@ -127,7 +127,7 @@ class TestMakeRequest:
 
         assert "500" in str(exc_info.value)
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_timeout(self, mock_get):
         """
         Given: Request times out
@@ -143,7 +143,7 @@ class TestMakeRequest:
 
         assert "timed out" in str(exc_info.value)
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_make_request_network_error(self, mock_get):
         """
         Given: Network error occurs
@@ -163,7 +163,7 @@ class TestMakeRequest:
 class TestGetTodayStats:
     """Tests for get_today_stats method."""
 
-    @patch("lms.api_clients.wakatime_client.date")
+    @patch("src.lms.api_clients.wakatime_client.date")
     @patch.object(WakaTimeClient, "get_date_stats")
     def test_get_today_stats_calls_get_date_stats(self, mock_get_date_stats, mock_date):
         """
@@ -282,7 +282,7 @@ class TestGetWeekStats:
 class TestIntegration:
     """Integration tests for WakaTimeClient."""
 
-    @patch("lms.api_clients.wakatime_client.requests.Session.get")
+    @patch("src.lms.api_clients.wakatime_client.requests.Session.get")
     def test_full_workflow(self, mock_get):
         """
         Given: Complete API response

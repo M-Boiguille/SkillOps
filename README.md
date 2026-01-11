@@ -319,7 +319,7 @@ skillops start
 │   ...                                   │
 └─────────────────────────────────────────┘
 
-# Navigation interactive
+# Navigation interactive (flèches ↑↓ ou touches vim j/k)
 > Appuyez sur Entrée pour Step 1: Review Metrics
 
 # Notification Telegram automatique en fin de journée
