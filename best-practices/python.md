@@ -17,24 +17,55 @@
 
 ## Structure Projet
 
-### ✅ Do
+### ✅ Do (src/ Layout - Modern Standard)
 ```
 project/
-├── src/
+├── src/                        # Source code
+│   ├── __init__.py
 │   └── package/
 │       ├── __init__.py
+│       ├── main.py            # Entry point
 │       └── module.py
+├── tests/                      # Mirror src/ structure
+│   ├── __init__.py
+│   └── package/
+│       └── test_module.py
+├── .venv/                      # Virtual environment
+├── .gitignore
+├── pyproject.toml             # Modern config (PEP 518)
+├── requirements.txt           # Pinned dependencies
+├── README.md
+└── LICENSE
+```
+
+**Avantages src/:**
+- Évite imports accidentels depuis root
+- Force utilisation package installé
+- Meilleure isolation dev/prod
+- Standard moderne (PEP 420)
+
+**Exemple SkillOps:**
+```
+SkillOps/
+├── src/
+│   ├── __init__.py
+│   └── lms/
+│       ├── __init__.py
+│       ├── main.py
+│       └── persistence.py
 ├── tests/
-│   └── test_module.py
-├── requirements.txt
-├── setup.py
-└── README.md
+│   └── lms/
+│       ├── test_persistence.py
+│       └── metrics_manager_test.py
+├── pyproject.toml
+└── requirements.txt
 ```
 
 ### ❌ Don't
 - Tout dans un seul fichier de 2000 lignes
 - Import circulaires
 - Pas de tests
+- Mélanger src et tests au même niveau
 
 ## Imports
 
