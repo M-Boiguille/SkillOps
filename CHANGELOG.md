@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-01-12
+
+### Added
+
+#### Operational Enhancements (US-009)
+- **Systemd Integration** (US-009-1):
+  - `setup/systemd/skillops.service`: systemd service unit with resource limits
+    - User-level installation support (%i variable for username)
+    - Automatic restart on failure (300s delay)
+    - Memory limit (512MB) and CPU quota (50%)
+  - `setup/systemd/skillops.timer`: systemd timer unit for daily scheduling
+    - Daily execution at 8:00 AM (customizable)
+    - Automatic execution on boot if missed
+    - Random delay (0-5 min) to prevent thundering herd
+  - `docs/SETUP_SYSTEMD.md`: 348-line comprehensive guide
+    - Installation (6 steps with example commands)
+    - Configuration (environment variables, custom schedules)
+    - Usage (status, logs, manual runs via systemctl)
+    - Troubleshooting (10+ common issues)
+    - Advanced options (multiple timers, resource limits, notifications)
+
+- **Cron Job Integration** (US-009-2):
+  - `setup/cron/install.sh`: Interactive bash installer (300+ lines)
+    - Color-coded output and menu interface
+    - Automatic requirement checking (crontab, skillops command)
+    - Interactive schedule configuration (time/frequency)
+    - Email notification setup (success/failure)
+    - Environment file handling (.env sourcing)
+    - Crontab manipulation (add, verify, uninstall)
+    - Manual configuration help and documentation
+  - `docs/SETUP_CRON.md`: 661-line comprehensive guide
+    - Quick start (automated installer, 4-step setup)
+    - Manual setup (copy-paste commands)
+    - Cron schedule format with table of examples
+    - Troubleshooting (command not found, env vars, permissions, logs)
+    - Advanced options (multiple jobs, syslog integration)
+    - Best practices (logging, email notifications)
+
+- **Health Check Command** (US-009-3):
+  - `skillops health`: New CLI command to validate configuration
+  - `src/lms/commands/health.py`: Comprehensive health check module
+    - `check_api_token()`: Verifies required API tokens (WakaTime, Gemini, GitHub, Telegram)
+    - `check_github_token()`: Authenticates with GitHub API, displays authenticated user
+    - `check_telegram_token()`: Validates Telegram bot token, displays bot name
+    - `check_directory()`: Verifies storage/labs directories exist (with defaults)
+    - `health_check()`: Orchestrates all checks with rich formatted output
+    - Graceful error handling for network issues
+  - Rich formatted output with green/yellow/red status indicators
+  - Detailed error messages for quick troubleshooting
+
+### Changed
+- Updated CLI version string to "v0.2.0 (Sprint 2 Complete)"
+- Integrated health check into main.py as new CLI command
+
+### Testing
+- Added `tests/lms/commands/health_test.py`: 19 comprehensive tests
+  - Valid configuration scenarios (all checks pass)
+  - Missing credentials handling (graceful fallback)
+  - Missing directories handling (fallback to defaults)
+  - Network error handling (requests.RequestException)
+  - Mocked API calls (GitHub, Telegram)
+  - File system operations (pathlib mocking)
+- All 353 tests passing (334 previous + 19 new health tests)
+- Pre-commit hooks validated (black, flake8, mypy)
+
+---
+
 ## [0.2.0] - 2026-01-11
 
 ### Added

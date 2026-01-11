@@ -30,6 +30,7 @@ Les Architecture Decision Records (ADRs) documentent **pourquoi** certaines déc
 - [ADR-006: Architecture Pattern (State Machine vs Event-Driven)](#adr-006-architecture-pattern-state-machine-vs-event-driven)
 - [ADR-007: Testing Strategy (Pytest vs Unittest)](#adr-007-testing-strategy-pytest-vs-unittest)
 - [ADR-008: CI/CD Platform (GitHub Actions vs GitLab CI vs Jenkins)](#adr-008-cicd-platform-github-actions-vs-gitlab-ci-vs-jenkins)
+- [ADR-009: Monitoring & Observability Strategy](#adr-009-monitoring--observability-strategy)
 
 ---
 
@@ -716,6 +717,205 @@ jobs:
 | **006** | State Machine | Workflow linéaire clair |
 | **007** | Pytest | Standard industrie, fixtures, coverage |
 | **008** | GitHub Actions | Intégré, gratuit, simple |
+| **009** | Syslog + Error Aggregation + Alerting | Observabilité complète, peu de dépendances |
+
+---
+
+## ADR-009: Monitoring & Observability Strategy
+
+**Date:** 2026-01-11
+**Statut:** ✅ Approuvé
+
+### Contexte
+
+À partir de v0.3.0, SkillOps s'exécute automatiquement via cron ou systemd. Nous avons besoin de :
+- Détecter les erreurs (pas d'interaction utilisateur directe)
+- Alerter l'utilisateur sur les problèmes
+- Collecter les métriques (temps d'exécution, étapes complétées)
+- Déboguer les problèmes en production
+
+Contraintes :
+- Pas de serveur de monitoring (usage personnel)
+- Logs structurés pour parsing
+- Pas de dépendances lourdes (ex: DataDog, New Relic)
+- Compatible avec syslog/journalctl standard
+
+### Options Considérées
+
+#### Option A: Syslog local + Error aggregation + Email alerts
+**Pour :**
+- ✅ Syslog standard (journalctl sur systemd)
+- ✅ Zero server (logs dans filesystem)
+- ✅ Indexable avec ELK (future)
+- ✅ Error aggregation (déduplique erreurs répétées)
+- ✅ Email alerts simples (SMTP)
+- ✅ Métriques locales (JSON file)
+
+**Contre :**
+- ❌ Plus complexe que logging simple
+- ❌ Nécessite SMTP config
+
+#### Option B: Cloud logging (Datadog, AWS CloudWatch)
+**Pour :**
+- ✅ Managed service
+- ✅ Dashboards intégrés
+- ✅ Alerting sophistiqué
+
+**Contre :**
+- ❌ Coût même minime
+- ❌ Vendor lock-in
+- ❌ Overkill pour usage personnel
+- ❌ Nécessite API keys supplémentaires
+
+#### Option C: Logging simple dans fichier local
+**Pour :**
+- ✅ Zéro dépendance
+- ✅ Simple à implémenter
+
+**Contre :**
+- ❌ Pas d'alerting automatique
+- ❌ Pas de déduplication erreurs
+- ❌ Difficile à parser/analyser à l'échelle
+
+### Décision
+
+**Choix : Syslog + Error Aggregation + Email Alerts**
+
+**Implémentation :**
+
+```
+src/lms/monitoring/
+├── __init__.py
+├── error_aggregator.py    # Déduplication + batch reporting
+├── syslog_handler.py      # Intégration syslog
+├── alerter.py             # Email/webhook alerts
+└── metrics.py             # Collecte métriques (JSON)
+```
+
+**Architecture :**
+
+```python
+# Syslog handler
+from src.lms.monitoring.syslog_handler import setup_syslog_handler
+
+# Automatic logging to syslog (journalctl on systemd)
+logger = setup_syslog_handler('skillops', facility='user')
+
+# Error aggregation (prevents spam)
+from src.lms.monitoring.error_aggregator import ErrorAggregator
+
+aggregator = ErrorAggregator(storage_path=storage_path)
+try:
+    my_operation()
+except Exception as e:
+    # Deduplicates same error within 24h window
+    aggregator.record_error(error=e, step='create', retry_count=2)
+
+# Alerting
+from src.lms.monitoring.alerter import EmailAlerter
+
+alerter = EmailAlerter(smtp_host='localhost')
+if aggregator.critical_errors_today():
+    alerter.send_alert(
+        subject='SkillOps: Critical errors detected',
+        errors=aggregator.get_daily_summary()
+    )
+
+# Metrics
+from src.lms.monitoring.metrics import MetricsCollector
+
+metrics = MetricsCollector(storage_path=storage_path)
+metrics.record_step_execution(
+    step_id='create',
+    duration_seconds=12.5,
+    success=True
+)
+```
+
+**Justification :**
+- Syslog : standard Linux, intégré systemd/journalctl
+- Error aggregation : évite spam (même erreur 100 fois ≠ 100 alertes)
+- Email : simple et fiable
+- Métriques : JSON local pour analyse future
+- Pas de dépendances Cloud (pas de coût)
+
+### Conséquences
+
+**Positives :**
+- Observabilité complète sans serveur
+- Alertes rapides sur erreurs critiques
+- Métriques pour optimisation
+- Compatible journalctl (ecosystem standard)
+- Upgrade facile vers ELK/DataDog futur
+
+**Négatives :**
+- Syslog requiert rsyslog/journald (standard sur Linux)
+- Email requiert SMTP local ou relay
+- Pas de dashboard graphique (logs en texte)
+
+**Mitigations :**
+- Syslog optionnel (graceful fallback à file logging)
+- Email optionnel (alerting via webhook possible)
+- Dashboard future (v0.5.0) pour visualiser métriques
+
+**Évolution future :**
+- Phase 5 (v0.5.0) : Web dashboard + ELK integration
+- Phase 6 (v1.0) : Prometheus metrics exposition
+- Phase 7 (v1.1) : DataDog/New Relic optional plugins
+
+### Composants Détaillés
+
+**1. ErrorAggregator**
+```python
+class ErrorAggregator:
+    """Déduplicates and batches errors for reporting."""
+
+    def record_error(self, error: Exception, step_id: str, retry_count: int = 0):
+        """Record error with deduplication (same error_type + step within 24h = 1 alert)"""
+
+    def get_daily_summary(self) -> Dict[str, List[Dict]]:
+        """Return errors grouped by step and type"""
+
+    def critical_errors_today(self) -> bool:
+        """Return True if any critical error occurred today"""
+```
+
+**2. SyslogHandler**
+```python
+def setup_syslog_handler(app_name: str, facility: str = 'user', verbose: bool = False):
+    """Setup syslog handler for logging.
+
+    Usage: logger = setup_syslog_handler('skillops')
+    Output: journalctl -u skillops
+    """
+```
+
+**3. Alerter**
+```python
+class EmailAlerter:
+    """Send email alerts for critical errors."""
+
+    def send_alert(self, subject: str, errors: Dict, recipients: List[str] = None):
+        """Send formatted email with error summary"""
+
+class WebhookAlerter:
+    """Send webhook alerts (Slack, Discord, etc)."""
+
+    def send_alert(self, subject: str, errors: Dict, webhook_url: str):
+        """POST to webhook with error summary"""
+```
+
+**4. MetricsCollector**
+```python
+class MetricsCollector:
+    """Collect and aggregate execution metrics."""
+
+    def record_step_execution(self, step_id: str, duration_seconds: float, success: bool):
+        """Record step execution for later analysis"""
+
+    def get_daily_metrics(self) -> Dict:
+        """Return aggregated metrics (avg time, success rate, etc)"""
+```
 
 ---
 
