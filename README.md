@@ -246,6 +246,9 @@ WAKATIME_API_KEY=waka_xxxxxxxxxxxxx
 GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxx
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxx
 TELEGRAM_BOT_TOKEN=123456:ABCdef
+TELEGRAM_CHAT_ID=123456789
+# Optional: HH:MM for scheduled send (used with cron/systemd)
+# TELEGRAM_SCHEDULE_TIME=20:00
 EOF
 
 # Le fichier .env est automatiquement gitignored
@@ -324,6 +327,14 @@ skillops start
 
 # Notification Telegram automatique en fin de journée
 📱 "✅ Bilan : 8/8 étapes | 4h12 codé | 15 cartes créées"
+
+### Envoyer manuellement depuis le CLI
+
+```bash
+python -m src.lms.main notify --storage-path storage --respect-schedule
+```
+
+Pour un envoi immédiat sans vérifier l'heure planifiée, supprimez `--respect-schedule`.
 ```
 
 ---
