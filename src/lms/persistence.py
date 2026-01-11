@@ -389,7 +389,7 @@ class MetricsManager:
             raise IOError(f"Error writing metrics: {self.file_path}") from e
 
     def calculate_streak(self, progress_data: list) -> int:
-        """Calculate consecutive days of activity ending today or yesterday.
+        """Calculate consecutive days of activity ending at most recent entry.
 
         Args:
             progress_data: List of progress entries [{date, steps, time, cards}, ...]
@@ -405,19 +405,14 @@ class MetricsManager:
             progress_data, key=lambda x: x.get("date", ""), reverse=True
         )
 
-        today = date.today()
         streak = 0
-        expected_date = today
+        # Start counting from the most recent activity date, not necessarily today
+        expected_date = date.fromisoformat(sorted_progress[0].get("date", ""))
 
         for entry in sorted_progress:
             entry_date = date.fromisoformat(entry.get("date", ""))
 
             if entry_date == expected_date:
-                streak += 1
-                expected_date = expected_date - timedelta(days=1)
-            elif entry_date == expected_date - timedelta(days=1):
-                # Allow for today not having progress yet
-                expected_date = entry_date
                 streak += 1
                 expected_date = expected_date - timedelta(days=1)
             else:

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] - 2026-01-12
+
+### Added
+
+#### MVP Complete (US-001, US-002, US-003, US-010, US-011)
+- Full 8-step workflow wired into CLI `execute_step()` (review, formation, anki placeholder, create, read placeholder, reinforce, share, reflection placeholder).
+- Reinforce step already fully implemented: exercise selection, timer, progress history.
+- Documentation: README updated with 8-step overview and clarified GitHub token scopes (classic `repo` vs fine-grained `Contents`/`Metadata`).
+
+### Changed
+- Project version bumped to `1.0.0`.
+- CLI routing finalized; placeholder guidance for steps 3, 5, and 8.
+
+### Testing
+- 397 tests passing; 7 skipped (integration requiring credentials).
+- Pre-commit hooks (black, flake8, mypy) all passing.
+
+---
+
 ## [0.4.0] - 2026-01-13
 
 ### Added
