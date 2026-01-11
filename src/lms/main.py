@@ -5,6 +5,7 @@ from typing import Optional
 
 import typer
 from src.lms.cli import main_menu, execute_step
+from src.lms.commands.health import health_check
 from src.lms.steps.notify import notify_step
 from src.lms.steps.share import share_step
 
@@ -47,7 +48,13 @@ def start(
 @app.command()
 def version():
     """Display the SkillOps version."""
-    typer.echo("SkillOps LMS v0.1.0 (Sprint 1 MVP)")
+    typer.echo("SkillOps LMS v0.2.0 (Sprint 2 Complete)")
+
+
+@app.command()
+def health():
+    """Check SkillOps configuration and connectivity."""
+    health_check()
 
 
 @app.command()
