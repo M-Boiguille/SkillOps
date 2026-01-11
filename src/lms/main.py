@@ -16,13 +16,32 @@ app = typer.Typer(
 
 
 @app.command()
-def start():
+def start(
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose debug logging output",
+    ),
+):
     """Start the interactive SkillOps LMS menu."""
+    if verbose:
+        from src.lms.logging_config import setup_logging
+
+        setup_logging(verbose=True)
+
+    from src.lms.logging_config import get_logger
+
+    logger = get_logger(__name__)
+    logger.debug("Starting SkillOps interactive menu")
+
     while True:
         step = main_menu()
         if step is None:
+            logger.debug("User exited interactive menu")
             break
         execute_step(step)
+    logger.debug("SkillOps menu session completed")
 
 
 @app.command()
@@ -33,6 +52,12 @@ def version():
 
 @app.command()
 def notify(
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose debug logging output",
+    ),
     storage_path: Optional[Path] = typer.Option(
         None, "--storage-path", help="Custom storage directory"
     ),
@@ -41,11 +66,31 @@ def notify(
     ),
 ):
     """Send today's notification to Telegram."""
+    if verbose:
+        from src.lms.logging_config import setup_logging
+
+        setup_logging(verbose=True)
+
+    from src.lms.logging_config import get_logger
+
+    logger = get_logger(__name__)
+    logger.debug(
+        "Starting notify_step with storage_path=%s, respect_schedule=%s",
+        storage_path,
+        respect_schedule,
+    )
     notify_step(storage_path=storage_path, respect_schedule=respect_schedule)
+    logger.debug("notify_step completed successfully")
 
 
 @app.command()
 def share(
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose debug logging output",
+    ),
     labs_path: Optional[str] = typer.Option(
         None, "--labs-path", help="Path to labs directory"
     ),
@@ -57,11 +102,29 @@ def share(
     ),
 ):
     """Share lab projects to GitHub with automatic README generation."""
+    if verbose:
+        from src.lms.logging_config import setup_logging
+
+        setup_logging(verbose=True)
+
+    from src.lms.logging_config import get_logger
+
+    logger = get_logger(__name__)
+    logger.debug(
+        "Starting share_step with labs_path=%s, github_username=%s",
+        labs_path,
+        github_username,
+    )
     success = share_step(
         labs_path=labs_path,
         github_token=github_token,
         github_username=github_username,
     )
+    if success:
+        logger.debug("share_step completed successfully")
+    else:
+        logger.error("share_step failed")
+
     if not success:
         raise typer.Exit(code=1)
 
