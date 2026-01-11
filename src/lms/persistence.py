@@ -108,6 +108,7 @@ class ProgressManager:
 
         Returns:
             True if progress has date, steps, time, cards keys
+            Note: exercises_done is optional for backwards compatibility
         """
         if progress is None:
             return False
@@ -328,6 +329,100 @@ class ProgressManager:
         yesterday = date.today() - timedelta(days=1)
         return yesterday.strftime("%Y-%m-%d")
 
+    def add_completed_exercise(self, date_str: str, exercise_id: str) -> bool:
+        """Add a completed exercise to a specific date's progress.
+
+        Given: A date and exercise ID
+        When: Adding an exercise to the completed list
+        Then: The exercise is added to exercises_done array for that date
+
+        Args:
+            date_str: Date in YYYY-MM-DD format
+            exercise_id: Unique identifier for the exercise
+
+        Returns:
+            True if successfully added, False otherwise
+        """
+        # Load current progress if not loaded
+        if not self.current_progress:
+            self.load_progress()
+
+        # Find or create entry for this date
+        entry = None
+        for progress_entry in self.current_progress:
+            if progress_entry.get("date") == date_str:
+                entry = progress_entry
+                break
+
+        if entry is None:
+            # Create new entry with default values
+            entry = {
+                "date": date_str,
+                "steps": 0,
+                "time": 0,
+                "cards": 0,
+                "exercises_done": []
+            }
+            self.current_progress.append(entry)
+        
+        # Ensure exercises_done exists
+        if "exercises_done" not in entry:
+            entry["exercises_done"] = []
+        
+        # Add exercise ID if not already present
+        if exercise_id not in entry["exercises_done"]:
+            entry["exercises_done"].append(exercise_id)
+        
+        # Save to file
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with self.file_path.open("w") as file:
+                json.dump(self.current_progress, file, indent=2)
+            return True
+        except OSError as e:
+            raise IOError(f"Error writing progress: {self.file_path}") from e
+
+    def get_completed_exercises(self, date_str: str) -> list[str]:
+        """Get list of completed exercise IDs for a specific date.
+
+        Given: A date string
+        When: Retrieving completed exercises
+        Then: Returns list of exercise IDs completed on that date
+
+        Args:
+            date_str: Date in YYYY-MM-DD format
+
+        Returns:
+            List of exercise IDs completed on that date, empty list if none
+        """
+        # Load current progress if not loaded
+        if not self.current_progress:
+            self.load_progress()
+
+        # Find entry for this date
+        for entry in self.current_progress:
+            if entry.get("date") == date_str:
+                return entry.get("exercises_done", []).copy()
+        
+        return []
+
+    def is_exercise_completed(self, date_str: str, exercise_id: str) -> bool:
+        """Check if a specific exercise was completed on a given date.
+
+        Given: A date and exercise ID
+        When: Checking completion status
+        Then: Returns True if exercise was completed on that date
+
+        Args:
+            date_str: Date in YYYY-MM-DD format
+            exercise_id: Unique identifier for the exercise
+
+        Returns:
+            True if exercise was completed on that date, False otherwise
+        """
+        completed = self.get_completed_exercises(date_str)
+        return exercise_id in completed
+
 
 class MetricsManager:
     """Manage aggregated metrics with JSON file persistence.
@@ -422,7 +517,7 @@ class MetricsManager:
 
         return streak
 
-    def get_average_time(self, progress_data: list, last_n_days: int = None) -> float:
+    def get_average_time(self, progress_data: list, last_n_days: int | None = None) -> float:
         """Calculate average time per day from progress data.
 
         Args:
