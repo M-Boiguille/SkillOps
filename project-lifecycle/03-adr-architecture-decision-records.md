@@ -1,9 +1,9 @@
 # ADR - Architecture Decision Records
 ## SkillOps Learning Management System
 
-**Version:** 1.0  
-**Date:** 9 janvier 2026  
-**Tech Lead:** MB (DevOps Engineer)  
+**Version:** 1.0
+**Date:** 9 janvier 2026
+**Tech Lead:** MB (DevOps Engineer)
 **Status:** Approved
 
 ---
@@ -35,7 +35,7 @@ Les Architecture Decision Records (ADRs) documentent **pourquoi** certaines déc
 
 ## ADR-001: Choix du Langage de Programmation
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -117,7 +117,7 @@ Nous devons choisir un langage de programmation pour développer SkillOps CLI. L
 
 ## ADR-002: Interface CLI vs Web Application
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -195,7 +195,7 @@ Nous devons choisir le type d'interface pour SkillOps. L'utilisateur (moi) doit 
 
 ## ADR-003: Framework CLI (Typer vs Click vs Argparse)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -262,7 +262,7 @@ Besoin d'un framework pour construire le CLI avec :
 
 ## ADR-004: Persistence des Données (JSON vs SQLite vs PostgreSQL)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -347,7 +347,7 @@ storage/
 
 ## ADR-005: Gestion des Secrets (dotenv vs Vault vs Cloud Secrets)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -442,7 +442,7 @@ TELEGRAM_BOT_TOKEN=123456:ABC
 
 ## ADR-006: Architecture Pattern (State Machine vs Event-Driven)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -505,11 +505,11 @@ class Step(Enum):
 class StateMachine:
     def __init__(self, state_file: Path):
         self.current_step = self.load_state()
-    
+
     def next_step(self) -> Step:
         # Transition logic
         pass
-    
+
     def complete_step(self, step: Step):
         # Save progress, move to next
         pass
@@ -537,7 +537,7 @@ class StateMachine:
 
 ## ADR-007: Testing Strategy (Pytest vs Unittest)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -618,7 +618,7 @@ tests/
 
 ## ADR-008: CI/CD Platform (GitHub Actions vs GitLab CI vs Jenkins)
 
-**Date:** 2026-01-09  
+**Date:** 2026-01-09
 **Statut:** ✅ Approuvé
 
 ### Contexte
@@ -741,7 +741,7 @@ Maintenant que les décisions techniques sont documentées, nous pouvons :
 
 ---
 
-**Status:** Approved - Ready for Sprint Planning  
+**Status:** Approved - Ready for Sprint Planning
 **Next Document:** [04-sprint-planning-sprint-1.md](04-sprint-planning-sprint-1.md)
 
 ---

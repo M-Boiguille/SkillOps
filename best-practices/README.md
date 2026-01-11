@@ -58,10 +58,10 @@ docs(readme): update installation instructions
 def test_function_behavior():
     # Arrange
     input_data = setup_test_data()
-    
+
     # Act
     result = function_under_test(input_data)
-    
+
     # Assert
     assert result == expected_value
 ```
@@ -105,5 +105,5 @@ CMD ["python", "main.py"]
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Projet :** SkillOps LMS

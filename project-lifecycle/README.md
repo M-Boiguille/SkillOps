@@ -238,10 +238,10 @@ Dans une vraie entreprise, chaque phase implique des rôles différents. Pour Sk
 
 **Pourquoi c'est important pour un recruteur ?**
 
-✅ **Démontre une vision 360°** : Je ne suis pas "juste un dev", je comprends le business, le produit, et l'infra  
-✅ **Culture DevOps** : Je casse les silos entre dev, ops, et produit  
-✅ **Autonomie** : Je sais structurer un projet de A à Z  
-✅ **Rigueur méthodologique** : Je ne code pas "au feeling", je suis un processus  
+✅ **Démontre une vision 360°** : Je ne suis pas "juste un dev", je comprends le business, le produit, et l'infra
+✅ **Culture DevOps** : Je casse les silos entre dev, ops, et produit
+✅ **Autonomie** : Je sais structurer un projet de A à Z
+✅ **Rigueur méthodologique** : Je ne code pas "au feeling", je suis un processus
 ✅ **Documentation** : Chaque décision est traçable et justifiée
 
 ---
@@ -316,9 +316,9 @@ Ce dossier prouve que je comprends :
 
 Si vous avez des questions sur ma méthodologie ou sur les choix effectués à chaque phase, n'hésitez pas à me contacter.
 
-**MB** - Apprenant DevOps  
-📧 [votre-email]  
-💼 [LinkedIn]  
+**MB** - Apprenant DevOps
+📧 [votre-email]
+💼 [LinkedIn]
 🐙 [GitHub]
 
 ---

@@ -1,10 +1,10 @@
 # URD - User Requirements Document
 ## SkillOps Learning Management System
 
-**Version:** 1.0  
-**Date:** 9 janvier 2026  
-**Product Owner:** MB  
-**Product Manager:** PM Team  
+**Version:** 1.0
+**Date:** 9 janvier 2026
+**Product Owner:** MB
+**Product Manager:** PM Team
 **Status:** Draft for Review
 
 ---
@@ -21,9 +21,9 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 
 ### Persona 1: L'Apprenant DevOps Autodidacte
 
-**Nom:** MB (Product Owner)  
-**Âge:** 35-45 ans  
-**Situation:** En reconversion professionnelle, apprend le DevOps sans mentor  
+**Nom:** MB (Product Owner)
+**Âge:** 35-45 ans
+**Situation:** En reconversion professionnelle, apprend le DevOps sans mentor
 **Environnement:** Ubuntu 22.04 LTS, travaille depuis un laptop
 
 **Pain Points:**
@@ -51,8 +51,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 ### 🔴 MUST HAVE (MVP - Sprint 1)
 
 #### US-001: Tracking de Formation
-**En tant qu'** apprenant DevOps  
-**Je veux** voir mon temps de code quotidien via WakaTime  
+**En tant qu'** apprenant DevOps
+**Je veux** voir mon temps de code quotidien via WakaTime
 **Afin de** valider que j'atteins mon quota de Xh minimum
 
 **Acceptance Criteria:**
@@ -62,15 +62,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Alerte si temps < 2h avant 17h
 - [ ] Gestion erreur API (rate limit, token invalide)
 
-**Priorité:** P0 (Critical)  
-**Estimation:** 5 points  
+**Priorité:** P0 (Critical)
+**Estimation:** 5 points
 **Dépendances:** Aucune
 
 ---
 
 #### US-002: Review des Métriques Quotidiennes
-**En tant qu'** apprenant DevOps  
-**Je veux** voir un résumé de ma journée d'hier  
+**En tant qu'** apprenant DevOps
+**Je veux** voir un résumé de ma journée d'hier
 **Afin de** mesurer ma progression et ajuster ma routine
 
 **Acceptance Criteria:**
@@ -80,15 +80,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Streak de jours consécutifs
 - [ ] Comparaison avec objectifs (vert si atteint, rouge sinon)
 
-**Priorité:** P0 (Critical)  
-**Estimation:** 3 points  
+**Priorité:** P0 (Critical)
+**Estimation:** 3 points
 **Dépendances:** Système de persistence (US-010)
 
 ---
 
 #### US-003: Exercices de Renforcement
-**En tant qu'** apprenant DevOps  
-**Je veux** accéder à des exercices pratiques sur le concept du jour  
+**En tant qu'** apprenant DevOps
+**Je veux** accéder à des exercices pratiques sur le concept du jour
 **Afin de** consolider mes connaissances par la pratique
 
 **Acceptance Criteria:**
@@ -97,15 +97,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Timer pour suivre le temps passé par exercice
 - [ ] Historique des exercices complétés
 
-**Priorité:** P0 (Critical)  
-**Estimation:** 3 points  
+**Priorité:** P0 (Critical)
+**Estimation:** 3 points
 **Dépendances:** Aucune
 
 ---
 
 #### US-010: Persistence des Données
-**En tant que** système  
-**Je dois** sauvegarder l'état et les métriques  
+**En tant que** système
+**Je dois** sauvegarder l'état et les métriques
 **Afin de** permettre la continuité entre les sessions
 
 **Acceptance Criteria:**
@@ -116,15 +116,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Lecture au démarrage
 - [ ] Écriture après chaque étape complétée
 
-**Priorité:** P0 (Critical)  
-**Estimation:** 3 points  
+**Priorité:** P0 (Critical)
+**Estimation:** 3 points
 **Dépendances:** Aucune
 
 ---
 
 #### US-011: Interface CLI Interactive
-**En tant qu'** utilisateur  
-**Je veux** naviguer dans l'outil avec des menus interactifs  
+**En tant qu'** utilisateur
+**Je veux** naviguer dans l'outil avec des menus interactifs
 **Afin de** ne pas avoir à mémoriser des commandes
 
 **Acceptance Criteria:**
@@ -134,8 +134,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Option "Quitter" dans chaque menu
 - [ ] Affichage coloré (Rich library) pour meilleure UX
 
-**Priorité:** P0 (Critical)  
-**Estimation:** 5 points  
+**Priorité:** P0 (Critical)
+**Estimation:** 5 points
 **Dépendances:** Aucune
 
 ---
@@ -143,8 +143,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 ### 🟡 SHOULD HAVE (Sprint 2)
 
 #### US-004: Génération Automatique de Flashcards
-**En tant qu'** apprenant DevOps  
-**Je veux** que le système génère des flashcards depuis mes notes  
+**En tant qu'** apprenant DevOps
+**Je veux** que le système génère des flashcards depuis mes notes
 **Afin de** gagner du temps sur la création manuelle
 
 **Acceptance Criteria:**
@@ -154,15 +154,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Export vers dossier Anki (sync automatique)
 - [ ] Affichage nombre de cartes générées
 
-**Priorité:** P1 (High)  
-**Estimation:** 8 points  
+**Priorité:** P1 (High)
+**Estimation:** 8 points
 **Dépendances:** Configuration path Obsidian
 
 ---
 
 #### US-005: Automatisation Portfolio GitHub => Exercices sur un projet capstone. Ces exercices ajoute des fonctionnalites ou de l'amelioration en fonction du niveau d'apprentissage pour finir avec un projet complet qui peut toucher tout ce que j'ai appris (nouvel US ou feature de celle ci ?)
-**En tant qu'** apprenant DevOps  
-**Je veux** que mes labs soient automatiquement commités sur GitHub  
+**En tant qu'** apprenant DevOps
+**Je veux** que mes labs soient automatiquement commités sur GitHub
 **Afin de** construire mon portfolio sans friction
 
 **Acceptance Criteria:**
@@ -172,15 +172,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Push vers GitHub avec token personnel
 - [ ] Confirmation visuelle du commit (hash + URL)
 
-**Priorité:** P1 (High)  
-**Estimation:** 8 points  
+**Priorité:** P1 (High)
+**Estimation:** 8 points
 **Dépendances:** Configuration GitHub token
 
 ---
 
 #### US-006: Notifications Telegram
-**En tant qu'** apprenant DevOps  
-**Je veux** recevoir un bilan quotidien sur Telegram  
+**En tant qu'** apprenant DevOps
+**Je veux** recevoir un bilan quotidien sur Telegram
 **Afin de** suivre ma progression sans ouvrir l'outil
 
 **Acceptance Criteria:**
@@ -191,8 +191,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Alerte si temps effectif/log est trop faible
 - [ ] Possibilité de désactiver les notifications
 
-**Priorité:** P1 (High)  
-**Estimation:** 5 points  
+**Priorité:** P1 (High)
+**Estimation:** 5 points
 **Dépendances:** Configuration Telegram Bot
 
 ---
@@ -200,8 +200,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 ### 🟢 COULD HAVE (Backlog)
 
 #### US-007: Q&A Assistée par IA
-**En tant qu'** apprenant DevOps  
-**Je veux** poser des questions sur mes cours via CLI  
+**En tant qu'** apprenant DevOps
+**Je veux** poser des questions sur mes cours via CLI
 **Afin de** approfondir ma compréhension avec l'IA
 
 **Acceptance Criteria:**
@@ -211,15 +211,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Sauvegarde Q&A dans fichier dédié
 - [ ] Historique des questions posées
 
-**Priorité:** P2 (Medium)  
-**Estimation:** 8 points  
+**Priorité:** P2 (Medium)
+**Estimation:** 8 points
 **Dépendances:** Gemini API key
 
 ---
 
 #### US-008: Méthode Zettelkasten
-**En tant qu'** apprenant DevOps  
-**Je veux** créer des notes atomiques liées entre elles  
+**En tant qu'** apprenant DevOps
+**Je veux** créer des notes atomiques liées entre elles
 **Afin de** construire un graphe de connaissances
 
 **Acceptance Criteria:**
@@ -229,15 +229,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Suggestion de liens basés sur mots-clés
 - [ ] Visualisation du graphe (futur)
 
-**Priorité:** P2 (Medium)  
-**Estimation:** 13 points  
+**Priorité:** P2 (Medium)
+**Estimation:** 13 points
 **Dépendances:** Obsidian sync
 
 ---
 
 #### US-009: Synthèse Quotidienne avec IA
-**En tant qu'** apprenant DevOps  
-**Je veux** qu'une IA génère un résumé de ma journée  
+**En tant qu'** apprenant DevOps
+**Je veux** qu'une IA génère un résumé de ma journée
 **Afin de** consolider mes apprentissages
 
 **Acceptance Criteria:**
@@ -247,15 +247,15 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Export vers journal Obsidian (format YAML frontmatter)
 - [ ] Temps génération < 5s
 
-**Priorité:** P2 (Medium)  
-**Estimation:** 5 points  
+**Priorité:** P2 (Medium)
+**Estimation:** 5 points
 **Dépendances:** Gemini API, Obsidian path
 
 ---
 
 #### US-012: Auto-évaluation vs IA
-**En tant qu'** apprenant DevOps  
-**Je veux** comparer ma note quotidienne avec l'évaluation de l'IA  
+**En tant qu'** apprenant DevOps
+**Je veux** comparer ma note quotidienne avec l'évaluation de l'IA
 **Afin de** identifier mes biais (trop dur/clément avec moi-même)
 
 **Acceptance Criteria:**
@@ -266,8 +266,8 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 - [ ] Historique des écarts sur 30 jours
 - [ ] Questionnaire "Daily though en fin de session, puis conseils pour se sentir mieux/progresser etc"
 
-**Priorité:** P2 (Medium)  
-**Estimation:** 8 points  
+**Priorité:** P2 (Medium)
+**Estimation:** 8 points
 **Dépendances:** Gemini API
 
 ---
@@ -451,7 +451,7 @@ Pour que le MVP soit considéré comme "DONE" :
 
 ---
 
-**Document Status:** Draft - Awaiting Review  
+**Document Status:** Draft - Awaiting Review
 **Next Steps:** Review by Tech Lead → Architecture Decision Records → Sprint Planning
 
 ---

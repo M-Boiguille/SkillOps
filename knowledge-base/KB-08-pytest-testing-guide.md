@@ -1,7 +1,7 @@
 # KB-08: Testing avec Pytest - Guide Complet
 
-**Date:** 11 janvier 2026  
-**Catégorie:** Testing & Quality Assurance  
+**Date:** 11 janvier 2026
+**Catégorie:** Testing & Quality Assurance
 **Tags:** #pytest #testing #python #tdd #coverage
 
 ---
@@ -47,10 +47,10 @@ tests/
 # ✅ Bon: Organisation claire par feature
 class TestMetricsManagerInit:
     """Test initialization and configuration."""
-    
+
 class TestLoadMetrics:
     """Test loading metrics from JSON file."""
-    
+
 class TestCalculateStreak:
     """Test streak calculation logic."""
 ```
@@ -71,7 +71,7 @@ def test_init_with_valid_path(tmp_path):
     """
     metrics_file = tmp_path / "test_metrics.json"
     manager = MetricsManager(metrics_file)
-    
+
     assert manager.file_path == metrics_file
 ```
 
@@ -122,11 +122,11 @@ def test_calculate_streak_broken_by_gap(tmp_path):
         # GAP: day-2 missing
         {"date": (today - timedelta(days=3)).strftime("%Y-%m-%d"), "steps": 8}
     ]
-    
+
     # WHEN
     manager = MetricsManager(tmp_path / "metrics.json")
     streak = manager.calculate_streak(progress_data)
-    
+
     # THEN
     assert streak == 2  # Stops at gap
 ```
@@ -144,11 +144,11 @@ def test_load_existing_metrics(tmp_path):
     metrics_file = tmp_path / "metrics.json"
     test_data = {"streak": 15, "avg_time": 3.5, "total_cards": 120}
     metrics_file.write_text(json.dumps(test_data))
-    
+
     # Act
     manager = MetricsManager(metrics_file)
     loaded = manager.load_metrics()
-    
+
     # Assert
     assert loaded == test_data
     assert loaded["streak"] == 15
@@ -218,7 +218,7 @@ def test_save_metrics_with_readonly_file(tmp_path):
     metrics_file = tmp_path / "readonly.json"
     metrics_file.write_text('{}')
     metrics_file.chmod(0o444)  # Read-only
-    
+
     manager = MetricsManager(metrics_file)
     with pytest.raises(IOError, match="Error writing metrics"):
         manager.save_metrics()
@@ -362,6 +362,6 @@ pytest-cov==7.0.0
 
 ---
 
-**Status:** Production Ready  
-**Maintenu par:** MB  
+**Status:** Production Ready
+**Maintenu par:** MB
 **Dernière mise à jour:** 11 janvier 2026

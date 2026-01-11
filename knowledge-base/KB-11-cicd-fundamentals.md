@@ -100,18 +100,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: pip install -r requirements.txt
-      
+
       - name: Run tests
         run: pytest --cov=lms --cov-report=xml
-      
+
       - name: Check coverage
         run: coverage report --fail-under=70
 
@@ -119,13 +119,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Format check
         run: black --check .
-      
+
       - name: Lint
         run: pylint lms/
-      
+
       - name: Type check
         run: mypy lms/
 
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Scan secrets
         run: gitleaks detect --verbose
 ```
@@ -194,16 +194,16 @@ git push origin feature/wakatime-integration
 
 ### Livres 📖
 
-1. **"Continuous Delivery"** - Jez Humble & David Farley  
-   → La bible du CD, patterns de déploiement  
+1. **"Continuous Delivery"** - Jez Humble & David Farley
+   → La bible du CD, patterns de déploiement
    → [Amazon](https://www.amazon.com/Continuous-Delivery-Deployment-Automation-Addison-Wesley/dp/0321601912)
 
-2. **"Accelerate"** - Nicole Forsgren, Jez Humble, Gene Kim  
-   → Métriques DevOps (DORA), corrélation CI/CD et performance  
+2. **"Accelerate"** - Nicole Forsgren, Jez Humble, Gene Kim
+   → Métriques DevOps (DORA), corrélation CI/CD et performance
    → [Amazon](https://www.amazon.com/Accelerate-Software-Performing-Technology-Organizations/dp/1942788339)
 
-3. **"The Phoenix Project"** - Gene Kim  
-   → Roman sur la transformation DevOps  
+3. **"The Phoenix Project"** - Gene Kim
+   → Roman sur la transformation DevOps
    → Illustre l'importance du CI/CD
 
 ### Articles & Guides 📝
@@ -271,7 +271,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest --cov=lms --cov-report=xml
       - run: coverage report --fail-under=70
-  
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -347,5 +347,5 @@ Développeur commit 2×/jour
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** 🚧 En cours d'implémentation dans SkillOps (Sprint 1, Jour 7)

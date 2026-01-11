@@ -36,10 +36,10 @@
 def test_calculate_average_returns_zero_for_empty_list():
     # Arrange
     numbers = []
-    
+
     # Act
     result = calculate_average(numbers)
-    
+
     # Assert
     assert result == 0
 ```
@@ -107,19 +107,19 @@ def calculate_streak(self, progress_data: list) -> int:
     """Calculate consecutive days from today/yesterday backward."""
     if not progress_data:
         return 0
-    
+
     # Sort by date descending
     sorted_data = sorted(
         progress_data,
         key=lambda x: x["date"],
         reverse=True
     )
-    
+
     # Count consecutive days
     streak = 0
     today = date.today()
     expected_date = today
-    
+
     for entry in sorted_data:
         entry_date = date.fromisoformat(entry["date"])
         if entry_date == expected_date:
@@ -131,7 +131,7 @@ def calculate_streak(self, progress_data: list) -> int:
             expected_date = entry_date - timedelta(days=1)
         else:
             break  # Gap found, stop counting
-    
+
     return streak
 ```
 
@@ -150,9 +150,9 @@ def test_fetch_user_data(mocker):
     # Mock external API
     mock_response = {"id": 1, "name": "Alice"}
     mocker.patch('requests.get', return_value=mock_response)
-    
+
     result = fetch_user_data(user_id=1)
-    
+
     assert result["name"] == "Alice"
 ```
 

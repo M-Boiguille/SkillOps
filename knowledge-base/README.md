@@ -8,7 +8,7 @@
 
 Ce dossier contient des fiches pédagogiques sur les **méthodologies, frameworks et bonnes pratiques** appliquées dans le développement de SkillOps. Chaque fiche est structurée pour un apprentissage rapide et efficace.
 
-**Public cible :** 
+**Public cible :**
 - Apprenants DevOps souhaitant comprendre les concepts au-delà des outils
 - Développeurs curieux de la méthodologie produit
 - Recruteurs voulant valider ma compréhension théorique

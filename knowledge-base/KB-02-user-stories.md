@@ -134,16 +134,16 @@ Afin de valider que j'atteins mon quota de 3h minimum
 
 ### Livres 📖
 
-1. **"User Stories Applied"** - Mike Cohn  
-   → Référence sur les user stories, INVEST, sizing  
+1. **"User Stories Applied"** - Mike Cohn
+   → Référence sur les user stories, INVEST, sizing
    → [Amazon](https://www.amazon.com/User-Stories-Applied-Software-Development/dp/0321205685)
 
-2. **"User Story Mapping"** - Jeff Patton  
-   → Organiser les stories en map pour vision d'ensemble  
+2. **"User Story Mapping"** - Jeff Patton
+   → Organiser les stories en map pour vision d'ensemble
    → [Amazon](https://www.amazon.com/User-Story-Mapping-Discover-Product/dp/1491904909)
 
-3. **"Specification by Example"** - Gojko Adzic  
-   → Acceptance Criteria sous forme d'exemples exécutables  
+3. **"Specification by Example"** - Gojko Adzic
+   → Acceptance Criteria sous forme d'exemples exécutables
    → [Amazon](https://www.amazon.com/Specification-Example-Successful-Deliver-Software/dp/1617290084)
 
 ### Articles & Templates 📝
@@ -271,5 +271,5 @@ Acceptance Criteria:
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** ✅ Concept appliqué dans SkillOps (19 stories définies)

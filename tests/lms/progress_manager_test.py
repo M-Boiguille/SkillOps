@@ -83,7 +83,8 @@ def test_get_yesterday_progress_returns_none_if_not_found(tmp_path):
     progress_file = tmp_path / "progress.json"
     pm = ProgressManager(progress_file)
 
-    progress_data = {"date": "2026-01-10", "steps": 5, "time": 120, "cards": 10}
+    # Use a date far in the future to ensure it's never "yesterday"
+    progress_data = {"date": "2099-12-31", "steps": 5, "time": 120, "cards": 10}
 
     pm.save_daily_progress(progress_data)
 

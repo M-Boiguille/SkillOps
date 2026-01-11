@@ -26,4 +26,3 @@ typer==0.21.1
 typing_extensions==4.15.0
 wcwidth==0.2.14
 xmod==1.8.1
-
