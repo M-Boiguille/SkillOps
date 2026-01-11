@@ -2,7 +2,10 @@
 
 > **Un Learning Management System (LMS) CLI intelligent pour orchestrer mon apprentissage DevOps avec IA, tracking automatique et notifications.**
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/M-Boiguille/SkillOps/actions/workflows/ci.yml/badge.svg)](https://github.com/M-Boiguille/SkillOps/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/M-Boiguille/SkillOps/branch/main/graph/badge.svg)](https://codecov.io/gh/M-Boiguille/SkillOps)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![DevOps](https://img.shields.io/badge/Focus-DevOps%20Learning-orange.svg)]()
 [![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
