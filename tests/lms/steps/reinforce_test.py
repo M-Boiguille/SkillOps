@@ -1,12 +1,8 @@
 """Tests pour l'étape Reinforce."""
 
-import os
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
-
-import pytest
-from rich.table import Table
+from unittest.mock import MagicMock, patch
 
 from src.lms.steps.reinforce import (
     display_exercises_table,

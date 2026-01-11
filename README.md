@@ -256,15 +256,41 @@ EOF
 # Installer avec dépendances de dev
 pip install -r requirements.txt
 
+# Configurer pre-commit hooks (recommandé)
+pip install pre-commit
+pre-commit install
+
 # Lancer les tests avec couverture
 pytest tests/ --cov=src/lms --cov-report=term-missing
 
 # Vérifier le code (linting)
 black src/ tests/           # Formatage
 mypy src/                   # Type checking
+flake8 src/ tests/          # Linting
+
+# Lancer les pre-commit hooks manuellement
+pre-commit run --all-files
 
 # Lancer le CLI en mode debug
 python src/lms/main.py --help
+```
+
+#### Pre-commit Hooks
+
+Le projet utilise des hooks pre-commit pour garantir la qualité du code :
+
+- **trailing-whitespace** : Supprime les espaces en fin de ligne
+- **end-of-file-fixer** : Ajoute une ligne vide en fin de fichier
+- **check-yaml** : Valide la syntaxe YAML
+- **check-toml** : Valide la syntaxe TOML
+- **black** : Formatage automatique du code Python
+- **flake8** : Vérification du style de code (PEP 8)
+- **mypy** : Vérification des types statiques
+
+Les hooks s'exécutent automatiquement à chaque commit. Pour forcer l'exécution manuelle :
+
+```bash
+pre-commit run --all-files
 ```
 
 ---

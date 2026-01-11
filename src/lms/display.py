@@ -5,13 +5,11 @@ progress bars, and formatted text used throughout the CLI.
 """
 
 from datetime import datetime
-from typing import Optional, Any
+from typing import Any
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
-from rich.layout import Layout
 from rich import box
 
 console = Console()

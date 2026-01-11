@@ -1,7 +1,7 @@
 """WakaTime API client for tracking coding statistics."""
 
 import os
-from datetime import datetime, date
+from datetime import date
 from typing import Optional
 import requests
 from requests.exceptions import RequestException, Timeout
