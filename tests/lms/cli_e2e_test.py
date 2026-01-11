@@ -154,22 +154,35 @@ class TestMainMenuIntegration:
 class TestExecuteStepIntegration:
     """Tests d'intégration pour execute_step()."""
 
-    @patch("src.lms.cli.console.print")
-    def test_execute_step_displays_step_info(self, mock_print):
+    @patch("src.lms.cli.review_step")
+    def test_execute_step_calls_implementation(self, mock_review):
         """
         Given: Un Step à exécuter
         When: Appel de execute_step()
-        Then: Affiche les informations de l'étape
+        Then: Appelle l'implémentation correspondante
         """
-        test_step = Step(1, "Test Step", "🧪", False)
+        test_step = Step(1, "Review", "📊", False)
 
         execute_step(test_step)
 
-        # Vérifier qu'on a affiché quelque chose
-        assert mock_print.called
+        # Vérifier qu'on a appelé la fonction
+        mock_review.assert_called_once()
 
+    @patch("src.lms.cli.review_step")
+    @patch("src.lms.cli.formation_step")
+    @patch("src.lms.cli.reinforce_step")
+    @patch("src.lms.cli.create_step")
+    @patch("src.lms.cli.share_step")
     @patch("src.lms.cli.console.print")
-    def test_execute_step_with_all_steps(self, mock_print):
+    def test_execute_step_with_all_steps(
+        self,
+        mock_print,
+        mock_share,
+        mock_create,
+        mock_reinforce,
+        mock_formation,
+        mock_review,
+    ):
         """
         Given: Toutes les étapes du workflow
         When: Exécution de chaque étape
@@ -177,7 +190,9 @@ class TestExecuteStepIntegration:
         """
         for step in STEPS:
             execute_step(step)
-            assert mock_print.called
+
+        # Vérifier que les implémentations réelles ont été appelées
+        assert mock_review.called or mock_formation.called or mock_print.called
 
 
 class TestEndToEndWorkflow:
@@ -208,8 +223,12 @@ class TestEndToEndWorkflow:
         assert step2 is None
 
     @patch("src.lms.cli.inquirer.prompt")
-    @patch("src.lms.cli.console.print")
-    def test_complete_workflow_multiple_steps(self, mock_print, mock_prompt):
+    @patch("src.lms.cli.review_step")
+    @patch("src.lms.cli.formation_step")
+    @patch("src.lms.cli.reinforce_step")
+    def test_complete_workflow_multiple_steps(
+        self, mock_reinforce, mock_formation, mock_review, mock_prompt
+    ):
         """
         Given: Workflow avec 3 étapes (Review → Formation → Reinforce → Quit)
         When: Navigation dans le menu
@@ -217,7 +236,7 @@ class TestEndToEndWorkflow:
         """
         mock_prompt.side_effect = [
             {"step": "1. 📊 Review"},
-            {"step": "2. 📚 Formation"},
+            {"step": "2. ⏱️ Formation"},
             {"step": "6. 💪 Reinforce"},
             {"step": "❌ Exit"},
         ]
@@ -233,6 +252,9 @@ class TestEndToEndWorkflow:
             execute_step(step)
 
         assert steps_executed == ["Review", "Formation", "Reinforce"]
+        mock_review.assert_called_once()
+        mock_formation.assert_called_once()
+        mock_reinforce.assert_called_once()
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")

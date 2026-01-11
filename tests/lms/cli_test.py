@@ -185,33 +185,44 @@ class TestMainMenu:
 class TestExecuteStep:
     """Tests for step execution."""
 
-    @patch("src.lms.cli.console.print")
-    def test_execute_step_displays_message(self, mock_print):
+    @patch("src.lms.cli.review_step")
+    def test_execute_step_calls_review(self, mock_review):
         """
-        Given: A valid step
+        Given: Step 1 (Review)
         When: Executing the step
-        Then: Console displays execution message
+        Then: Calls review_step function
         """
         step = Step(1, "Review", "📊")
 
         execute_step(step)
 
-        assert mock_print.call_count >= 2
+        mock_review.assert_called_once()
 
-    @patch("src.lms.cli.console.print")
-    def test_execute_step_includes_emoji(self, mock_print):
+    @patch("src.lms.cli.formation_step")
+    def test_execute_step_calls_formation(self, mock_formation):
         """
-        Given: A step with emoji
+        Given: Step 2 (Formation)
         When: Executing the step
-        Then: Emoji is included in the output
+        Then: Calls formation_step function
         """
         step = Step(2, "Formation", "⏱️")
 
         execute_step(step)
 
-        # Check that at least one call contains the emoji
-        calls_str = str(mock_print.call_args_list)
-        assert "⏱️" in calls_str or "Formation" in calls_str
+        mock_formation.assert_called_once()
+
+    @patch("src.lms.cli.reinforce_step")
+    def test_execute_step_calls_reinforce(self, mock_reinforce):
+        """
+        Given: Step 6 (Reinforce)
+        When: Executing the step
+        Then: Calls reinforce_step function
+        """
+        step = Step(6, "Reinforce", "💪")
+
+        execute_step(step)
+
+        mock_reinforce.assert_called_once()
 
 
 class TestStepsConstants:

@@ -12,6 +12,10 @@ from rich.panel import Panel
 from rich.text import Text
 import readchar
 
+from src.lms.steps import formation_step, reinforce_step, review_step
+from src.lms.steps.create import create_step
+from src.lms.steps.share import share_step
+
 console = Console()
 
 
@@ -137,14 +141,32 @@ def main_menu() -> Optional[Step]:
 
 
 def execute_step(step: Step) -> None:
-    """Execute a specific step.
-
-    This is a placeholder that will be implemented with actual step logic.
+    """Execute a specific step with its implementation.
 
     Args:
         step: The Step object to execute.
     """
-    console.print(
-        f"\n[green]Executing {step.emoji} {step.name}...[/green]", style="bold"
-    )
-    console.print(f"[dim]Step {step.number} implementation coming soon...[/dim]\n")
+    # Map step numbers to their implementations
+    step_map = {
+        1: review_step,  # Review
+        2: formation_step,  # Formation
+        3: lambda: console.print(
+            "[yellow]Anki step: Use Anki desktop app[/yellow]\n"
+        ),  # Anki
+        4: create_step,  # Create
+        5: lambda: console.print(
+            "[yellow]Read step: Review your Obsidian notes[/yellow]\n"
+        ),  # Read
+        6: reinforce_step,  # Reinforce
+        7: share_step,  # Share
+        8: lambda: console.print(
+            "[yellow]Reflection step: Daily journaling[/yellow]\n"
+        ),  # Reflection
+    }
+
+    # Execute the corresponding step
+    step_func = step_map.get(step.number)
+    if step_func:
+        step_func()  # type: ignore[operator]
+    else:
+        console.print(f"\n[red]Error: Step {step.number} not implemented[/red]\n")
