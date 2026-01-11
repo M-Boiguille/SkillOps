@@ -99,10 +99,28 @@ def create_step(
         )
         return False
 
-    # Generate and export
+    # Prepare storage and dedupe tracking before writing files
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    hashes_file = storage_dir / ".flashcard_hashes"
+    existing_hashes = set()
+    if hashes_file.exists():
+        try:
+            existing_hashes = set(hashes_file.read_text().strip().split("\n"))
+        except OSError:
+            pass
+
     generator = AnkiMarkdownGenerator(deck_name="SkillOps")
     today = datetime.now().strftime("%Y-%m-%d")
     deck_file = anki_dir / f"skillops-{today}.txt"
+
+    # If today's deck already exists with a known hash, skip regeneration
+    if deck_file.exists():
+        existing_hash = compute_file_hash(deck_file)
+        if existing_hash and existing_hash in existing_hashes:
+            console.print(
+                "[yellow]Flashcards unchanged from last generation.[/yellow]\n"
+            )
+            return True
 
     if not generator.generate_deck_file(flashcards, str(deck_file), format_type="tsv"):
         console.print(f"[red]Failed to write deck file: {deck_file}[/red]\n")
@@ -110,15 +128,6 @@ def create_step(
 
     # Check for duplicates
     deck_hash = compute_file_hash(deck_file)
-    hashes_file = storage_dir / ".flashcard_hashes"
-    storage_dir.mkdir(parents=True, exist_ok=True)
-
-    existing_hashes = set()
-    if hashes_file.exists():
-        try:
-            existing_hashes = set(hashes_file.read_text().strip().split("\n"))
-        except OSError:
-            pass
 
     if deck_hash in existing_hashes:
         console.print("[yellow]Flashcards unchanged from last generation.[/yellow]\n")

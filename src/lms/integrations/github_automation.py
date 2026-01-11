@@ -109,6 +109,18 @@ class GitHubAutomation:
             console.print(f"[red]Error creating commit: {e}[/red]")
             return False
 
+    def repository_exists(self, repo_name: str) -> bool:
+        """Check if a repository already exists for the authenticated user."""
+        try:
+            response = requests.get(
+                f"{self.github_api_base}/repos/{self.github_username}/{repo_name}",
+                headers=self.headers,
+                timeout=5,
+            )
+            return response.status_code == 200
+        except requests.RequestException:
+            return False
+
     def create_remote_repository(
         self,
         repo_name: str,

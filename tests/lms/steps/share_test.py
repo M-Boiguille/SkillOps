@@ -72,6 +72,7 @@ def test_share_step_with_new_project(mock_detector, mock_generator, mock_automat
 
     # Setup automation
     mock_automation_instance = MagicMock()
+    mock_automation_instance.repository_exists.return_value = False
     mock_automation_instance.init_repository.return_value = True
     mock_automation_instance.create_commit.return_value = True
     mock_automation_instance.create_remote_repository.return_value = {
@@ -115,6 +116,43 @@ def test_share_step_skips_existing_project(
 
     # Should return True because no errors occurred
     assert success is True
+
+
+@patch("src.lms.steps.share.GitHubAutomation")
+@patch("src.lms.steps.share.ReadmeGenerator")
+@patch("src.lms.steps.share.LabProjectDetector")
+def test_share_step_skips_existing_remote(
+    mock_detector, mock_generator, mock_automation
+):
+    """Share step should be idempotent when repository already exists."""
+    project_path = Path("/tmp/labs/test_project")
+    mock_detector_instance = MagicMock()
+    mock_detector_instance.scan_labs_directory.return_value = [project_path]
+    mock_detector_instance.is_new_project.return_value = True
+    mock_detector_instance.get_project_metadata.return_value = {
+        "name": "test_project",
+        "description": "Test",
+        "tech_stack": [],
+    }
+    mock_detector.return_value = mock_detector_instance
+
+    mock_generator_instance = MagicMock()
+    mock_generator_instance.write_readme.return_value = True
+    mock_generator.return_value = mock_generator_instance
+
+    mock_automation_instance = MagicMock()
+    mock_automation_instance.repository_exists.return_value = True
+    mock_automation.return_value = mock_automation_instance
+
+    success = share_step(
+        labs_path="/tmp/labs",
+        github_token="test_token",
+        github_username="test_user",
+    )
+
+    assert success is True
+    mock_automation_instance.create_remote_repository.assert_not_called()
+    mock_automation_instance.push_to_github.assert_not_called()
 
 
 @patch("src.lms.steps.share.GitHubAutomation")

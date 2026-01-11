@@ -138,6 +138,14 @@ def share_step(
                         progress.advance(task_id)
                         continue
 
+                    # Skip if repository already exists to keep operation idempotent
+                    if automation.repository_exists(metadata["name"]):
+                        console.print(
+                            f"  [dim]Repository already exists: {metadata['name']} (skipped)[/dim]"
+                        )
+                        progress.advance(task_id)
+                        continue
+
                     # Create GitHub repository
                     progress.update(
                         task_id,

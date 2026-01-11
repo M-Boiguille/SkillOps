@@ -84,11 +84,24 @@ def notify_step(
         return False
 
     storage_dir = storage_path or get_storage_path()
+    storage_dir.mkdir(parents=True, exist_ok=True)
     progress_file = storage_dir / "progress.json"
+    sent_marker = storage_dir / ".notify_sent"
 
     progress_manager = ProgressManager(progress_file)
     all_progress = progress_manager.load_progress()
     today_date = progress_manager.get_today_date()
+
+    # Avoid sending the same notification multiple times per day
+    if sent_marker.exists():
+        try:
+            if sent_marker.read_text().strip() == today_date:
+                console.print(
+                    "[dim]Notification already sent for today (skipped).[/dim]\n"
+                )
+                return True
+        except OSError:
+            pass
     today_progress = progress_manager.get_progress_by_date(today_date)
 
     if not today_progress:
@@ -114,6 +127,10 @@ def notify_step(
 
     if sent:
         console.print("[green]Telegram notification sent successfully![/green]\n")
+        try:
+            sent_marker.write_text(today_date)
+        except OSError:
+            pass
     else:
         console.print("[red]Telegram send failed (response not ok).[/red]\n")
 
