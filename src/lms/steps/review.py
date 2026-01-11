@@ -6,8 +6,8 @@ including completed steps, time coded, cards created, and current streak.
 
 from pathlib import Path
 from datetime import datetime, timedelta
-from lms.persistence import MetricsManager, ProgressManager
-from lms.display import (
+from src.lms.persistence import MetricsManager, ProgressManager
+from src.lms.display import (
     create_metrics_table,
     create_step_summary_table,
     display_section_header,

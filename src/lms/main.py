@@ -1,7 +1,7 @@
 """Main entry point for SkillOps LMS CLI application."""
 
 import typer
-from lms.cli import main_menu, execute_step
+from src.lms.cli import main_menu, execute_step
 
 app = typer.Typer(
     name="skillops",
