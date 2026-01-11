@@ -28,7 +28,9 @@ def get_storage_path() -> Path:
     Returns:
         Path: Chemin absolu vers le répertoire de stockage
     """
-    storage_path_str = os.getenv("STORAGE_PATH", str(Path.home() / ".local/share/skillops"))
+    storage_path_str = os.getenv(
+        "STORAGE_PATH", str(Path.home() / ".local/share/skillops")
+    )
     return Path(storage_path_str).expanduser().absolute()
 
 
@@ -80,7 +82,9 @@ def display_exercises_table(exercises: List[Dict[str, str]]) -> None:
     Args:
         exercises: Liste des exercices à afficher
     """
-    table = Table(title="📝 Exercices disponibles", show_header=True, header_style="bold cyan")
+    table = Table(
+        title="📝 Exercices disponibles", show_header=True, header_style="bold cyan"
+    )
     table.add_column("ID", style="cyan", width=20)
     table.add_column("Titre", style="white", width=40)
     table.add_column("Difficulté", style="yellow", width=15)
@@ -174,7 +178,9 @@ def save_exercise_progress(
         exercises.append(exercise_data)
 
     # Mettre à jour le temps total
-    progress["reinforce"]["total_time"] = sum(ex["duration_seconds"] for ex in exercises)
+    progress["reinforce"]["total_time"] = sum(
+        ex["duration_seconds"] for ex in exercises
+    )
 
     # Sauvegarder
     progress_manager.save(today, progress)
@@ -194,7 +200,9 @@ def record_exercise_session(exercise: Dict[str, str], storage_path: Path) -> Non
         f"Durée estimée : {exercise['estimated_time']}",
     )
 
-    console.print("\n[cyan]Appuyez sur Entrée quand vous avez terminé l'exercice...[/cyan]")
+    console.print(
+        "\n[cyan]Appuyez sur Entrée quand vous avez terminé l'exercice...[/cyan]"
+    )
     start_time = datetime.now()
     input()  # Attendre que l'utilisateur appuie sur Entrée
 
@@ -202,7 +210,9 @@ def record_exercise_session(exercise: Dict[str, str], storage_path: Path) -> Non
     duration = int((end_time - start_time).total_seconds())
 
     # Demander si l'exercice est terminé
-    completed = Confirm.ask("\n✅ Avez-vous terminé l'exercice avec succès ?", default=True)
+    completed = Confirm.ask(
+        "\n✅ Avez-vous terminé l'exercice avec succès ?", default=True
+    )
 
     # Sauvegarder la progression
     save_exercise_progress(

@@ -86,9 +86,7 @@ def calculate_metrics_from_progress(
     )
 
     # Calculate total time
-    total_time = sum(
-        step_data.get("time_spent", 0) for step_data in steps.values()
-    )
+    total_time = sum(step_data.get("time_spent", 0) for step_data in steps.values())
 
     # Get cards created
     cards_created = progress_data.get("cards_created", 0)
@@ -144,9 +142,7 @@ def review_step(storage_path: Path = Path("storage")) -> None:
     metrics = calculate_metrics_from_progress(yesterday_progress, all_progress)
 
     # Display date header
-    console.print(
-        f"[bold cyan]Date:[/bold cyan] {format_date(yesterday_datetime)}\n"
-    )
+    console.print(f"[bold cyan]Date:[/bold cyan] {format_date(yesterday_datetime)}\n")
 
     # Display metrics table
     metrics_table = create_metrics_table(metrics)
@@ -165,11 +161,8 @@ def review_step(storage_path: Path = Path("storage")) -> None:
             "[bold green]🎉 Excellent work! You completed almost all steps![/bold green]\n"
         )
     elif metrics["steps_completed"] >= 5:
-        console.print(
-            "[bold yellow]👍 Good progress! Keep it up![/bold yellow]\n"
-        )
+        console.print("[bold yellow]👍 Good progress! Keep it up![/bold yellow]\n")
     else:
         console.print(
             "[yellow]There's room for improvement. Try to complete more steps today![/yellow]\n"
         )
-

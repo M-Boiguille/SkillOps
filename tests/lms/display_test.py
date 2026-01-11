@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import patch, MagicMock
 from rich.table import Table
 from rich.progress import Progress
-from lms.display import (
+from src.lms.display import (
     create_metrics_table,
     create_step_summary_table,
     display_success_message,

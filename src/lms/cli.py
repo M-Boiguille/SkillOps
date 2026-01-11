@@ -124,6 +124,4 @@ def execute_step(step: Step) -> None:
     console.print(
         f"\n[green]Executing {step.emoji} {step.name}...[/green]", style="bold"
     )
-    console.print(
-        f"[dim]Step {step.number} implementation coming soon...[/dim]\n"
-    )
+    console.print(f"[dim]Step {step.number} implementation coming soon...[/dim]\n")

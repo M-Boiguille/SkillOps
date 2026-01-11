@@ -13,4 +13,3 @@ __all__ = [
     "WakaTimeAuthError",
     "WakaTimeRateLimitError",
 ]
-

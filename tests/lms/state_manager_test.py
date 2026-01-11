@@ -1,6 +1,6 @@
 import pytest
 
-from lms.persistence import StateManager
+from src.lms.persistence import StateManager
 
 
 def test_load_state_creates_default_if_file_does_not_exist(tmp_path):
@@ -72,15 +72,15 @@ def test_permission_error_on_read(tmp_path):
     """Test that IOError wraps PermissionError when file can't be read."""
     state_file = tmp_path / "state.yaml"
     state_file.write_text("session_id: test\nstep_id: 1\ntimestamp: 123\n")
-    
+
     # Make file unreadable (only works on Unix-like systems)
     state_file.chmod(0o000)
-    
+
     sm = StateManager(state_file)
-    
+
     with pytest.raises(IOError, match="Error loading state"):
         sm.load_state()
-    
+
     # Cleanup: restore permissions for tmp_path cleanup
     state_file.chmod(0o644)
 
@@ -89,16 +89,16 @@ def test_permission_error_on_write(tmp_path):
     """Test that IOError wraps PermissionError when file can't be written."""
     state_file = tmp_path / "state.yaml"
     state_file.write_text("session_id: test\nstep_id: 1\ntimestamp: 123\n")
-    
+
     sm = StateManager(state_file)
     sm.load_state()
-    
+
     # Make file read-only
     state_file.chmod(0o444)
-    
+
     with pytest.raises(IOError, match="Error writing state"):
         sm.save_state()
-    
+
     # Cleanup: restore permissions for tmp_path cleanup
     state_file.chmod(0o644)
 
@@ -143,9 +143,9 @@ def test_load_state_with_invalid_yaml(tmp_path):
     """Test that load_state creates default state when YAML is invalid."""
     state_file = tmp_path / "state.yaml"
     state_file.write_text("invalid: yaml: content: [[[")
-    
+
     sm = StateManager(state_file)
-    
+
     with pytest.raises(IOError, match="Error loading state"):
         sm.load_state()
 
@@ -154,14 +154,14 @@ def test_save_state_creates_parent_directories(tmp_path):
     """Test that save_state creates parent directories if they don't exist."""
     nested_path = tmp_path / "nested" / "path" / "state.yaml"
     sm = StateManager(nested_path)
-    
+
     sm.current_state = {
         "session_id": "test",
         "step_id": "1",
         "timestamp": "123",
     }
     sm.save_state()
-    
+
     assert nested_path.exists()
     assert nested_path.parent.exists()
 
@@ -171,10 +171,10 @@ def test_template_independence(tmp_path):
     state_file = tmp_path / "state.yaml"
     sm = StateManager(state_file)
     sm.load_state()  # Creates a copy of template
-    
+
     original_template = sm.template.copy()
     sm.current_state["session_id"] = "modified"
-    
+
     # Template should remain unchanged
     assert sm.template == original_template
     assert sm.template["session_id"] is None
@@ -189,14 +189,15 @@ def test_get_current_state_returns_none_initially():
 def test_load_state_with_incomplete_state(tmp_path):
     """Test that incomplete state is replaced with template."""
     state_file = tmp_path / "state.yaml"
-    state_file.write_text("session_id: test_session\nstep_id: step_1\n")  # Missing timestamp
-    
+    state_file.write_text(
+        "session_id: test_session\nstep_id: step_1\n"
+    )  # Missing timestamp
+
     sm = StateManager(state_file)
     sm.load_state()
-    
+
     assert sm.get_current_state() == {
         "session_id": None,
         "step_id": None,
         "timestamp": None,
     }
-
