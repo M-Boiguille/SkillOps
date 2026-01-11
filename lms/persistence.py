@@ -11,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 STORAGE_DIR = BASE_DIR / "storage"
 STATE_FILE = STORAGE_DIR / ".state.yaml"
 PROGRESS_FILE = STORAGE_DIR / ".progress.json"
+METRICS_FILE = STORAGE_DIR / ".metrics.json"
 
 
 class StateManager:
@@ -326,3 +327,170 @@ class ProgressManager:
         """
         yesterday = date.today() - timedelta(days=1)
         return yesterday.strftime("%Y-%m-%d")
+
+
+class MetricsManager:
+    """Manage aggregated metrics with JSON file persistence.
+    
+    Responsibilities:
+    - Calculate streak (consecutive days of activity)
+    - Calculate average time per day
+    - Calculate total cards created
+    - Update aggregated metrics from progress history
+    - Provide metrics for Review step display
+    """
+
+    def __init__(self, path=METRICS_FILE):
+        """Initialize MetricsManager with file path.
+
+        Args:
+            path: Path to metrics file (default: storage/.metrics.json)
+        """
+        self.file_path = Path(path)
+        self.current_metrics: dict = {"streak": 0, "avg_time": 0.0, "total_cards": 0}
+
+    def load_metrics(self) -> dict:
+        """Load metrics from JSON file.
+
+        Returns:
+            Dict with streak, avg_time, total_cards or defaults if file doesn't exist
+        """
+        if not self.file_path.exists():
+            return {"streak": 0, "avg_time": 0.0, "total_cards": 0}
+
+        try:
+            with self.file_path.open("r") as file:
+                content = file.read().strip()
+                if not content:
+                    return {"streak": 0, "avg_time": 0.0, "total_cards": 0}
+                
+                metrics = json.loads(content)
+                # Fill missing fields with defaults
+                default = {"streak": 0, "avg_time": 0.0, "total_cards": 0}
+                return {**default, **metrics}
+        except (json.JSONDecodeError, OSError):
+            return {"streak": 0, "avg_time": 0.0, "total_cards": 0}
+
+    def save_metrics(self) -> None:
+        """Save current metrics to JSON file with pretty formatting."""
+        # Create parent directory if it doesn't exist
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            with self.file_path.open("w") as file:
+                json.dump(self.current_metrics, file, indent=2)
+        except OSError as e:
+            raise IOError(f"Error writing metrics: {self.file_path}") from e
+
+    def calculate_streak(self, progress_data: list) -> int:
+        """Calculate consecutive days of activity ending today or yesterday.
+
+        Args:
+            progress_data: List of progress entries [{date, steps, time, cards}, ...]
+
+        Returns:
+            Number of consecutive days with activity
+        """
+        if not progress_data:
+            return 0
+
+        # Sort by date descending (most recent first)
+        sorted_progress = sorted(
+            progress_data,
+            key=lambda x: x.get("date", ""),
+            reverse=True
+        )
+
+        today = date.today()
+        streak = 0
+        expected_date = today
+
+        for entry in sorted_progress:
+            entry_date = date.fromisoformat(entry.get("date", ""))
+            
+            if entry_date == expected_date:
+                streak += 1
+                expected_date = expected_date - timedelta(days=1)
+            elif entry_date == expected_date - timedelta(days=1):
+                # Allow for today not having progress yet
+                expected_date = entry_date
+                streak += 1
+                expected_date = expected_date - timedelta(days=1)
+            else:
+                # Gap found, stop counting
+                break
+
+        return streak
+
+    def get_average_time(self, progress_data: list, last_n_days: int = None) -> float:
+        """Calculate average time per day from progress data.
+
+        Args:
+            progress_data: List of progress entries [{date, steps, time, cards}, ...]
+            last_n_days: If provided, only average last N days (default: all days)
+
+        Returns:
+            Average time in hours as float, rounded to 2 decimals
+        """
+        if not progress_data:
+            return 0.0
+
+        # Filter to last N days if specified
+        if last_n_days:
+            sorted_progress = sorted(
+                progress_data,
+                key=lambda x: x.get("date", ""),
+                reverse=True
+            )
+            progress_data = sorted_progress[:last_n_days]
+
+        total_time = sum(entry.get("time", 0.0) for entry in progress_data)
+        count = len(progress_data)
+
+        if count == 0:
+            return 0.0
+
+        return round(total_time / count, 2)
+
+    def get_total_cards(self, progress_data: list) -> int:
+        """Calculate total cards created from progress data.
+
+        Args:
+            progress_data: List of progress entries [{date, steps, time, cards}, ...]
+
+        Returns:
+            Sum of all cards created across all days
+        """
+        if not progress_data:
+            return 0
+
+        return sum(entry.get("cards", 0) for entry in progress_data)
+
+    def update_metrics(self, progress_data: list) -> None:
+        """Update all metrics from progress data and save to file.
+
+        Args:
+            progress_data: List of progress entries from ProgressManager
+        """
+        self.current_metrics = {
+            "streak": self.calculate_streak(progress_data),
+            "avg_time": self.get_average_time(progress_data),
+            "total_cards": self.get_total_cards(progress_data)
+        }
+        self.save_metrics()
+
+    def get_metrics_summary(self) -> dict:
+        """Get formatted metrics summary for display.
+
+        Returns:
+            Dict with metrics including formatted time string
+        """
+        avg_hours = self.current_metrics.get("avg_time", 0.0)
+        hours = int(avg_hours)
+        minutes = int((avg_hours - hours) * 60)
+        
+        return {
+            **self.current_metrics,
+            "avg_time_formatted": f"{hours}h {minutes:02d}min"
+        }
+
