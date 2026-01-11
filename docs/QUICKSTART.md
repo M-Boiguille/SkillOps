@@ -167,6 +167,14 @@ Verify tokens are valid by running:
 skillops health
 ```
 
+### See detailed logs
+
+Add `--verbose` (or `-v`) to any command to show debug logs, useful for tracing API calls and git operations:
+```bash
+skillops share --verbose --labs-path ./labs --github-username YOUR_USER
+skillops notify --verbose --storage-path ./storage
+```
+
 ### Test failures
 
 Check Python version:
