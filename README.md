@@ -136,20 +136,115 @@ Ce dossier démontre ma compréhension du cycle de développement logiciel en en
 
 ## 🚀 Installation (Prévu)
 
+### Prérequis
+
+- **Python 3.11+** (vérifier avec `python --version`)
+- **Git** pour cloner le repository
+- **pip** pour gérer les dépendances
+
+### Installation Rapide
+
 ```bash
-# Cloner le repository
-git clone https://github.com/votre-username/SkillOps.git
+# 1. Cloner le repository
+git clone https://github.com/M-Boiguille/SkillOps.git
 cd SkillOps
 
-# Installer les dépendances
+# 2. Créer un environnement virtuel (recommandé)
+python -m venv .venv
+
+# 3. Activer l'environnement virtuel
+# Linux/macOS:
+source .venv/bin/activate
+# Windows:
+.venv\Scripts\activate
+
+# 4. Installer les dépendances
 pip install -r requirements.txt
 
-# Configuration
-cp config.yaml.example config.yaml
-# Éditer config.yaml avec vos API keys
+# 5. Vérifier l'installation
+python -m pytest tests/ -v
 
-# Lancer le CLI
-python main.py start
+# 6. Configuration des secrets (optionnel pour dev)
+cp .env.example .env
+# Éditer .env avec vos API keys (WakaTime, Gemini, GitHub, Telegram)
+
+# 7. Lancer le CLI
+python src/lms/main.py
+```
+
+### Structure du Projet
+
+```
+SkillOps/
+├── src/
+│   └── lms/                  # Package principal
+│       ├── __init__.py
+│       ├── main.py           # Point d'entrée CLI
+│       └── persistence.py    # Gestion état & métriques
+├── tests/
+│   └── lms/                  # Tests unitaires
+│       ├── metrics_manager_test.py
+│       └── ...
+├── storage/                  # Données locales (gitignored)
+│   ├── .state.yaml          # État actuel
+│   ├── .progress.json       # Historique
+│   └── .metrics.json        # Métriques agrégées
+├── project-lifecycle/        # Documentation projet
+│   ├── 01-product-discovery.md
+│   ├── 02-urd-user-requirements.md
+│   ├── 03-adr-architecture-decisions.md
+│   └── 04-sprint-planning-sprint-1.md
+├── requirements.txt          # Dépendances Python
+├── pyproject.toml           # Configuration projet
+└── README.md                # Documentation principale
+```
+
+### Dépendances Principales
+
+| Package | Version | Usage |
+|---------|---------|-------|
+| **typer** | 0.21.1 | Framework CLI avec type hints |
+| **rich** | 14.2.0 | UI terminal (couleurs, tableaux) |
+| **inquirer** | 3.4.0 | Menus interactifs |
+| **pytest** | 9.0.2 | Framework de tests |
+| **pytest-cov** | 7.0.0 | Coverage des tests |
+| **PyYAML** | 6.0.3 | Parsing YAML (état) |
+
+Voir [requirements.txt](requirements.txt) pour la liste complète.
+
+### Configuration des API Keys (Optionnel)
+
+Pour utiliser les intégrations API complètes :
+
+```bash
+# Créer un fichier .env à la racine
+cat > .env << EOF
+WAKATIME_API_KEY=waka_xxxxxxxxxxxxx
+GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxx
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxx
+TELEGRAM_BOT_TOKEN=123456:ABCdef
+EOF
+
+# Le fichier .env est automatiquement gitignored
+```
+
+**Note :** Le CLI fonctionne sans ces clés (mode offline pour développement).
+
+### Développement
+
+```bash
+# Installer avec dépendances de dev
+pip install -r requirements.txt
+
+# Lancer les tests avec couverture
+pytest tests/ --cov=src/lms --cov-report=term-missing
+
+# Vérifier le code (linting)
+black src/ tests/           # Formatage
+mypy src/                   # Type checking
+
+# Lancer le CLI en mode debug
+python src/lms/main.py --help
 ```
 
 ---
