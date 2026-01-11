@@ -1,6 +1,6 @@
 # SkillOps 🚀
 
-> **Un Learning Management System (LMS) CLI intelligent pour orchestrer mon apprentissage DevOps avec IA, tracking automatique et notifications.**
+> **An intelligent Learning Management System (LMS) CLI for orchestrating DevOps self-learning with AI, automatic tracking, and notifications.**
 
 [![CI](https://github.com/M-Boiguille/SkillOps/actions/workflows/ci.yml/badge.svg)](https://github.com/M-Boiguille/SkillOps/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/M-Boiguille/SkillOps/branch/main/graph/badge.svg)](https://codecov.io/gh/M-Boiguille/SkillOps)
@@ -8,13 +8,13 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![DevOps](https://img.shields.io/badge/Focus-DevOps%20Learning-orange.svg)]()
-[![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-276%2F276%20✓-brightgreen.svg)]()
 
 ---
 
-## 📖 Vue d'Ensemble
+## 📖 Overview
 
-**SkillOps** est un système d'apprentissage automatisé conçu pour optimiser ma routine quotidienne de formation DevOps. Plutôt que de gérer manuellement mon tracking, mes notes et mes révisions, j'ai construit un outil CLI qui orchestre intelligemment mes 8 étapes d'apprentissage quotidiennes.
+**SkillOps** is an automated learning management system designed to optimize daily DevOps training routines. Rather than manually managing tracking, notes, and revisions across 10 different tools, I built a CLI tool that intelligently orchestrates 8 learning steps using a state machine.
 
 ### 🎯 Le Problème Résolu
 
