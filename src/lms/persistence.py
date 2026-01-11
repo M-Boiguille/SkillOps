@@ -341,7 +341,10 @@ class ProgressManager:
             exercise_id: Unique identifier for the exercise
 
         Returns:
-            True if successfully added, False otherwise
+            True on successful save
+
+        Raises:
+            IOError: If file cannot be written
         """
         # Load current progress if not loaded
         if not self.current_progress:
