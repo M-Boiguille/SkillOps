@@ -1,0 +1,18 @@
+[Unit]
+Description=SkillOps Daily Learning Workflow Timer
+Documentation=https://github.com/your-org/SkillOps/blob/main/docs/SETUP_SYSTEMD.md
+Requires=skillops.timer
+
+[Timer]
+# Run daily at 8:00 AM
+OnCalendar=daily
+OnCalendar=*-*-* 08:00:00
+
+# Run on boot if it was supposed to run while offline
+Persistent=true
+
+# Run with a random delay (0-5 minutes) to avoid thundering herd
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
