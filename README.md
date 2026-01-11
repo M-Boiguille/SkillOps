@@ -161,16 +161,36 @@ source .venv/bin/activate
 # 4. Installer les dépendances
 pip install -r requirements.txt
 
-# 5. Vérifier l'installation
+# 5. Configuration des API keys (REQUIS)
+cp .env.example .env
+# Éditer .env et configurer au minimum :
+#   - WAKATIME_API_KEY (https://wakatime.com/settings/account)
+
+# 6. Vérifier l'installation
 python -m pytest tests/ -v
 
-# 6. Configuration des secrets (optionnel pour dev)
-cp .env.example .env
-# Éditer .env avec vos API keys (WakaTime, Gemini, GitHub, Telegram)
-
 # 7. Lancer le CLI
-python src/lms/main.py
+python src/lms/main.py start
 ```
+
+### 🔑 Configuration des API Keys
+
+**WakaTime (Obligatoire pour l'étape Formation)**
+
+1. Créer un compte sur [WakaTime](https://wakatime.com)
+2. Aller dans [Settings → Account](https://wakatime.com/settings/account)
+3. Copier votre "Secret API Key"
+4. Ajouter dans `.env` :
+   ```bash
+   WAKATIME_API_KEY=waka_XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+   ```
+
+**Autres APIs (Optionnelles - Prévues Sprint 2+)**
+- **Gemini AI** : Pour génération de questions/réponses contextuelles
+- **GitHub Token** : Pour automatisation du portfolio
+- **Telegram Bot** : Pour notifications quotidiennes
+
+Voir `.env.example` pour la liste complète.
 
 ### Structure du Projet
 
