@@ -36,7 +36,30 @@ Un **outil CLI Python** qui :
 
 ---
 
-## 🏗️ Architecture Système
+## 📊 Project Status
+
+### Sprint Progress
+
+| Sprint | Duration | Status | Features | Tests |
+|--------|----------|--------|----------|-------|
+| **Sprint 1** | 11 jan 2026 | ✅ COMPLETED | 5 core steps + state machine | 216/216 ✓ |
+| **Sprint 2** | 11 jan 2026 | ✅ COMPLETED | Telegram + Flashcards + GitHub | 276/276 ✓ |
+| **Sprint 3** | 12-18 jan 2026 | 🔄 IN PLANNING | UX Polish + Integration Tests | - |
+
+### Features Status
+
+- ✅ Review Metrics (Sprint 1)
+- ✅ Formation Tracking (Sprint 1)
+- ✅ Analysis with AI (Sprint 1)
+- ✅ Reinforcement (Sprint 1)
+- ✅ Zettelkasten Notes (Sprint 1)
+- ✅ **Flashcard Generation** (Sprint 2 - NEW!)
+- ✅ **Portfolio Automation** (Sprint 2 - NEW!)
+- ✅ **Daily Notifications** (Sprint 2 - NEW!)
+- 🔄 UX Polish (Sprint 3 - Coming Soon)
+- 🔄 DevOps Automation (Sprint 3 - Coming Soon)
+
+---
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -106,23 +129,209 @@ Ce dossier démontre ma compréhension du cycle de développement logiciel en en
 - Liens entre concepts
 
 ### 6️⃣ **Flashcards Generation** 🃏
-- Création automatique de cartes Anki depuis les notes
-- Export compatible avec Obsidian Spaced Repetition
-- Tags intelligents par sujet
+- ✅ **[SPRINT 2]** Création automatique de cartes Anki depuis notes Obsidian
+- ✅ **[SPRINT 2]** Export compatible avec Anki (format TSV)
+- ✅ **[SPRINT 2]** Déduplication par hash SHA256
+- Support 3 formats: `Q:/A:`, `Q::/A::`, inline `::`
+- Filtrage par tag `#flashcard`
+
+**Usage:**
+```bash
+skillops create --storage-path storage --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
+```
 
 ### 7️⃣ **Portfolio Automation** 🔧
-- Commits automatiques des projets sur GitHub
-- Génération de README pour chaque lab
-- Tracking des contributions
+- ✅ **[SPRINT 2]** Détection automatique des projets dans ~/labs/ sans remote
+- ✅ **[SPRINT 2]** Génération de README avec badges tech (Python, Node.js, Docker, etc.)
+- ✅ **[SPRINT 2]** Création de repo GitHub via API
+- ✅ **[SPRINT 2]** Git init, commit, push automatiques
+- Tech stack detection (package.json, requirements.txt, Dockerfile, etc.)
 
-### 8️⃣ **Daily Reflection** 🌅
-- Synthèse quotidienne avec IA
-- Export vers journal Obsidian
-- Identification des points d'amélioration
+**Usage:**
+```bash
+export GITHUB_TOKEN=ghp_xxxxx
+export GITHUB_USERNAME=your_username
+skillops share --labs-path ~/labs
+```
+
+### 8️⃣ **Daily Reflection & Notifications** 🌅
+- ✅ **[SPRINT 2]** Notifications quotidiennes Telegram avec bilans
+- ✅ **[SPRINT 2]** Format Markdown avec métriques (steps complétés, temps, streak)
+- ✅ **[SPRINT 2]** Respect du planning (envoie à l'heure prévue)
+- ✅ **[SPRINT 2]** Alertes si objectifs non atteints
+
+**Usage:**
+```bash
+export TELEGRAM_BOT_TOKEN=123456:ABC
+export TELEGRAM_CHAT_ID=987654321
+export TELEGRAM_SCHEDULE_TIME=20:00
+skillops notify --storage-path storage --respect-schedule
+```
 
 ---
 
-## 🛠️ Stack Technique (Provisoire)
+## � Feature Documentation
+
+### 🃏 Flashcard Generation (Sprint 2)
+
+Automatically create flashcards from your Obsidian vault:
+
+```bash
+# Setup
+export OBSIDIAN_VAULT_PATH=~/Obsidian
+export ANKI_SYNC_PATH=~/Anki/sync
+
+# Generate flashcards from vault
+skillops create --vault-path $OBSIDIAN_VAULT_PATH --anki-sync-path $ANKI_SYNC_PATH
+```
+
+**Features:**
+- Scans Obsidian vault for notes with `#flashcard` tag
+- Supports 3 markdown formats:
+  - `Q: question` / `A: answer`
+  - `Q:: question` / `A:: answer`
+  - Inline `question :: answer`
+- Deduplicates by SHA256 hash (no duplicate cards!)
+- Exports TSV format compatible with Anki
+
+**Example Obsidian note:**
+```markdown
+# Learning - Docker Basics
+
+#flashcard
+
+Q: What is a Docker image?
+A: A lightweight, standalone, executable package containing code, runtime, and dependencies.
+
+Q: Difference between image and container?
+A: Image = blueprint (immutable), Container = running instance (mutable)
+```
+
+Result: `skillops-YYYY-MM-DD.txt` in `ANKI_SYNC_PATH` ready for Anki import!
+
+---
+
+### 🚀 GitHub Portfolio Automation (Sprint 2)
+
+Automatically push lab projects to GitHub:
+
+```bash
+# Setup
+export GITHUB_TOKEN=ghp_xxxxxxxxx         # From https://github.com/settings/tokens
+export GITHUB_USERNAME=your_username
+export LABS_PATH=~/labs
+
+# Share projects to GitHub
+skillops share --labs-path $LABS_PATH
+```
+
+**What it does:**
+1. Scans `~/labs/` for project directories
+2. Detects projects without Git remote
+3. Generates professional `README.md` with:
+   - Auto-detected tech stack (Python, Node.js, Docker, Go, etc.)
+   - Tech badges (shields.io)
+   - Installation & usage sections
+4. Creates GitHub repository via API
+5. Initializes git, commits, and pushes
+
+**Example output:**
+```
+Found 3 projects
+Processing: my-python-cli
+  ✓ Generated README.md
+  ✓ Initialized git repository
+  ✓ Created commit: "Initial commit"
+  ✓ Created GitHub repository
+  ✓ Pushed to origin
+✓ my-python-cli: https://github.com/user/my-python-cli
+
+Processing: node-api-server
+✓ node-api-server: https://github.com/user/node-api-server
+```
+
+**Auto-detected tech stacks:**
+- Python (requirements.txt, setup.py)
+- Node.js (package.json)
+- Docker (Dockerfile, docker-compose.yml)
+- Go (go.mod)
+- Terraform (terraform/)
+- And more!
+
+---
+
+### 📱 Daily Telegram Notifications (Sprint 2)
+
+Get daily progress summaries via Telegram:
+
+```bash
+# Setup
+export TELEGRAM_BOT_TOKEN=123456:ABCdef    # From BotFather
+export TELEGRAM_CHAT_ID=987654321          # Your chat ID
+export TELEGRAM_SCHEDULE_TIME=20:00        # Optional: Send at specific time
+
+# Send notification
+skillops notify --storage-path storage --respect-schedule
+```
+
+**What you receive:**
+```
+📊 SkillOps Daily Summary
+
+✓ Steps Completed: 6/8
+  ├─ Review Metrics ✓
+  ├─ Formation ✓
+  ├─ Analysis ✓
+  ├─ Reinforce ✓
+  └─ Zettelkasten ✓
+
+⏱️ Time Spent: 3h 45m
+🔥 Current Streak: 12 days
+📈 Total Cards Reviewed: 342
+
+🎯 Goals for Tomorrow:
+  • Complete all 8 steps
+  • Code for 4+ hours
+  • Review 15+ flashcards
+```
+
+**Features:**
+- Respects schedule (send only at specified time via --respect-schedule)
+- Beautiful Markdown formatting
+- Includes metrics and streaks
+- Can be run via cron/systemd
+
+---
+
+## 🔧 Configuration
+
+All configuration uses environment variables (see `.env.example`):
+
+```bash
+# Required
+WAKATIME_API_KEY=waka_xxxxxxxxxxxxx
+
+# Optional - Telegram Notifications
+TELEGRAM_BOT_TOKEN=123456:ABCdefG
+TELEGRAM_CHAT_ID=987654321
+TELEGRAM_SCHEDULE_TIME=20:00
+
+# Optional - Flashcard Generation
+OBSIDIAN_VAULT_PATH=~/Obsidian
+ANKI_SYNC_PATH=~/Anki/sync
+
+# Optional - GitHub Portfolio
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxx
+GITHUB_USERNAME=your_username
+LABS_PATH=~/labs
+```
+
+To get these tokens:
+- **WakaTime**: https://wakatime.com/settings/account
+- **Telegram**: Message @BotFather on Telegram
+- **GitHub**: https://github.com/settings/tokens (scope: `repo`)
+
+---
 
 | Catégorie | Technologies |
 |-----------|-------------|
