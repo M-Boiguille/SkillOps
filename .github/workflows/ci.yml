@@ -34,6 +34,17 @@ jobs:
         run: |
           python -m pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
 
+      - name: Run integration tests
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GITHUB_TOKEN_INTEGRATION: ${{ secrets.GITHUB_TOKEN_INTEGRATION }}
+          GITHUB_USERNAME_INTEGRATION: ${{ secrets.GITHUB_USERNAME_INTEGRATION }}
+          TELEGRAM_BOT_TOKEN_INTEGRATION: ${{ secrets.TELEGRAM_BOT_TOKEN_INTEGRATION }}
+          TELEGRAM_CHAT_ID_INTEGRATION: ${{ secrets.TELEGRAM_CHAT_ID_INTEGRATION }}
+        run: |
+          python -m pytest tests/integration/ -v --tb=short
+        continue-on-error: true  # Integration tests are optional, don't fail CI
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: matrix.python-version == '3.12'
