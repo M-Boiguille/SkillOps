@@ -6,11 +6,29 @@ navigation and Rich for visual display.
 
 from typing import Optional
 import inquirer
+from inquirer.render.console import List as ListRender
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
+import readchar
 
 console = Console()
+
+
+# Patch inquirer to support vim keybindings (j/k)
+original_process_input = ListRender.process_input
+
+
+def vim_aware_process_input(self, pressed):
+    """Process input with vim keybindings support (j=down, k=up)."""
+    if pressed == "j":
+        pressed = readchar.key.DOWN
+    elif pressed == "k":
+        pressed = readchar.key.UP
+    return original_process_input(self, pressed)
+
+
+ListRender.process_input = vim_aware_process_input
 
 
 class Step:
@@ -71,8 +89,13 @@ def get_step_choices() -> list[str]:
 def main_menu() -> Optional[Step]:
     """Display the main interactive menu and return the selected step.
 
-    Uses Inquirer for keyboard navigation with arrow keys.
+    Uses Inquirer for keyboard navigation with arrow keys or vim keys (j/k).
     Returns None if user selects Exit.
+
+    Navigation:
+        - Arrow Up/Down or j/k to navigate
+        - Enter to select
+        - Ctrl+C to quit
 
     Returns:
         The selected Step object, or None if Exit was chosen.
@@ -84,7 +107,7 @@ def main_menu() -> Optional[Step]:
     questions = [
         inquirer.List(
             "step",
-            message="Select a step to execute (use arrow keys)",
+            message="Select a step (↑↓ or j/k to navigate, Enter to select)",
             choices=choices,
             carousel=True,
         )

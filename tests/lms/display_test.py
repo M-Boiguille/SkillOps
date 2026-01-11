@@ -112,7 +112,7 @@ class TestCreateStepSummaryTable:
 class TestDisplayMessages:
     """Tests for display message functions."""
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_success_message(self, mock_print):
         """
         Given: Success message
@@ -123,7 +123,7 @@ class TestDisplayMessages:
 
         mock_print.assert_called_once()
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_warning_message(self, mock_print):
         """
         Given: Warning message
@@ -134,7 +134,7 @@ class TestDisplayMessages:
 
         mock_print.assert_called_once()
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_error_message(self, mock_print):
         """
         Given: Error message
@@ -145,7 +145,7 @@ class TestDisplayMessages:
 
         mock_print.assert_called_once()
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_info_panel(self, mock_print):
         """
         Given: Info panel content
@@ -156,7 +156,7 @@ class TestDisplayMessages:
 
         mock_print.assert_called_once()
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_info_panel_custom_color(self, mock_print):
         """
         Given: Info panel with custom border color
@@ -323,7 +323,7 @@ class TestFormatDate:
 class TestDisplaySectionHeader:
     """Tests for section header display."""
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_section_header_default_emoji(self, mock_print):
         """
         Given: Section title
@@ -334,7 +334,7 @@ class TestDisplaySectionHeader:
 
         assert mock_print.call_count >= 3
 
-    @patch("lms.display.console.print")
+    @patch("src.lms.display.console.print")
     def test_display_section_header_custom_emoji(self, mock_print):
         """
         Given: Section title with custom emoji

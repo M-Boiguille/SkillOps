@@ -188,9 +188,9 @@ class TestCalculateMetricsFromProgress:
 class TestReviewStep:
     """Tests for the main review_step function."""
 
-    @patch("lms.steps.review.console.print")
-    @patch("lms.steps.review.ProgressManager")
-    @patch("lms.steps.review.display_section_header")
+    @patch("src.lms.steps.review.console.print")
+    @patch("src.lms.steps.review.ProgressManager")
+    @patch("src.lms.steps.review.display_section_header")
     def test_review_step_no_data(
         self, mock_header, mock_progress_manager_class, mock_print
     ):
@@ -213,11 +213,11 @@ class TestReviewStep:
             for call in mock_print.call_args_list
         )
 
-    @patch("lms.steps.review.console.print")
-    @patch("lms.steps.review.ProgressManager")
-    @patch("lms.steps.review.display_section_header")
-    @patch("lms.steps.review.create_metrics_table")
-    @patch("lms.steps.review.create_step_summary_table")
+    @patch("src.lms.steps.review.console.print")
+    @patch("src.lms.steps.review.ProgressManager")
+    @patch("src.lms.steps.review.display_section_header")
+    @patch("src.lms.steps.review.create_metrics_table")
+    @patch("src.lms.steps.review.create_step_summary_table")
     def test_review_step_with_data(
         self,
         mock_steps_table,
@@ -255,11 +255,11 @@ class TestReviewStep:
         mock_metrics_table.assert_called_once()
         mock_steps_table.assert_called_once()
 
-    @patch("lms.steps.review.console.print")
-    @patch("lms.steps.review.ProgressManager")
-    @patch("lms.steps.review.display_section_header")
-    @patch("lms.steps.review.create_metrics_table")
-    @patch("lms.steps.review.create_step_summary_table")
+    @patch("src.lms.steps.review.console.print")
+    @patch("src.lms.steps.review.ProgressManager")
+    @patch("src.lms.steps.review.display_section_header")
+    @patch("src.lms.steps.review.create_metrics_table")
+    @patch("src.lms.steps.review.create_step_summary_table")
     def test_review_step_excellent_performance(
         self,
         mock_steps_table,
@@ -296,11 +296,11 @@ class TestReviewStep:
         print_calls_str = str(mock_print.call_args_list)
         assert "Excellent" in print_calls_str or "excellent" in print_calls_str.lower()
 
-    @patch("lms.steps.review.console.print")
-    @patch("lms.steps.review.ProgressManager")
-    @patch("lms.steps.review.display_section_header")
-    @patch("lms.steps.review.create_metrics_table")
-    @patch("lms.steps.review.create_step_summary_table")
+    @patch("src.lms.steps.review.console.print")
+    @patch("src.lms.steps.review.ProgressManager")
+    @patch("src.lms.steps.review.display_section_header")
+    @patch("src.lms.steps.review.create_metrics_table")
+    @patch("src.lms.steps.review.create_step_summary_table")
     def test_review_step_custom_storage_path(
         self,
         mock_steps_table,
