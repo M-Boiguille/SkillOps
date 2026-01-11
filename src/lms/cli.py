@@ -12,7 +12,7 @@ from rich.panel import Panel
 from rich.text import Text
 import readchar
 
-from src.lms.steps import formation_step, reinforce_step, review_step
+from src.lms.steps import anki_step, formation_step, reinforce_step, review_step
 from src.lms.steps.create import create_step
 from src.lms.steps.share import share_step
 
@@ -150,9 +150,7 @@ def execute_step(step: Step) -> None:
     step_map = {
         1: review_step,  # Review
         2: formation_step,  # Formation
-        3: lambda: console.print(
-            "[yellow]Anki step: Use Anki desktop app[/yellow]\n"
-        ),  # Anki
+        3: anki_step,  # Anki
         4: create_step,  # Create
         5: lambda: console.print(
             "[yellow]Read step: Review your Obsidian notes[/yellow]\n"

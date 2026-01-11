@@ -303,6 +303,40 @@ skillops notify --storage-path storage --respect-schedule
 
 ---
 
+## 🧭 8-Step Workflow (MVP)
+
+### Overview
+- **1. Review:** View yesterday’s coding metrics and streak.
+- **2. Formation:** Plan today’s study focus using tracked time.
+- **3. Anki:** Review flashcards in the desktop app (placeholder in CLI).
+- **4. Create:** Generate flashcards from Obsidian notes and export for Anki.
+- **5. Read:** Review notes (placeholder guidance in CLI).
+- **6. Reinforce:** Practice exercises with timer and progress tracking.
+- **7. Share:** Detect local labs, create GitHub repos, generate README, push.
+- **8. Reflection:** Journal your day (placeholder guidance in CLI).
+
+### Commands
+```bash
+# Interactive menu (all 8 steps)
+python -m src.lms.main start
+
+# Run specific steps
+python -m src.lms.main review
+python -m src.lms.main formation
+python -m src.lms.main reinforce
+python -m src.lms.main create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
+python -m src.lms.main share --labs-path ~/labs
+python -m src.lms.main notify --respect-schedule
+```
+
+### GitHub Token Scopes (for Share step)
+- **Classic token:** `repo` (full control of private/public repos)
+- **Fine-grained token (recommended):** Repository permissions
+  - **Contents:** Read & Write
+  - **Metadata:** Read-only
+
+> Fine-grained tokens limit scope to selected repositories and are more secure.
+
 ## 🔧 Configuration
 
 All configuration uses environment variables (see `.env.example`):
@@ -329,7 +363,9 @@ LABS_PATH=~/labs
 To get these tokens:
 - **WakaTime**: https://wakatime.com/settings/account
 - **Telegram**: Message @BotFather on Telegram
-- **GitHub**: https://github.com/settings/tokens (scope: `repo`)
+- **GitHub (classic):** https://github.com/settings/tokens (scope: `repo`)
+- **GitHub (fine-grained recommended):** https://github.com/settings/tokens?type=beta
+  - Repository permissions → Contents (Read & Write), Metadata (Read)
 
 ---
 

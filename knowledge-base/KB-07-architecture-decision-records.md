@@ -303,5 +303,47 @@ Volume estimé: 10k users, 1M events/mois.
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026
-**Statut :** ✅ Concept appliqué dans SkillOps (8 ADRs documentés)
+**Dernière mise à jour :** 12 janvier 2026
+**Statut :** ✅ Concept appliqué dans SkillOps (9 ADRs documentés)
+
+---
+
+## ADR-009: Sécurité des Tokens & Secrets (GitHub PAT fine-grained)
+
+**Date:** 2026-01-12
+**Statut:** ✅ Accepté
+
+### Contexte
+La fonctionnalité `share` crée des repositories GitHub et pousse du code via l'API. La doc utilisait un token classique `repo` (accès large). En contexte entreprise, nous devons minimiser les permissions et standardiser la gestion des secrets.
+
+### Options
+1. **Token classique `repo`** (✅ Simplicité | ❌ Permissions trop larges)
+2. **PAT fine-grained** (✅ Moins de permissions, périmètre limité | ❌ Légère friction de setup)
+3. **GitHub App** (✅ Permissions au niveau organisation | ❌ Complexité supérieure, hors scope MVP)
+
+### Décision
+**Adopter les tokens fine-grained** pour GitHub, avec permissions minimales:
+- Repository permissions: **Contents (Read & Write)**, **Metadata (Read)**
+- Portée: **repositories sélectionnés** uniquement (pas « all repos »)
+- Rotation: **90 jours** avec rappel dans la doc et l’outil de health check
+- Validation: `skillops health` vérifie le type de token et les permissions via API
+
+### Conséquences
+**Positives:**
+- Réduction du risque de compromission (principe de moindre privilège)
+- Conformité accrue (traçabilité, périmètre limité)
+- Alignement “real company” pour production
+
+**Négatives:**
+- Setup légèrement plus long (sélection des repos et permissions)
+- Nécessite mise à jour de la doc et des messages d’erreur
+
+**Mitigations:**
+- Doc mise à jour (README: sections « Fine-grained »)
+- Health check adapté (warnings explicites si token trop permissif)
+- Fallback dev-only: autoriser `public_repo` pour tests locaux, clairement indiqué comme non production
+
+### Implémentation
+- README mis à jour avec scopes fine-grained
+- `src/lms/integrations/github_automation.py` inchangé (API REST compatible)
+- `skillops health`: vérifier le header d’auth et l’utilisateur; afficher un warning si token classique avec scope global
