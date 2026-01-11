@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
-from lms.steps.review import (
+from src.lms.steps.review import (
     get_yesterday_date,
     format_step_data_for_display,
     calculate_metrics_from_progress,
@@ -44,8 +44,7 @@ class TestFormatStepDataForDisplay:
         """
         progress_data = {
             "steps": {
-                f"step{i}": {"completed": True, "time_spent": 300}
-                for i in range(1, 9)
+                f"step{i}": {"completed": True, "time_spent": 300} for i in range(1, 9)
             }
         }
 
@@ -132,8 +131,7 @@ class TestCalculateMetricsFromProgress:
         """
         progress_data = {
             "steps": {
-                f"step{i}": {"completed": True, "time_spent": 600}
-                for i in range(1, 9)
+                f"step{i}": {"completed": True, "time_spent": 600} for i in range(1, 9)
             },
             "cards_created": 12,
         }
@@ -281,8 +279,7 @@ class TestReviewStep:
 
         progress_data = {
             "steps": {
-                f"step{i}": {"completed": True, "time_spent": 300}
-                for i in range(1, 8)
+                f"step{i}": {"completed": True, "time_spent": 300} for i in range(1, 8)
             },
             "cards_created": 12,
         }

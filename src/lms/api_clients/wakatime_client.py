@@ -185,4 +185,3 @@ class WakaTimeClient:
             )
 
         return stats
-

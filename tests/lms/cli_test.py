@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
-from lms.cli import (
+from src.lms.cli import (
     Step,
     STEPS,
     main_menu,

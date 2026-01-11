@@ -348,7 +348,9 @@ class TestReinforceStep:
     @patch("src.lms.steps.reinforce.record_exercise_session")
     @patch("src.lms.steps.reinforce.Prompt")
     @patch("src.lms.steps.reinforce.get_available_exercises")
-    def test_exits_when_user_quits(self, mock_exercises, mock_prompt, mock_record, tmp_path):
+    def test_exits_when_user_quits(
+        self, mock_exercises, mock_prompt, mock_record, tmp_path
+    ):
         """
         Given: Utilisateur tape 'q' pour quitter
         When: Appel de reinforce_step()
@@ -377,7 +379,12 @@ class TestReinforceStep:
         """
         # Setup
         mock_exercises.return_value = [
-            {"id": "test-1", "title": "Test", "difficulty": "Easy", "estimated_time": "10min"}
+            {
+                "id": "test-1",
+                "title": "Test",
+                "difficulty": "Easy",
+                "estimated_time": "10min",
+            }
         ]
         mock_prompt.ask.return_value = "invalid-id"
 
@@ -401,7 +408,12 @@ class TestReinforceStep:
         """
         # Setup
         mock_exercises.return_value = [
-            {"id": "test-1", "title": "Test", "difficulty": "Easy", "estimated_time": "10min"}
+            {
+                "id": "test-1",
+                "title": "Test",
+                "difficulty": "Easy",
+                "estimated_time": "10min",
+            }
         ]
         mock_prompt.ask.return_value = "test-1"
         mock_storage.return_value = Path("/default/path")

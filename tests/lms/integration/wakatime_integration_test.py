@@ -45,7 +45,9 @@ class TestWakaTimeIntegration:
                 {"name": "Python", "total_seconds": 7200, "percent": 66.7},
                 {"name": "Shell", "total_seconds": 3600, "percent": 33.3},
             ],
-            "categories": [{"name": "Coding", "total_seconds": 10800, "percent": 100.0}],
+            "categories": [
+                {"name": "Coding", "total_seconds": 10800, "percent": 100.0}
+            ],
         }
 
         # Execute
@@ -208,7 +210,9 @@ class TestWakaTimeIntegration:
 
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
-    def test_formation_workflow_with_zero_activity(self, mock_datetime, mock_client_class):
+    def test_formation_workflow_with_zero_activity(
+        self, mock_datetime, mock_client_class
+    ):
         """
         Given: Aucune activité de code aujourd'hui
         When: Exécution de formation_step()
@@ -237,7 +241,9 @@ class TestWakaTimeIntegration:
 
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
-    def test_formation_workflow_with_multiple_languages(self, mock_datetime, mock_client_class):
+    def test_formation_workflow_with_multiple_languages(
+        self, mock_datetime, mock_client_class
+    ):
         """
         Given: Activité sur 6 langages différents
         When: Exécution de formation_step()

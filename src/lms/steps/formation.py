@@ -66,7 +66,9 @@ def create_stats_table(stats: dict) -> Table:
     Returns:
         Table: Tableau Rich avec les statistiques formatées
     """
-    table = Table(title="📊 Statistiques du jour", show_header=True, header_style="bold cyan")
+    table = Table(
+        title="📊 Statistiques du jour", show_header=True, header_style="bold cyan"
+    )
     table.add_column("Métrique", style="cyan", width=20)
     table.add_column("Valeur", style="green", width=30)
 
@@ -104,7 +106,9 @@ def create_languages_table(languages: list) -> Table:
     Returns:
         Table: Tableau Rich avec les langages
     """
-    table = Table(title="💻 Langages utilisés", show_header=True, header_style="bold magenta")
+    table = Table(
+        title="💻 Langages utilisés", show_header=True, header_style="bold magenta"
+    )
     table.add_column("Langage", style="magenta", width=20)
     table.add_column("Temps", style="cyan", width=15)
     table.add_column("Pourcentage", style="green", width=15)

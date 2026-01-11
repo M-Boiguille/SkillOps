@@ -18,8 +18,8 @@ import pytest
 from pathlib import Path
 from datetime import date, timedelta
 import json
-from lms.persistence import MetricsManager
-from lms.persistence import ProgressManager
+from src.lms.persistence import MetricsManager
+from src.lms.persistence import ProgressManager
 
 
 class TestMetricsManagerInit:
@@ -32,7 +32,7 @@ class TestMetricsManagerInit:
         """
         metrics_file = tmp_path / "test_metrics.json"
         manager = MetricsManager(metrics_file)
-        
+
         assert manager.file_path == metrics_file
         assert isinstance(manager.file_path, Path)
 
@@ -43,11 +43,11 @@ class TestMetricsManagerInit:
         """
         nested_path = tmp_path / "storage" / "nested" / "metrics.json"
         manager = MetricsManager(nested_path)
-        
+
         # Trigger directory creation by saving
         manager.current_metrics = {"streak": 0, "avg_time": 0.0, "total_cards": 0}
         manager.save_metrics()
-        
+
         assert nested_path.parent.exists()
         assert nested_path.exists()
 
@@ -58,7 +58,7 @@ class TestMetricsManagerInit:
         """
         metrics_file = str(tmp_path / "metrics.json")
         manager = MetricsManager(metrics_file)
-        
+
         assert isinstance(manager.file_path, Path)
         assert manager.file_path.name == "metrics.json"
 
@@ -72,16 +72,12 @@ class TestLoadMetrics:
         THEN it should return the metrics dict
         """
         metrics_file = tmp_path / "metrics.json"
-        test_data = {
-            "streak": 15,
-            "avg_time": 3.5,
-            "total_cards": 120
-        }
+        test_data = {"streak": 15, "avg_time": 3.5, "total_cards": 120}
         metrics_file.write_text(json.dumps(test_data))
-        
+
         manager = MetricsManager(metrics_file)
         loaded = manager.load_metrics()
-        
+
         assert loaded == test_data
         assert loaded["streak"] == 15
         assert loaded["avg_time"] == 3.5
@@ -94,9 +90,9 @@ class TestLoadMetrics:
         """
         metrics_file = tmp_path / "nonexistent.json"
         manager = MetricsManager(metrics_file)
-        
+
         loaded = manager.load_metrics()
-        
+
         assert loaded == {"streak": 0, "avg_time": 0.0, "total_cards": 0}
         assert isinstance(loaded["streak"], int)
         assert isinstance(loaded["avg_time"], float)
@@ -109,10 +105,10 @@ class TestLoadMetrics:
         """
         metrics_file = tmp_path / "malformed.json"
         metrics_file.write_text("{invalid json content")
-        
+
         manager = MetricsManager(metrics_file)
         loaded = manager.load_metrics()
-        
+
         assert loaded == {"streak": 0, "avg_time": 0.0, "total_cards": 0}
 
     def test_load_empty_file_returns_default(self, tmp_path):
@@ -122,10 +118,10 @@ class TestLoadMetrics:
         """
         metrics_file = tmp_path / "empty.json"
         metrics_file.write_text("")
-        
+
         manager = MetricsManager(metrics_file)
         loaded = manager.load_metrics()
-        
+
         assert loaded == {"streak": 0, "avg_time": 0.0, "total_cards": 0}
 
     def test_load_partial_metrics_fills_missing(self, tmp_path):
@@ -136,10 +132,10 @@ class TestLoadMetrics:
         metrics_file = tmp_path / "partial.json"
         partial_data = {"streak": 10}  # Missing avg_time and total_cards
         metrics_file.write_text(json.dumps(partial_data))
-        
+
         manager = MetricsManager(metrics_file)
         loaded = manager.load_metrics()
-        
+
         assert loaded["streak"] == 10
         assert "avg_time" in loaded
         assert "total_cards" in loaded
@@ -155,14 +151,10 @@ class TestSaveMetrics:
         """
         metrics_file = tmp_path / "metrics.json"
         manager = MetricsManager(metrics_file)
-        
-        manager.current_metrics = {
-            "streak": 20,
-            "avg_time": 4.2,
-            "total_cards": 150
-        }
+
+        manager.current_metrics = {"streak": 20, "avg_time": 4.2, "total_cards": 150}
         manager.save_metrics()
-        
+
         assert metrics_file.exists()
         saved_data = json.loads(metrics_file.read_text())
         assert saved_data == manager.current_metrics
@@ -175,15 +167,11 @@ class TestSaveMetrics:
         metrics_file = tmp_path / "metrics.json"
         old_data = {"streak": 5, "avg_time": 2.0, "total_cards": 50}
         metrics_file.write_text(json.dumps(old_data))
-        
+
         manager = MetricsManager(metrics_file)
-        manager.current_metrics = {
-            "streak": 10,
-            "avg_time": 3.0,
-            "total_cards": 100
-        }
+        manager.current_metrics = {"streak": 10, "avg_time": 3.0, "total_cards": 100}
         manager.save_metrics()
-        
+
         saved_data = json.loads(metrics_file.read_text())
         assert saved_data["streak"] == 10
         assert saved_data != old_data
@@ -195,10 +183,10 @@ class TestSaveMetrics:
         """
         metrics_file = tmp_path / "metrics.json"
         manager = MetricsManager(metrics_file)
-        
+
         manager.current_metrics = {"streak": 1, "avg_time": 1.0, "total_cards": 1}
         manager.save_metrics()
-        
+
         content = metrics_file.read_text()
         assert "\n" in content  # Should have newlines (pretty printed)
         assert "  " in content or "\t" in content  # Should have indentation
@@ -214,13 +202,13 @@ class TestCalculateStreak:
         """
         progress_file = tmp_path / "progress.json"
         progress_file.write_text("[]")
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 0
 
     def test_calculate_streak_single_day(self, tmp_path):
@@ -230,17 +218,15 @@ class TestCalculateStreak:
         """
         today = date.today().strftime("%Y-%m-%d")
         progress_file = tmp_path / "progress.json"
-        progress_data = [
-            {"date": today, "steps": 8, "time": 3.5, "cards": 10}
-        ]
+        progress_data = [{"date": today, "steps": 8, "time": 3.5, "cards": 10}]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 1
 
     def test_calculate_streak_consecutive_days(self, tmp_path):
@@ -250,25 +236,22 @@ class TestCalculateStreak:
         """
         progress_file = tmp_path / "progress.json"
         progress_data = []
-        
+
         # Create 5 consecutive days of progress ending today
         for i in range(5):
-            day = date.today() - timedelta(days=4-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7,
-                "time": 3.0,
-                "cards": 8
-            })
-        
+            day = date.today() - timedelta(days=4 - i)
+            progress_data.append(
+                {"date": day.strftime("%Y-%m-%d"), "steps": 7, "time": 3.0, "cards": 8}
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 5
 
     def test_calculate_streak_broken_by_gap(self, tmp_path):
@@ -278,27 +261,52 @@ class TestCalculateStreak:
         """
         progress_file = tmp_path / "progress.json"
         today = date.today()
-        
+
         progress_data = [
             # Old streak (should be ignored)
-            {"date": (today - timedelta(days=10)).strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 10},
-            {"date": (today - timedelta(days=9)).strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 10},
+            {
+                "date": (today - timedelta(days=10)).strftime("%Y-%m-%d"),
+                "steps": 8,
+                "time": 3.0,
+                "cards": 10,
+            },
+            {
+                "date": (today - timedelta(days=9)).strftime("%Y-%m-%d"),
+                "steps": 8,
+                "time": 3.0,
+                "cards": 10,
+            },
             # Gap here (day 8, 7, 6, 5, 4)
             # Current streak
-            {"date": (today - timedelta(days=3)).strftime("%Y-%m-%d"), "steps": 7, "time": 2.5, "cards": 8},
-            {"date": (today - timedelta(days=2)).strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 9},
-            {"date": (today - timedelta(days=1)).strftime("%Y-%m-%d"), "steps": 7, "time": 2.8, "cards": 7},
-            {"date": today.strftime("%Y-%m-%d"), "steps": 8, "time": 3.2, "cards": 10}
+            {
+                "date": (today - timedelta(days=3)).strftime("%Y-%m-%d"),
+                "steps": 7,
+                "time": 2.5,
+                "cards": 8,
+            },
+            {
+                "date": (today - timedelta(days=2)).strftime("%Y-%m-%d"),
+                "steps": 8,
+                "time": 3.0,
+                "cards": 9,
+            },
+            {
+                "date": (today - timedelta(days=1)).strftime("%Y-%m-%d"),
+                "steps": 7,
+                "time": 2.8,
+                "cards": 7,
+            },
+            {"date": today.strftime("%Y-%m-%d"), "steps": 8, "time": 3.2, "cards": 10},
         ]
-        
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 4  # Only counts last 4 consecutive days
 
     def test_calculate_streak_not_including_today(self, tmp_path):
@@ -308,25 +316,22 @@ class TestCalculateStreak:
         """
         progress_file = tmp_path / "progress.json"
         yesterday = date.today() - timedelta(days=1)
-        
+
         progress_data = []
         for i in range(3):
-            day = yesterday - timedelta(days=2-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7,
-                "time": 3.0,
-                "cards": 8
-            })
-        
+            day = yesterday - timedelta(days=2 - i)
+            progress_data.append(
+                {"date": day.strftime("%Y-%m-%d"), "steps": 7, "time": 3.0, "cards": 8}
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 3
 
     def test_calculate_streak_unsorted_data(self, tmp_path):
@@ -336,22 +341,32 @@ class TestCalculateStreak:
         """
         progress_file = tmp_path / "progress.json"
         today = date.today()
-        
+
         # Intentionally unsorted
         progress_data = [
             {"date": today.strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 10},
-            {"date": (today - timedelta(days=2)).strftime("%Y-%m-%d"), "steps": 7, "time": 2.5, "cards": 8},
-            {"date": (today - timedelta(days=1)).strftime("%Y-%m-%d"), "steps": 8, "time": 3.2, "cards": 9},
+            {
+                "date": (today - timedelta(days=2)).strftime("%Y-%m-%d"),
+                "steps": 7,
+                "time": 2.5,
+                "cards": 8,
+            },
+            {
+                "date": (today - timedelta(days=1)).strftime("%Y-%m-%d"),
+                "steps": 8,
+                "time": 3.2,
+                "cards": 9,
+            },
         ]
-        
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         streak = metrics_mgr.calculate_streak(progress_mgr.load_progress())
-        
+
         assert streak == 3
 
 
@@ -365,13 +380,13 @@ class TestGetAverageTime:
         """
         progress_file = tmp_path / "progress.json"
         progress_file.write_text("[]")
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         avg = metrics_mgr.get_average_time(progress_mgr.load_progress())
-        
+
         assert avg == 0.0
         assert isinstance(avg, float)
 
@@ -381,17 +396,15 @@ class TestGetAverageTime:
         THEN average should equal that entry's time
         """
         progress_file = tmp_path / "progress.json"
-        progress_data = [
-            {"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 10}
-        ]
+        progress_data = [{"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 10}]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         avg = metrics_mgr.get_average_time(progress_mgr.load_progress())
-        
+
         assert avg == 3.5
 
     def test_get_average_time_multiple_entries(self, tmp_path):
@@ -403,16 +416,16 @@ class TestGetAverageTime:
         progress_data = [
             {"date": "2026-01-08", "steps": 8, "time": 2.0, "cards": 10},
             {"date": "2026-01-09", "steps": 7, "time": 3.0, "cards": 8},
-            {"date": "2026-01-10", "steps": 8, "time": 4.0, "cards": 12}
+            {"date": "2026-01-10", "steps": 8, "time": 4.0, "cards": 12},
         ]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         avg = metrics_mgr.get_average_time(progress_mgr.load_progress())
-        
+
         # (2.0 + 3.0 + 4.0) / 3 = 3.0
         assert avg == 3.0
 
@@ -425,16 +438,16 @@ class TestGetAverageTime:
         progress_data = [
             {"date": "2026-01-08", "steps": 8, "time": 2.5, "cards": 10},
             {"date": "2026-01-09", "steps": 7, "time": 3.2, "cards": 8},
-            {"date": "2026-01-10", "steps": 8, "time": 3.8, "cards": 12}
+            {"date": "2026-01-10", "steps": 8, "time": 3.8, "cards": 12},
         ]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         avg = metrics_mgr.get_average_time(progress_mgr.load_progress())
-        
+
         # (2.5 + 3.2 + 3.8) / 3 = 3.166...
         assert isinstance(avg, float)
         assert 3.16 <= avg <= 3.17  # Allow small floating point variance
@@ -446,27 +459,29 @@ class TestGetAverageTime:
         """
         progress_file = tmp_path / "progress.json"
         today = date.today()
-        
+
         progress_data = []
         times = [1.0, 2.0, 3.0, 4.0, 5.0]  # 5 days
         for i, time_val in enumerate(times):
-            day = today - timedelta(days=4-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7,
-                "time": time_val,
-                "cards": 8
-            })
-        
+            day = today - timedelta(days=4 - i)
+            progress_data.append(
+                {
+                    "date": day.strftime("%Y-%m-%d"),
+                    "steps": 7,
+                    "time": time_val,
+                    "cards": 8,
+                }
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Average last 3 days: (3.0 + 4.0 + 5.0) / 3 = 4.0
         avg = metrics_mgr.get_average_time(progress_mgr.load_progress(), last_n_days=3)
-        
+
         assert avg == 4.0
 
 
@@ -480,13 +495,13 @@ class TestGetTotalCards:
         """
         progress_file = tmp_path / "progress.json"
         progress_file.write_text("[]")
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         total = metrics_mgr.get_total_cards(progress_mgr.load_progress())
-        
+
         assert total == 0
         assert isinstance(total, int)
 
@@ -496,17 +511,15 @@ class TestGetTotalCards:
         THEN it should return that entry's cards count
         """
         progress_file = tmp_path / "progress.json"
-        progress_data = [
-            {"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 15}
-        ]
+        progress_data = [{"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 15}]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         total = metrics_mgr.get_total_cards(progress_mgr.load_progress())
-        
+
         assert total == 15
 
     def test_get_total_cards_multiple_entries(self, tmp_path):
@@ -518,16 +531,16 @@ class TestGetTotalCards:
         progress_data = [
             {"date": "2026-01-08", "steps": 8, "time": 2.0, "cards": 10},
             {"date": "2026-01-09", "steps": 7, "time": 3.0, "cards": 12},
-            {"date": "2026-01-10", "steps": 8, "time": 4.0, "cards": 8}
+            {"date": "2026-01-10", "steps": 8, "time": 4.0, "cards": 8},
         ]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         total = metrics_mgr.get_total_cards(progress_mgr.load_progress())
-        
+
         # 10 + 12 + 8 = 30
         assert total == 30
 
@@ -538,26 +551,23 @@ class TestGetTotalCards:
         """
         progress_file = tmp_path / "progress.json"
         progress_data = []
-        
+
         # Create 1 year of data (365 days, 10 cards per day)
         today = date.today()
         for i in range(365):
-            day = today - timedelta(days=364-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7,
-                "time": 3.0,
-                "cards": 10
-            })
-        
+            day = today - timedelta(days=364 - i)
+            progress_data.append(
+                {"date": day.strftime("%Y-%m-%d"), "steps": 7, "time": 3.0, "cards": 10}
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         total = metrics_mgr.get_total_cards(progress_mgr.load_progress())
-        
+
         assert total == 3650  # 365 days * 10 cards
 
 
@@ -572,12 +582,12 @@ class TestUpdateMetrics:
         progress_file = tmp_path / "progress.json"
         progress_file.write_text("[]")
         metrics_file = tmp_path / "metrics.json"
-        
+
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         assert metrics_mgr.current_metrics["streak"] == 0
         assert metrics_mgr.current_metrics["avg_time"] == 0.0
         assert metrics_mgr.current_metrics["total_cards"] == 0
@@ -589,25 +599,22 @@ class TestUpdateMetrics:
         """
         progress_file = tmp_path / "progress.json"
         today = date.today()
-        
+
         progress_data = []
         for i in range(7):  # 7 consecutive days
-            day = today - timedelta(days=6-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 8,
-                "time": 3.0,
-                "cards": 10
-            })
-        
+            day = today - timedelta(days=6 - i)
+            progress_data.append(
+                {"date": day.strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 10}
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         assert metrics_mgr.current_metrics["streak"] == 7
         assert metrics_mgr.current_metrics["avg_time"] == 3.0
         assert metrics_mgr.current_metrics["total_cards"] == 70  # 7 days * 10 cards
@@ -618,17 +625,15 @@ class TestUpdateMetrics:
         THEN updated metrics should be saved to file
         """
         progress_file = tmp_path / "progress.json"
-        progress_data = [
-            {"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 12}
-        ]
+        progress_data = [{"date": "2026-01-10", "steps": 8, "time": 3.5, "cards": 12}]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         # Verify file was created and contains correct data
         assert metrics_file.exists()
         saved_data = json.loads(metrics_file.read_text())
@@ -643,35 +648,32 @@ class TestUpdateMetrics:
         """
         progress_file = tmp_path / "progress.json"
         metrics_file = tmp_path / "metrics.json"
-        
+
         # Old metrics
         old_metrics = {"streak": 5, "avg_time": 2.0, "total_cards": 50}
         metrics_file.write_text(json.dumps(old_metrics))
-        
+
         # New progress data
         today = date.today()
         progress_data = []
         for i in range(10):  # 10 consecutive days
-            day = today - timedelta(days=9-i)
-            progress_data.append({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7,
-                "time": 4.0,
-                "cards": 15
-            })
-        
+            day = today - timedelta(days=9 - i)
+            progress_data.append(
+                {"date": day.strftime("%Y-%m-%d"), "steps": 7, "time": 4.0, "cards": 15}
+            )
+
         progress_file.write_text(json.dumps(progress_data))
-        
+
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         # Verify new values
         assert metrics_mgr.current_metrics["streak"] == 10
         assert metrics_mgr.current_metrics["avg_time"] == 4.0
         assert metrics_mgr.current_metrics["total_cards"] == 150  # 10 * 15
-        
+
         # Verify old values are gone
         assert metrics_mgr.current_metrics != old_metrics
 
@@ -686,15 +688,11 @@ class TestGetMetricsSummary:
         """
         metrics_file = tmp_path / "metrics.json"
         manager = MetricsManager(metrics_file)
-        
-        manager.current_metrics = {
-            "streak": 15,
-            "avg_time": 3.5,
-            "total_cards": 120
-        }
-        
+
+        manager.current_metrics = {"streak": 15, "avg_time": 3.5, "total_cards": 120}
+
         summary = manager.get_metrics_summary()
-        
+
         assert isinstance(summary, dict)
         assert "streak" in summary
         assert "avg_time" in summary
@@ -707,15 +705,15 @@ class TestGetMetricsSummary:
         """
         metrics_file = tmp_path / "metrics.json"
         manager = MetricsManager(metrics_file)
-        
+
         manager.current_metrics = {
             "streak": 10,
             "avg_time": 3.75,  # 3 hours 45 minutes
-            "total_cards": 100
+            "total_cards": 100,
         }
-        
+
         summary = manager.get_metrics_summary()
-        
+
         # Should have formatted time like "3h 45min"
         assert "avg_time_formatted" in summary or "time_formatted" in summary
 
@@ -729,17 +727,15 @@ class TestEdgeCases:
         THEN they should handle gracefully
         """
         progress_file = tmp_path / "progress.json"
-        progress_data = [
-            {"date": "2026-01-10", "steps": 0, "time": 0.5, "cards": 2}
-        ]
+        progress_data = [{"date": "2026-01-10", "steps": 0, "time": 0.5, "cards": 2}]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         # Should not crash, should handle partial days
         assert isinstance(metrics_mgr.current_metrics["avg_time"], float)
         assert isinstance(metrics_mgr.current_metrics["total_cards"], int)
@@ -755,11 +751,11 @@ class TestEdgeCases:
             {"date": future.strftime("%Y-%m-%d"), "steps": 8, "time": 3.0, "cards": 10}
         ]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Should not crash even with future dates
         metrics_mgr.update_metrics(progress_mgr.load_progress())
         assert isinstance(metrics_mgr.current_metrics, dict)
@@ -774,11 +770,11 @@ class TestEdgeCases:
             {"date": "2026-01-10", "steps": -5, "time": -2.0, "cards": -10}
         ]
         progress_file.write_text(json.dumps(progress_data))
-        
+
         metrics_file = tmp_path / "metrics.json"
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Should handle without crashing (may clamp to 0 or skip)
         metrics_mgr.update_metrics(progress_mgr.load_progress())
         assert isinstance(metrics_mgr.current_metrics, dict)
@@ -790,10 +786,10 @@ class TestEdgeCases:
         """
         progress_file = tmp_path / "progress.json"
         metrics_file = tmp_path / "metrics.json"
-        
+
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Simulate rapid updates
         for i in range(3):
             progress_data = [
@@ -802,7 +798,7 @@ class TestEdgeCases:
             progress_file.write_text(json.dumps(progress_data))
             progress_mgr = ProgressManager(progress_file)  # Reload
             metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         # Last update should win
         assert metrics_mgr.current_metrics["total_cards"] == 12  # 10 + 2
 
@@ -817,22 +813,19 @@ class TestIntegrationWithProgressManager:
         """
         progress_file = tmp_path / "progress.json"
         metrics_file = tmp_path / "metrics.json"
-        
+
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Save initial progress
         today = date.today().strftime("%Y-%m-%d")
-        progress_mgr.save_daily_progress({
-            "date": today,
-            "steps": 8,
-            "time": 3.5,
-            "cards": 12
-        })
-        
+        progress_mgr.save_daily_progress(
+            {"date": today, "steps": 8, "time": 3.5, "cards": 12}
+        )
+
         # Update metrics
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         assert metrics_mgr.current_metrics["total_cards"] == 12
         assert metrics_mgr.current_metrics["streak"] == 1
 
@@ -840,34 +833,36 @@ class TestIntegrationWithProgressManager:
         """GIVEN a complete workflow simulation
         WHEN user logs progress over multiple days
         THEN metrics should accurately track progression
-        
+
         This simulates the US-002 Review Metrics use case
         """
         progress_file = tmp_path / "progress.json"
         metrics_file = tmp_path / "metrics.json"
-        
+
         progress_mgr = ProgressManager(progress_file)
         metrics_mgr = MetricsManager(metrics_file)
-        
+
         # Simulate 1 week of activity
         today = date.today()
         for i in range(7):
-            day = today - timedelta(days=6-i)
-            progress_mgr.save_daily_progress({
-                "date": day.strftime("%Y-%m-%d"),
-                "steps": 7 + (i % 2),  # Varying steps
-                "time": 2.5 + (i * 0.5),  # Increasing time
-                "cards": 8 + i  # Increasing cards
-            })
-        
+            day = today - timedelta(days=6 - i)
+            progress_mgr.save_daily_progress(
+                {
+                    "date": day.strftime("%Y-%m-%d"),
+                    "steps": 7 + (i % 2),  # Varying steps
+                    "time": 2.5 + (i * 0.5),  # Increasing time
+                    "cards": 8 + i,  # Increasing cards
+                }
+            )
+
         # Update metrics after week
         metrics_mgr.update_metrics(progress_mgr.load_progress())
-        
+
         # Verify comprehensive metrics
         assert metrics_mgr.current_metrics["streak"] == 7
         assert metrics_mgr.current_metrics["avg_time"] > 0
         assert metrics_mgr.current_metrics["total_cards"] > 50
-        
+
         # Verify persistence
         saved_metrics = json.loads(metrics_file.read_text())
         assert saved_metrics == metrics_mgr.current_metrics
@@ -884,13 +879,13 @@ class TestErrorHandling:
         metrics_file = tmp_path / "readonly.json"
         metrics_file.write_text('{"streak": 0}')
         metrics_file.chmod(0o444)  # Read-only
-        
+
         manager = MetricsManager(metrics_file)
         manager.current_metrics = {"streak": 10, "avg_time": 5.0, "total_cards": 100}
-        
+
         with pytest.raises(IOError, match="Error writing metrics"):
             manager.save_metrics()
-        
+
         # Cleanup
         metrics_file.chmod(0o644)
 
@@ -902,13 +897,13 @@ class TestErrorHandling:
         metrics_file = tmp_path / "noperm.json"
         metrics_file.write_text('{"streak": 99}')
         metrics_file.chmod(0o000)  # No permissions
-        
+
         manager = MetricsManager(metrics_file)
         loaded = manager.load_metrics()
-        
+
         # Should return defaults when cannot read
         assert loaded == {"streak": 0, "avg_time": 0.0, "total_cards": 0}
-        
+
         # Cleanup
         metrics_file.chmod(0o644)
 
@@ -919,9 +914,9 @@ class TestErrorHandling:
         """
         metrics_file = tmp_path / "metrics.json"
         manager = MetricsManager(metrics_file)
-        
+
         # Explicitly test the count == 0 branch
         avg = manager.get_average_time([])
-        
+
         assert avg == 0.0
         assert isinstance(avg, float)

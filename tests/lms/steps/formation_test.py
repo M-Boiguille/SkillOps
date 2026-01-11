@@ -196,7 +196,9 @@ class TestFormationStep:
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")
     @patch("src.lms.steps.formation.datetime")
-    def test_displays_stats_successfully(self, mock_datetime, mock_get_key, mock_client_class):
+    def test_displays_stats_successfully(
+        self, mock_datetime, mock_get_key, mock_client_class
+    ):
         """
         Given: Clé API valide et statistiques disponibles
         When: Appel de formation_step()
@@ -239,7 +241,9 @@ class TestFormationStep:
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")
     @patch("src.lms.steps.formation.datetime")
-    def test_shows_alert_when_below_minimum(self, mock_datetime, mock_get_key, mock_client_class):
+    def test_shows_alert_when_below_minimum(
+        self, mock_datetime, mock_get_key, mock_client_class
+    ):
         """
         Given: 1h de code à 15h (en dessous du minimum)
         When: Appel de formation_step()
@@ -263,7 +267,9 @@ class TestFormationStep:
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")
     @patch("src.lms.steps.formation.datetime")
-    def test_no_alert_after_deadline(self, mock_datetime, mock_get_key, mock_client_class):
+    def test_no_alert_after_deadline(
+        self, mock_datetime, mock_get_key, mock_client_class
+    ):
         """
         Given: 1h de code à 18h (après deadline)
         When: Appel de formation_step()
@@ -350,7 +356,9 @@ class TestFormationStep:
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")
     @patch("src.lms.steps.formation.datetime")
-    def test_handles_zero_coding_time(self, mock_datetime, mock_get_key, mock_client_class):
+    def test_handles_zero_coding_time(
+        self, mock_datetime, mock_get_key, mock_client_class
+    ):
         """
         Given: Aucune activité de code aujourd'hui
         When: Appel de formation_step()

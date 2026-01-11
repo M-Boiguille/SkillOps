@@ -4,7 +4,7 @@ import pytest
 import os
 from unittest.mock import patch, MagicMock
 from requests.exceptions import Timeout, RequestException
-from lms.api_clients.wakatime_client import (
+from src.lms.api_clients.wakatime_client import (
     WakaTimeClient,
     WakaTimeError,
     WakaTimeAuthError,
@@ -165,9 +165,7 @@ class TestGetTodayStats:
 
     @patch("lms.api_clients.wakatime_client.date")
     @patch.object(WakaTimeClient, "get_date_stats")
-    def test_get_today_stats_calls_get_date_stats(
-        self, mock_get_date_stats, mock_date
-    ):
+    def test_get_today_stats_calls_get_date_stats(self, mock_get_date_stats, mock_date):
         """
         Given: WakaTimeClient instance
         When: Calling get_today_stats
@@ -313,4 +311,3 @@ class TestIntegration:
         assert stats["total_seconds"] == 10800
         assert len(stats["languages"]) == 2
         assert stats["languages"][0]["name"] == "Python"
-

@@ -44,7 +44,9 @@ def create_metrics_table(metrics: dict[str, Any]) -> Table:
 
     # Steps completed
     steps_completed = metrics.get("steps_completed", 0)
-    steps_status = "✅" if steps_completed >= 7 else "⚠️" if steps_completed >= 4 else "❌"
+    steps_status = (
+        "✅" if steps_completed >= 7 else "⚠️" if steps_completed >= 4 else "❌"
+    )
     table.add_row(
         "Steps Completed",
         f"{steps_completed}/8",
@@ -56,7 +58,9 @@ def create_metrics_table(metrics: dict[str, Any]) -> Table:
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     time_str = f"{hours}h {minutes:02d}min"
-    time_status = "✅" if total_seconds >= 7200 else "⚠️" if total_seconds >= 3600 else "❌"
+    time_status = (
+        "✅" if total_seconds >= 7200 else "⚠️" if total_seconds >= 3600 else "❌"
+    )
     table.add_row(
         "⏱️  Time Coded",
         time_str,

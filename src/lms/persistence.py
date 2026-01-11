@@ -178,7 +178,9 @@ class ProgressManager:
 
         # Find existing entries in both states
         file_entry = next((e for e in file_progress if e["date"] == entry_date), None)
-        memory_entry = next((e for e in self.current_progress if e["date"] == entry_date), None)
+        memory_entry = next(
+            (e for e in self.current_progress if e["date"] == entry_date), None
+        )
 
         # Check for concurrent modifications (file was updated externally)
         if file_entry and memory_entry and file_entry != memory_entry:
@@ -201,9 +203,13 @@ class ProgressManager:
             if memory_entry:
                 idx = self.current_progress.index(memory_entry)
                 merged = memory_entry.copy()
-                merged["steps"] = memory_entry.get("steps", 0) + new_entry.get("steps", 0)
+                merged["steps"] = memory_entry.get("steps", 0) + new_entry.get(
+                    "steps", 0
+                )
                 merged["time"] = memory_entry.get("time", 0) + new_entry.get("time", 0)
-                merged["cards"] = memory_entry.get("cards", 0) + new_entry.get("cards", 0)
+                merged["cards"] = memory_entry.get("cards", 0) + new_entry.get(
+                    "cards", 0
+                )
                 self.current_progress[idx] = merged
             else:
                 self.current_progress.append(new_entry)
@@ -270,7 +276,7 @@ class ProgressManager:
 
         # Merge with intelligent strategy
         merge_successful = self.merge_progress(data, strategy=merge_strategy)
-        
+
         if merge_strategy == "smart" and not merge_successful:
             # Concurrent modification detected - abort to prevent data loss
             return False
@@ -331,7 +337,7 @@ class ProgressManager:
 
 class MetricsManager:
     """Manage aggregated metrics with JSON file persistence.
-    
+
     Responsibilities:
     - Calculate streak (consecutive days of activity)
     - Calculate average time per day
@@ -363,7 +369,7 @@ class MetricsManager:
                 content = file.read().strip()
                 if not content:
                     return {"streak": 0, "avg_time": 0.0, "total_cards": 0}
-                
+
                 metrics = json.loads(content)
                 # Fill missing fields with defaults
                 default = {"streak": 0, "avg_time": 0.0, "total_cards": 0}
@@ -396,9 +402,7 @@ class MetricsManager:
 
         # Sort by date descending (most recent first)
         sorted_progress = sorted(
-            progress_data,
-            key=lambda x: x.get("date", ""),
-            reverse=True
+            progress_data, key=lambda x: x.get("date", ""), reverse=True
         )
 
         today = date.today()
@@ -407,7 +411,7 @@ class MetricsManager:
 
         for entry in sorted_progress:
             entry_date = date.fromisoformat(entry.get("date", ""))
-            
+
             if entry_date == expected_date:
                 streak += 1
                 expected_date = expected_date - timedelta(days=1)
@@ -438,9 +442,7 @@ class MetricsManager:
         # Filter to last N days if specified
         if last_n_days:
             sorted_progress = sorted(
-                progress_data,
-                key=lambda x: x.get("date", ""),
-                reverse=True
+                progress_data, key=lambda x: x.get("date", ""), reverse=True
             )
             progress_data = sorted_progress[:last_n_days]
 
@@ -475,7 +477,7 @@ class MetricsManager:
         self.current_metrics = {
             "streak": self.calculate_streak(progress_data),
             "avg_time": self.get_average_time(progress_data),
-            "total_cards": self.get_total_cards(progress_data)
+            "total_cards": self.get_total_cards(progress_data),
         }
         self.save_metrics()
 
@@ -488,9 +490,8 @@ class MetricsManager:
         avg_hours = self.current_metrics.get("avg_time", 0.0)
         hours = int(avg_hours)
         minutes = int((avg_hours - hours) * 60)
-        
+
         return {
             **self.current_metrics,
-            "avg_time_formatted": f"{hours}h {minutes:02d}min"
+            "avg_time_formatted": f"{hours}h {minutes:02d}min",
         }
-
