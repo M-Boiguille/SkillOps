@@ -6,6 +6,13 @@ import os
 from typing import Optional
 
 from rich.console import Console
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeRemainingColumn,
+)
 
 from src.lms.integrations.github_automation import GitHubAutomation
 from src.lms.integrations.github_detector import LabProjectDetector
@@ -22,7 +29,7 @@ def share_step(
     """Share lab projects to GitHub with automatic README generation.
 
     Detects new projects without remotes, generates READMEs, and pushes
-    repositories to GitHub.
+    repositories to GitHub. Shows progress bars for long operations.
 
     Args:
         labs_path: Path to labs directory. Defaults to ~/labs
@@ -63,73 +70,125 @@ def share_step(
         projects = detector.scan_labs_directory()
         console.print(f"[cyan]Found {len(projects)} projects[/cyan]")
 
+        # Filter to only new projects
+        new_projects = [p for p in projects if detector.is_new_project(p)]
+
+        if not new_projects:
+            console.print("[dim]All projects already have remotes[/dim]")
+            return True
+
         shared_count = 0
-        for project_path in projects:
-            if not detector.is_new_project(project_path):
-                console.print(f"[dim]{project_path.name}: Already has remote[/dim]")
-                continue
 
-            console.print(f"[cyan]Processing: {project_path.name}[/cyan]")
-
-            # Get project metadata
-            metadata = detector.get_project_metadata(project_path)
-
-            # Generate README
-            readme_success = generator.write_readme(
-                project_path,
-                metadata["name"],
-                metadata["description"],
-                metadata["tech_stack"],
+        # Progress bar for overall task
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeRemainingColumn(),
+            console=console,
+        ) as progress:
+            task_id = progress.add_task(
+                "[cyan]Sharing projects to GitHub...", total=len(new_projects)
             )
 
-            if not readme_success:
-                msg = "[yellow]Failed to generate README[/yellow]"
-                console.print(msg)
-                continue
+            for project_path in new_projects:
+                progress.update(
+                    task_id, description=f"[cyan]Processing: {project_path.name}[/cyan]"
+                )
 
-            # Initialize git repository
-            if not automation.init_repository(project_path):
-                msg = "[yellow]Failed to initialize git[/yellow]"
-                console.print(msg)
-                continue
+                try:
+                    # Get project metadata
+                    metadata = detector.get_project_metadata(project_path)
 
-            # Create commit
-            if not automation.create_commit(project_path, "Initial commit"):
-                msg = "[yellow]Failed to create commit[/yellow]"
-                console.print(msg)
-                continue
+                    # Generate README
+                    progress.update(
+                        task_id,
+                        description=f"[cyan]{project_path.name}: Generating README...[/cyan]",
+                    )
+                    readme_success = generator.write_readme(
+                        project_path,
+                        metadata["name"],
+                        metadata["description"],
+                        metadata["tech_stack"],
+                    )
 
-            # Create GitHub repository
-            repo_info = automation.create_remote_repository(
-                metadata["name"],
-                metadata["description"],
-                private=False,
-            )
+                    if not readme_success:
+                        console.print("  [yellow]✗ Failed to generate README[/yellow]")
+                        progress.advance(task_id)
+                        continue
 
-            if not repo_info:
-                msg = "[yellow]Failed to create GitHub repository[/yellow]"
-                console.print(msg)
-                continue
+                    # Initialize git repository
+                    progress.update(
+                        task_id,
+                        description=f"[cyan]{project_path.name}: Initializing git...[/cyan]",
+                    )
+                    if not automation.init_repository(project_path):
+                        console.print("  [yellow]✗ Failed to initialize git[/yellow]")
+                        progress.advance(task_id)
+                        continue
 
-            # Push to GitHub
-            if not automation.push_to_github(project_path, repo_info["clone_url"]):
-                msg = "[yellow]Failed to push to GitHub[/yellow]"
-                console.print(msg)
-                continue
+                    # Create commit
+                    progress.update(
+                        task_id,
+                        description=f"[cyan]{project_path.name}: Creating commit...[/cyan]",
+                    )
+                    if not automation.create_commit(project_path, "Initial commit"):
+                        console.print("  [yellow]✗ Failed to create commit[/yellow]")
+                        progress.advance(task_id)
+                        continue
 
-            # Get commit hash
-            commit_hash = automation.get_current_commit(project_path)
+                    # Create GitHub repository
+                    progress.update(
+                        task_id,
+                        description=f"[cyan]{project_path.name}: Creating GitHub repo...[/cyan]",
+                    )
+                    repo_info = automation.create_remote_repository(
+                        metadata["name"],
+                        metadata["description"],
+                        private=False,
+                    )
 
-            console.print(
-                f"[green]✓ {project_path.name}[/green]: " f"{repo_info['html_url']}"
-            )
+                    if not repo_info:
+                        console.print(
+                            "  [yellow]✗ Failed to create GitHub repository[/yellow]"
+                        )
+                        progress.advance(task_id)
+                        continue
 
-            if commit_hash:
-                console.print(f"  [dim]Commit: {commit_hash[:7]}[/dim]")
+                    # Push to GitHub
+                    progress.update(
+                        task_id,
+                        description=f"[cyan]{project_path.name}: Pushing to GitHub...[/cyan]",
+                    )
+                    if not automation.push_to_github(
+                        project_path, repo_info["clone_url"]
+                    ):
+                        console.print("  [yellow]✗ Failed to push to GitHub[/yellow]")
+                        progress.advance(task_id)
+                        continue
 
-            shared_count += 1
+                    # Get commit hash
+                    commit_hash = automation.get_current_commit(project_path)
 
-        console.print(f"[green]Shared {shared_count}/{len(projects)} projects[/green]")
+                    console.print(
+                        f"[green]✓ {project_path.name}[/green]: {repo_info['html_url']}"
+                    )
+
+                    if commit_hash:
+                        console.print(f"  [dim]Commit: {commit_hash[:7]}[/dim]")
+
+                    shared_count += 1
+
+                except (ValueError, OSError) as e:
+                    console.print(f"  [yellow]✗ Error: {e}[/yellow]")
+
+                finally:
+                    progress.advance(task_id)
+
+        console.print(
+            f"[green]✓ Successfully shared {shared_count}/{len(new_projects)} projects[/green]"
+        )
         return True
 
     except (ValueError, OSError) as e:
