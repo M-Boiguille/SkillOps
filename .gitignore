@@ -5,6 +5,13 @@ notes.md
 best-practices/
 storage/*
 !storage/.gitkeep
+lms-docs
+
+# Temporary scripts and files
+calculate_*.py
+check_*.py
+*.zip
+issue-*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -33,9 +33,8 @@ Ce dossier contient des fiches pédagogiques sur les **méthodologies, framework
 | Fiche | Sujet | Concepts Clés |
 |-------|-------|---------------|
 | [KB-07](KB-07-architecture-decision-records.md) | **ADR (Architecture Decision Records)** | Format ADR, traçabilité décisions |
-| [KB-08](KB-08-software-architecture-patterns.md) | **Patterns d'Architecture** | State Machine, Event-Driven, MVC |
-| [KB-09](KB-09-c4-model.md) | **C4 Model** | Context, Containers, Components, Code |
-| [KB-10](KB-10-technical-documentation.md) | **Documentation Technique** | README, API docs, docstrings |
+| [KB-08](KB-08-pytest-testing-guide.md) | **Testing avec Pytest** | TDD, fixtures, coverage >80%, patterns |
+| [KB-09](KB-09-python-project-structure.md) | **Python Project Structure** | src/ layout, pyproject.toml, venv |
 
 ### 🟡 DevOps & CI/CD
 

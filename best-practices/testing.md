@@ -82,6 +82,61 @@ def test_calculate_average_returns_zero_for_empty_list():
 2. **Green** : Code minimal pour passer test
 3. **Refactor** : Améliorer code sans casser tests
 
+**Exemple Concret (MetricsManager):**
+```python
+# Step 1 - RED: Write failing test first
+def test_calculate_streak_consecutive_days(tmp_path):
+    """Test consecutive days streak calculation."""
+    progress_data = [
+        {"date": "2026-01-10", "steps": 8},
+        {"date": "2026-01-09", "steps": 7},
+        {"date": "2026-01-08", "steps": 8}
+    ]
+    manager = MetricsManager(tmp_path / "metrics.json")
+    streak = manager.calculate_streak(progress_data)
+    assert streak == 3  # FAILS - method not implemented
+
+# Step 2 - GREEN: Minimal implementation
+def calculate_streak(self, progress_data: list) -> int:
+    if not progress_data:
+        return 0
+    return len(progress_data)  # Simple but works
+
+# Step 3 - REFACTOR: Better implementation
+def calculate_streak(self, progress_data: list) -> int:
+    """Calculate consecutive days from today/yesterday backward."""
+    if not progress_data:
+        return 0
+    
+    # Sort by date descending
+    sorted_data = sorted(
+        progress_data,
+        key=lambda x: x["date"],
+        reverse=True
+    )
+    
+    # Count consecutive days
+    streak = 0
+    today = date.today()
+    expected_date = today
+    
+    for entry in sorted_data:
+        entry_date = date.fromisoformat(entry["date"])
+        if entry_date == expected_date:
+            streak += 1
+            expected_date -= timedelta(days=1)
+        elif entry_date == expected_date + timedelta(days=1):
+            # Allow starting from yesterday if no activity today
+            streak += 1
+            expected_date = entry_date - timedelta(days=1)
+        else:
+            break  # Gap found, stop counting
+    
+    return streak
+```
+
+**Résultat:** 99.4% coverage (165/166 lignes) avec 41 tests
+
 ### ❌ Don't
 - Écrire tous les tests d'un coup
 - Skipper refactor step
