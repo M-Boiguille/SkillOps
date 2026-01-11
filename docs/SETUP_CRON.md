@@ -206,7 +206,7 @@ Cron doesn't load your shell configuration (`.bashrc`, `.zshrc`). Always source 
    ```bash
    # macOS/BSD
    launchctl list | grep cron
-   
+
    # Linux
    systemctl status cron  # or crond
    ```
@@ -221,7 +221,7 @@ Cron doesn't load your shell configuration (`.bashrc`, `.zshrc`). Always source 
    ```bash
    # macOS
    log stream --predicate 'eventMessage contains "cron"'
-   
+
    # Linux
    grep CRON /var/log/syslog
    # or
@@ -307,7 +307,7 @@ journalctl -t skillops -f
    ```bash
    # Bad
    skillops start
-   
+
    # Good
    /home/username/.local/bin/skillops start
    ```
@@ -316,7 +316,7 @@ journalctl -t skillops -f
    ```bash
    # Bad
    0 8 * * * skillops start
-   
+
    # Good
    0 8 * * * source ~/.config/skillops/skillops.env && skillops start
    ```
@@ -325,7 +325,7 @@ journalctl -t skillops -f
    ```bash
    # Bad
    0 8 * * * skillops start
-   
+
    # Good
    0 8 * * * skillops start >> ~/.local/share/skillops/cron.log 2>&1
    ```
@@ -334,7 +334,7 @@ journalctl -t skillops -f
    ```bash
    # Bad (overwrites log each time)
    0 8 * * * skillops start > ~/.local/share/skillops/cron.log 2>&1
-   
+
    # Good (appends to log)
    0 8 * * * skillops start >> ~/.local/share/skillops/cron.log 2>&1
    ```
@@ -363,4 +363,3 @@ crontab -l | grep skillops  # Should show nothing
 - [SETUP_SYSTEMD.md](SETUP_SYSTEMD.md) – Recommended: systemd timers (better logging)
 - [QUICKSTART.md](QUICKSTART.md) – Getting started with SkillOps
 - [Cron Manual](https://man7.org/linux/man-pages/man5/crontab.5.html)
-

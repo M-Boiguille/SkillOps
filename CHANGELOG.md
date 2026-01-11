@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-01-13
+
+### Added
+
+#### Observability & Alerting (US-010)
+- Monitoring core: `ErrorAggregator` (24h dedup + JSON persistence), `MetricsCollector` (per-step stats), and syslog handler with journalctl fallback.
+- Alerting: `EmailAlerter` (SMTP/HTML with env-driven config), `WebhookAlerter` (Slack/Discord payloads), and `send_alert_from_aggregator` helper for single-entry alert fan-out.
+- Test coverage: 41 monitoring tests total (20 new alerter tests), bringing the suite to 396 passing with 7 skipped.
+
+### Changed
+- CLI version string updated to "v0.4.0 (Observability)".
+- Monitoring exports added to src/lms/monitoring/__init__.py.
+
+### Testing
+- All 396 tests passing (376 previous + 20 new alerter tests).
+- Pre-commit hooks (black, flake8, mypy) passing.
+
+---
+
 ## [0.3.0] - 2026-01-12
 
 ### Added

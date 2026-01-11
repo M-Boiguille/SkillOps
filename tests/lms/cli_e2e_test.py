@@ -27,7 +27,7 @@ class TestCliCommands:
         result = runner.invoke(app, ["version"])
         assert result.exit_code == 0
         assert "SkillOps LMS" in result.stdout
-        assert "0.2.0" in result.stdout
+        assert "0.4.0" in result.stdout
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
