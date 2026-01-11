@@ -1,7 +1,7 @@
 # KB-09: Python Project Structure Best Practices
 
-**Date:** 11 janvier 2026  
-**Catégorie:** Python Development  
+**Date:** 11 janvier 2026
+**Catégorie:** Python Development
 **Tags:** #python #project-structure #packaging #best-practices
 
 ---
@@ -371,17 +371,17 @@ Brief description (1-2 sentences)
 ```python
 def calculate_streak(self, progress_data: list) -> int:
     """Calculate consecutive days streak from progress history.
-    
+
     Counts consecutive days of activity ending today or yesterday.
     Stops at first gap (missing day).
-    
+
     Args:
         progress_data: List of progress dicts with 'date' field.
                       Format: [{"date": "2026-01-10", ...}, ...]
-    
+
     Returns:
         Number of consecutive days (int). Returns 0 if no progress.
-    
+
     Example:
         >>> data = [{"date": "2026-01-10"}, {"date": "2026-01-09"}]
         >>> manager.calculate_streak(data)
@@ -406,20 +406,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
+
       - name: Run tests
         run: pytest tests/ --cov=src --cov-report=xml
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -491,6 +491,6 @@ pytest tests/ -v
 
 ---
 
-**Status:** Production Ready  
-**Maintenu par:** MB  
+**Status:** Production Ready
+**Maintenu par:** MB
 **Dernière mise à jour:** 11 janvier 2026

@@ -2,7 +2,7 @@
 
 ## 📝 Définition
 
-Un **Architecture Decision Record (ADR)** est un document court qui capture une **décision architecturale importante**, le **contexte** dans lequel elle a été prise, les **alternatives considérées**, et les **conséquences** de ce choix. 
+Un **Architecture Decision Record (ADR)** est un document court qui capture une **décision architecturale importante**, le **contexte** dans lequel elle a été prise, les **alternatives considérées**, et les **conséquences** de ce choix.
 
 **Objectif :** Tracer les décisions techniques majeures pour comprendre **pourquoi** le système est construit ainsi, même des mois/années plus tard.
 
@@ -104,7 +104,7 @@ Contre:
 **Choix: Python 3.11+**
 
 Justification: Le projet est d'abord un outil d'apprentissage.
-Python permet de se concentrer sur DevOps (CI/CD, infra) plutôt 
+Python permet de se concentrer sur DevOps (CI/CD, infra) plutôt
 que sur la syntaxe du langage.
 
 ## Conséquences
@@ -150,30 +150,30 @@ Mitigations:
 
 ### Articles Fondateurs 📝
 
-1. **"Documenting Architecture Decisions"** - Michael Nygard (2011)  
-   → Article original qui a lancé le concept  
+1. **"Documenting Architecture Decisions"** - Michael Nygard (2011)
+   → Article original qui a lancé le concept
    → [cognitect.com](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
 
-2. **"ADR GitHub Organization"**  
-   → Templates et exemples d'ADRs  
+2. **"ADR GitHub Organization"**
+   → Templates et exemples d'ADRs
    → [adr.github.io](https://adr.github.io/)
 
-3. **"Lightweight Architecture Decision Records"** - ThoughtWorks  
+3. **"Lightweight Architecture Decision Records"** - ThoughtWorks
    → [thoughtworks.com](https://www.thoughtworks.com/radar/techniques/lightweight-architecture-decision-records)
 
 ### Templates & Outils 🛠️
 
-- **adr-tools** : CLI pour créer/gérer ADRs  
+- **adr-tools** : CLI pour créer/gérer ADRs
   ```bash
   brew install adr-tools
   adr init docs/architecture/decisions
   adr new "Use PostgreSQL for persistence"
   ```
 
-- **MADR (Markdown ADR)** : Format Markdown enrichi  
+- **MADR (Markdown ADR)** : Format Markdown enrichi
   → [github.com/adr/madr](https://github.com/adr/madr)
 
-- **ADR Tools VSCode Extension**  
+- **ADR Tools VSCode Extension**
   → Snippets pour créer ADRs rapidement
 
 ### Exemples Réels 🌍
@@ -184,7 +184,7 @@ Mitigations:
 
 ### Livres 📖
 
-- **"Software Architecture for Developers"** - Simon Brown  
+- **"Software Architecture for Developers"** - Simon Brown
   → Intègre les ADRs dans le C4 Model
 
 ---
@@ -237,7 +237,7 @@ Dans [03-adr-architecture-decision-records.md](../project-lifecycle/03-adr-archi
 ```markdown
 # ADR-XXX: [Titre Court]
 
-**Date:** YYYY-MM-DD  
+**Date:** YYYY-MM-DD
 **Statut:** [Proposé | Accepté | Déprécié]
 
 ## Problème
@@ -303,5 +303,5 @@ Volume estimé: 10k users, 1M events/mois.
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** ✅ Concept appliqué dans SkillOps (8 ADRs documentés)

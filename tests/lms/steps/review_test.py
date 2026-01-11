@@ -128,12 +128,13 @@ class TestCalculateMetricsFromProgress:
         Then: Returns steps_completed=8
         """
         progress_data = {
+            "date": "2026-01-10",
             "steps": {
                 f"step{i}": {"completed": True, "time_spent": 600} for i in range(1, 9)
             },
             "cards_created": 12,
         }
-        all_progress_data = {"2026-01-10": progress_data}
+        all_progress_data = [progress_data]
 
         result = calculate_metrics_from_progress(progress_data, all_progress_data)
 
@@ -148,10 +149,11 @@ class TestCalculateMetricsFromProgress:
         Then: Returns steps_completed=0
         """
         progress_data = {
+            "date": "2026-01-10",
             "steps": {},
             "cards_created": 0,
         }
-        all_progress_data = {"2026-01-10": progress_data}
+        all_progress_data = [progress_data]
 
         result = calculate_metrics_from_progress(progress_data, all_progress_data)
 
@@ -166,6 +168,7 @@ class TestCalculateMetricsFromProgress:
         Then: Returns correct counts and totals
         """
         progress_data = {
+            "date": "2026-01-10",
             "steps": {
                 "step1": {"completed": True, "time_spent": 300},
                 "step2": {"completed": True, "time_spent": 450},
@@ -176,7 +179,7 @@ class TestCalculateMetricsFromProgress:
             },
             "cards_created": 8,
         }
-        all_progress_data = {"2026-01-10": progress_data}
+        all_progress_data = [progress_data]
 
         result = calculate_metrics_from_progress(progress_data, all_progress_data)
 
@@ -234,6 +237,7 @@ class TestReviewStep:
         yesterday_date = get_yesterday_date()
 
         progress_data = {
+            "date": yesterday_date,
             "steps": {
                 "step1": {"completed": True, "time_spent": 600},
                 "step2": {"completed": True, "time_spent": 900},
@@ -242,7 +246,7 @@ class TestReviewStep:
         }
 
         mock_manager = MagicMock()
-        mock_manager.load_progress.return_value = {yesterday_date: progress_data}
+        mock_manager.load_progress.return_value = [progress_data]
         mock_manager.get_progress_by_date.return_value = progress_data
         mock_progress_manager_class.return_value = mock_manager
 
@@ -276,6 +280,7 @@ class TestReviewStep:
         yesterday_date = get_yesterday_date()
 
         progress_data = {
+            "date": yesterday_date,
             "steps": {
                 f"step{i}": {"completed": True, "time_spent": 300} for i in range(1, 8)
             },
@@ -283,7 +288,7 @@ class TestReviewStep:
         }
 
         mock_manager = MagicMock()
-        mock_manager.load_progress.return_value = {yesterday_date: progress_data}
+        mock_manager.load_progress.return_value = [progress_data]
         mock_manager.get_progress_by_date.return_value = progress_data
         mock_progress_manager_class.return_value = mock_manager
 
@@ -319,6 +324,7 @@ class TestReviewStep:
         yesterday_date = get_yesterday_date()
 
         progress_data = {
+            "date": yesterday_date,
             "steps": {
                 "step1": {"completed": True, "time_spent": 300},
             },
@@ -326,7 +332,7 @@ class TestReviewStep:
         }
 
         mock_manager = MagicMock()
-        mock_manager.load_progress.return_value = {yesterday_date: progress_data}
+        mock_manager.load_progress.return_value = [progress_data]
         mock_manager.get_progress_by_date.return_value = progress_data
         mock_progress_manager_class.return_value = mock_manager
 

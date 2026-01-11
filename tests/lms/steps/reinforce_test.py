@@ -1,8 +1,9 @@
 """Tests pour l'étape Reinforce."""
 
+import json
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.lms.steps.reinforce import (
     display_exercises_table,
@@ -111,99 +112,69 @@ class TestDisplayExercisesTable:
 class TestSaveExerciseProgress:
     """Tests pour save_exercise_progress()."""
 
-    @patch("src.lms.steps.reinforce.ProgressManager")
-    def test_saves_new_exercise(self, mock_pm_class, tmp_path):
+    def test_saves_new_exercise(self, tmp_path):
         """
         Given: Nouvel exercice à sauvegarder
         When: Appel de save_exercise_progress()
-        Then: Sauvegarde l'exercice avec les bonnes données
+        Then: Sauvegarde l'exercice dans un fichier JSON
         """
-        # Setup
-        mock_pm = MagicMock()
-        mock_pm_class.return_value = mock_pm
-        mock_pm.load.return_value = None  # Pas de progression existante
-
         # Execute
         save_exercise_progress("test-id", "Test Exercise", 600, True, tmp_path)
 
-        # Verify
-        mock_pm.save.assert_called_once()
-        call_args = mock_pm.save.call_args
-        # date should be today's date in YYYY-MM-DD format
-        assert isinstance(call_args[0][0], str)
-        progress = call_args[0][1]  # progress data
+        # Verify - check JSON file was created
+        progress_file = tmp_path / "reinforce_progress.json"
+        assert progress_file.exists()
 
-        assert "reinforce" in progress
-        assert len(progress["reinforce"]["exercises"]) == 1
-        assert progress["reinforce"]["exercises"][0]["id"] == "test-id"
-        assert progress["reinforce"]["exercises"][0]["completed"] is True
-        assert progress["reinforce"]["total_time"] == 600
+        # Read and verify content
+        with progress_file.open("r") as f:
+            data = json.load(f)
 
-    @patch("src.lms.steps.reinforce.ProgressManager")
-    def test_updates_existing_exercise(self, mock_pm_class, tmp_path):
+        today = datetime.now().strftime("%Y-%m-%d")
+        assert today in data
+        assert len(data[today]["exercises"]) == 1
+        assert data[today]["exercises"][0]["id"] == "test-id"
+        assert data[today]["exercises"][0]["title"] == "Test Exercise"
+        assert data[today]["exercises"][0]["duration_seconds"] == 600
+        assert data[today]["exercises"][0]["completed"] is True
+        assert data[today]["total_time"] == 600
+
+    def test_updates_existing_exercise(self, tmp_path):
         """
         Given: Exercice existant à mettre à jour
         When: Appel de save_exercise_progress() avec le même ID
         Then: Met à jour l'exercice existant au lieu d'en créer un nouveau
         """
-        # Setup
-        mock_pm = MagicMock()
-        mock_pm_class.return_value = mock_pm
-        mock_pm.load.return_value = {
-            "reinforce": {
-                "exercises": [
-                    {
-                        "id": "test-id",
-                        "title": "Old Title",
-                        "duration_seconds": 300,
-                        "completed": False,
-                        "timestamp": "2024-01-15T09:00:00",
-                    }
-                ],
-                "total_time": 300,
-            }
-        }
+        # Setup - create initial exercise
+        save_exercise_progress("test-id", "Old Title", 300, False, tmp_path)
 
-        # Execute
+        # Execute - update same exercise
         save_exercise_progress("test-id", "New Title", 600, True, tmp_path)
 
         # Verify
-        call_args = mock_pm.save.call_args
-        progress = call_args[0][1]
+        progress_file = tmp_path / "reinforce_progress.json"
+        with progress_file.open("r") as f:
+            data = json.load(f)
 
+        today = datetime.now().strftime("%Y-%m-%d")
         # Should still have only 1 exercise (updated, not added)
-        assert len(progress["reinforce"]["exercises"]) == 1
-        assert progress["reinforce"]["exercises"][0]["title"] == "New Title"
-        assert progress["reinforce"]["exercises"][0]["duration_seconds"] == 600
-        assert progress["reinforce"]["exercises"][0]["completed"] is True
-        assert progress["reinforce"]["total_time"] == 600
+        assert len(data[today]["exercises"]) == 1
+        assert data[today]["exercises"][0]["title"] == "New Title"
+        assert data[today]["exercises"][0]["duration_seconds"] == 600
+        assert data[today]["exercises"][0]["completed"] is True
+        assert data[today]["total_time"] == 600
 
 
 class TestGetExerciseProgress:
     """Tests pour get_exercise_progress()."""
 
-    @patch("src.lms.steps.reinforce.ProgressManager")
-    def test_returns_progress_when_found(self, mock_pm_class, tmp_path):
+    def test_returns_progress_when_found(self, tmp_path):
         """
         Given: Exercice avec progression sauvegardée
         When: Appel de get_exercise_progress()
         Then: Retourne les données de progression
         """
-        # Setup
-        mock_pm = MagicMock()
-        mock_pm_class.return_value = mock_pm
-        mock_pm.load.return_value = {
-            "reinforce": {
-                "exercises": [
-                    {
-                        "id": "test-id",
-                        "title": "Test Exercise",
-                        "duration_seconds": 600,
-                        "completed": True,
-                    }
-                ]
-            }
-        }
+        # Setup - save an exercise
+        save_exercise_progress("test-id", "Test Exercise", 600, True, tmp_path)
 
         # Execute
         result = get_exercise_progress("test-id", tmp_path)
@@ -211,21 +182,17 @@ class TestGetExerciseProgress:
         # Verify
         assert result is not None
         assert result["id"] == "test-id"
+        assert result["title"] == "Test Exercise"
+        assert result["duration_seconds"] == 600
         assert result["completed"] is True
 
-    @patch("src.lms.steps.reinforce.ProgressManager")
-    def test_returns_none_when_not_found(self, mock_pm_class, tmp_path):
+    def test_returns_none_when_not_found(self, tmp_path):
         """
         Given: Exercice sans progression
         When: Appel de get_exercise_progress()
         Then: Retourne None
         """
-        # Setup
-        mock_pm = MagicMock()
-        mock_pm_class.return_value = mock_pm
-        mock_pm.load.return_value = None
-
-        # Execute
+        # Execute - no file exists yet
         result = get_exercise_progress("nonexistent", tmp_path)
 
         # Verify

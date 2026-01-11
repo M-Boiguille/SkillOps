@@ -1,10 +1,10 @@
 # SCR-001: ProgressManager API Signature Change
 
-**Type:** Specification Change Request  
-**Status:** ✅ APPROVED  
-**Date:** 2026-01-10  
-**Author:** Development Team  
-**Reviewers:** Product Owner, Tech Lead  
+**Type:** Specification Change Request
+**Status:** ✅ APPROVED
+**Date:** 2026-01-10
+**Author:** Development Team
+**Reviewers:** Product Owner, Tech Lead
 
 ---
 
@@ -12,8 +12,8 @@
 
 During implementation of `ProgressManager` (Issue #3), we identified that the API signature specified in Sprint Planning does not align with optimal usage patterns and introduces unnecessary coupling between date management and data payload.
 
-**Proposed Change:**  
-- **FROM:** `save_daily_progress(date: str, data: dict)`  
+**Proposed Change:**
+- **FROM:** `save_daily_progress(date: str, data: dict)`
 - **TO:** `save_daily_progress(data: dict)` where `data` contains the `date` field
 
 ---
@@ -94,14 +94,14 @@ pm.save_daily_progress(date, yesterday_progress)   # Extra step
 ```python
 def save_daily_progress(self, data: dict) -> None:
     """Save or update daily progress entry.
-    
+
     Args:
         data: Progress entry containing:
             - date (str): YYYY-MM-DD format (required)
             - steps (int): Number of steps completed
             - time (int): Time spent in seconds
             - cards (int): Number of cards processed
-    
+
     Notes:
         - If entry for this date exists, it will be updated
         - If date is missing, raises validation error
@@ -110,7 +110,7 @@ def save_daily_progress(self, data: dict) -> None:
 ```
 
 ### 4.2 Backward Compatibility
-**Breaking Change:** Yes  
+**Breaking Change:** Yes
 **Mitigation:** This is pre-release (v0.1.0), no external consumers yet
 
 ### 4.3 Migration Path
@@ -164,8 +164,8 @@ def save_daily_progress(self, data: dict, date: str = None)
 - ⚠️ `project-lifecycle/04-sprint-planning-sprint-1.md` - Documentation needs update
 
 ### 7.2 Test Coverage
-**Current Status:** 19/19 tests passing (100%)  
-**Test Compatibility:** All tests already use unified data object  
+**Current Status:** 19/19 tests passing (100%)
+**Test Compatibility:** All tests already use unified data object
 **Additional Tests Needed:** None
 
 ### 7.3 Documentation Updates
@@ -236,7 +236,7 @@ The date is part of the progress entry, not a separate dimension.
 | **Tech Lead** | [Auto-approved] | ✅ Approved | 2026-01-10 |
 | **Product Owner** | [User] | ✅ Approved | 2026-01-10 |
 
-**Approval Notes:**  
+**Approval Notes:**
 Change improves API quality, maintains test coverage, and aligns implementation with validation layer. No negative impact identified.
 
 ---

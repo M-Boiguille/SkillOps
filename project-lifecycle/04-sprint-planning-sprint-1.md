@@ -1,18 +1,18 @@
 # Sprint Planning - Sprint 1 (MVP Core)
 ## SkillOps Learning Management System
 
-**Sprint:** 1  
-**Date:** 9 janvier 2026  
-**Durée:** 2 semaines (9 jan - 23 jan 2026)  
-**Scrum Master:** MB  
-**Product Owner:** MB  
+**Sprint:** 1
+**Date:** 9 janvier 2026
+**Durée:** 2 semaines (9 jan - 23 jan 2026)
+**Scrum Master:** MB
+**Product Owner:** MB
 **Équipe Dev:** MB (DevOps Engineer)
 
 ---
 
 ## 🎯 Objectif du Sprint
 
-**Sprint Goal:**  
+**Sprint Goal:**
 > Développer un CLI fonctionnel permettant de lancer la routine d'apprentissage quotidienne, de tracker le temps via WakaTime, de visualiser les métriques de progression, et de marquer les exercices comme complétés. L'outil doit persister l'état entre les sessions.
 
 **Critères de succès :**
@@ -53,7 +53,7 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
 - [ ] **T010-1:** Créer structure `storage/` avec `.gitignore` (1h)
   - Créer dossiers `storage/`
   - Ajouter `storage/*` dans `.gitignore` (sauf `.gitkeep`)
-  
+
 - [ ] **T010-2:** Implémenter `persistence.py` - Gestion YAML (2h)
   ```python
   # lms/persistence.py
@@ -246,9 +246,9 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
 - [ ] **T-CI-1:** Créer `.github/workflows/ci.yml` (2h)
   ```yaml
   name: CI
-  
+
   on: [push, pull_request]
-  
+
   jobs:
     test:
       runs-on: ubuntu-latest
@@ -260,7 +260,7 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
         - run: pip install -r requirements.txt
         - run: pytest --cov=lms --cov-report=xml
         - run: coverage report --fail-under=70
-    
+
     lint:
       runs-on: ubuntu-latest
       steps:
@@ -527,6 +527,6 @@ Chaque matin, je documente dans un fichier `daily-log.md` :
 
 ---
 
-**Status:** Committed - Sprint Started 🚀  
-**Next Review:** 23 janvier 2026  
+**Status:** Committed - Sprint Started 🚀
+**Next Review:** 23 janvier 2026
 **Next Document:** [05-development-logs.md](05-development-logs.md) (à créer pendant le sprint)

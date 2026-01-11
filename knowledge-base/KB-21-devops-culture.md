@@ -26,7 +26,7 @@ Le mouvement DevOps est né en 2009 (conférence "Velocity") d'une frustration :
 └────────────────────────┘         └────────────────────────┘
            ↓                                 ↓
       KPI: Velocity                    KPI: Stability
-      
+
  🚨 Résultat: Dev veut changer, Ops veut stabilité → CONFLIT
 ```
 
@@ -200,23 +200,23 @@ GitHub:
 
 ### Livres 📖
 
-1. **"The Phoenix Project"** - Gene Kim, Kevin Behr, George Spafford  
-   → Roman sur transformation DevOps (MUST READ)  
-   → Illustre Culture, Automation, Lean, Measurement  
+1. **"The Phoenix Project"** - Gene Kim, Kevin Behr, George Spafford
+   → Roman sur transformation DevOps (MUST READ)
+   → Illustre Culture, Automation, Lean, Measurement
    → [Amazon](https://www.amazon.com/Phoenix-Project-DevOps-Helping-Business/dp/0988262592)
 
-2. **"The DevOps Handbook"** - Gene Kim, Jez Humble, Patrick Debois, John Willis  
-   → Guide pratique pour implémenter DevOps  
-   → Cas d'usage concrets (Amazon, Netflix, Etsy)  
+2. **"The DevOps Handbook"** - Gene Kim, Jez Humble, Patrick Debois, John Willis
+   → Guide pratique pour implémenter DevOps
+   → Cas d'usage concrets (Amazon, Netflix, Etsy)
    → [Amazon](https://www.amazon.com/DevOps-Handbook-World-Class-Reliability-Organizations/dp/1942788002)
 
-3. **"Accelerate"** - Nicole Forsgren, Jez Humble, Gene Kim  
-   → Données scientifiques : DevOps = meilleure performance  
-   → Métriques DORA, corrélation culture/résultats  
+3. **"Accelerate"** - Nicole Forsgren, Jez Humble, Gene Kim
+   → Données scientifiques : DevOps = meilleure performance
+   → Métriques DORA, corrélation culture/résultats
    → [Amazon](https://www.amazon.com/Accelerate-Software-Performing-Technology-Organizations/dp/1942788339)
 
-4. **"The Unicorn Project"** - Gene Kim  
-   → Suite du Phoenix Project (point de vue développeur)  
+4. **"The Unicorn Project"** - Gene Kim
+   → Suite du Phoenix Project (point de vue développeur)
    → Les 5 Idéaux du DevOps
 
 ### Articles & Rapports 📝
@@ -391,16 +391,16 @@ Chaque Sprint:
 
 ## 🌟 Quote Inspirante
 
-> "DevOps is not a goal, but a never-ending process of continual improvement."  
+> "DevOps is not a goal, but a never-ending process of continual improvement."
 > — Jez Humble
 
-> "The goal is to make deployments boring."  
+> "The goal is to make deployments boring."
 > — Werner Vogels (CTO Amazon)
 
-> "Move fast and break things... unless you're running pacemakers or nuclear power plants."  
+> "Move fast and break things... unless you're running pacemakers or nuclear power plants."
 > — Modified Facebook motto 😄
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** ✅ Culture DevOps implémentée dans la méthodologie SkillOps

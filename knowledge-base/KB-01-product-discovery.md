@@ -44,16 +44,16 @@ Le **Product Discovery** est la phase initiale du cycle de développement produi
 
 ### Discovery Questions Posées
 
-**Q: Quel est ton problème principal ?**  
+**Q: Quel est ton problème principal ?**
 R: Éparpillement (Kubernetes, Docker, Terraform...) sans fil conducteur
 
-**Q: À qui s'adresse l'outil ?**  
+**Q: À qui s'adresse l'outil ?**
 R: Personnel pour l'instant, mais architecture évolutive
 
-**Q: Qu'est-ce qui définit le succès dans 3 mois ?**  
+**Q: Qu'est-ce qui définit le succès dans 3 mois ?**
 R: Routine quotidienne sans friction (lancer → faire → review → terminé)
 
-**Q: Quelles features sont critiques pour le MVP ?**  
+**Q: Quelles features sont critiques pour le MVP ?**
 R: Formation (tracking temps), Reinforce (exercices), Review (métriques)
 
 **Résultat :** MVP clair avec 5 user stories Must Have au lieu de partir dans 15 directions.
@@ -84,17 +84,17 @@ R: Formation (tracking temps), Reinforce (exercices), Review (métriques)
 
 ### Livres 📖
 
-1. **"Inspired: How to Create Tech Products Customers Love"** - Marty Cagan  
-   → Bible du Product Management, chapitres 10-15 sur Discovery  
+1. **"Inspired: How to Create Tech Products Customers Love"** - Marty Cagan
+   → Bible du Product Management, chapitres 10-15 sur Discovery
    → [Amazon](https://www.amazon.com/INSPIRED-Create-Tech-Products-Customers/dp/1119387507)
 
-2. **"The Mom Test"** - Rob Fitzpatrick  
-   → Comment poser les bonnes questions aux utilisateurs  
-   → Éviter les biais de validation  
+2. **"The Mom Test"** - Rob Fitzpatrick
+   → Comment poser les bonnes questions aux utilisateurs
+   → Éviter les biais de validation
    → [Amazon](https://www.amazon.com/Mom-Test-customers-business-everyone/dp/1492180742)
 
-3. **"Continuous Discovery Habits"** - Teresa Torres  
-   → Discovery hebdomadaire intégrée au processus  
+3. **"Continuous Discovery Habits"** - Teresa Torres
+   → Discovery hebdomadaire intégrée au processus
    → [Amazon](https://www.amazon.com/Continuous-Discovery-Habits-Discover-Products/dp/1736633309)
 
 ### Articles & Blogs 📝
@@ -158,5 +158,5 @@ Avant de passer au développement, valider :
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** ✅ Concept appliqué dans SkillOps

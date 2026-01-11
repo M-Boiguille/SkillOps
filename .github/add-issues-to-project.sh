@@ -34,7 +34,7 @@ for issue_number in $ISSUES; do
       }
     }
   ' -f owner=$OWNER -f repo=$REPO -F number=$issue_number --jq '.data.repository.issue.id')
-  
+
   # Add issue to project
   gh api graphql -f query='
     mutation($project: ID!, $item: ID!) {
@@ -45,7 +45,7 @@ for issue_number in $ISSUES; do
       }
     }
   ' -f project=$PROJECT_ID -f item=$ISSUE_ID > /dev/null
-  
+
   echo "  ✓ Added issue #$issue_number"
 done
 

@@ -1,16 +1,16 @@
 # GitHub Sprint 1 Setup - Récapitulatif
 
-**Date:** 9 janvier 2026  
-**Sprint:** Sprint 1 - MVP Core  
+**Date:** 9 janvier 2026
+**Sprint:** Sprint 1 - MVP Core
 **Durée:** 9-23 janvier 2026 (2 semaines)
 
 ---
 
 ## 📊 Résumé
 
-✅ **21 issues créées** sur GitHub  
-✅ **7 labels créés** pour organiser les issues  
-✅ **1 project board créé** : [Sprint 1 - MVP Core](https://github.com/users/M-Boiguille/projects/2)  
+✅ **21 issues créées** sur GitHub
+✅ **7 labels créés** pour organiser les issues
+✅ **1 project board créé** : [Sprint 1 - MVP Core](https://github.com/users/M-Boiguille/projects/2)
 ✅ **Toutes les issues ajoutées au project**
 
 ---
@@ -84,8 +84,8 @@
 
 ## 🗂️ Project Board
 
-**Nom:** [Sprint 1 - MVP Core](https://github.com/users/M-Boiguille/projects/2)  
-**Type:** GitHub Projects (Beta)  
+**Nom:** [Sprint 1 - MVP Core](https://github.com/users/M-Boiguille/projects/2)
+**Type:** GitHub Projects (Beta)
 **Statut:** ✅ Créé et configuré
 
 **Vue par défaut :** Board (Kanban)
@@ -103,17 +103,17 @@
 Trois scripts Bash ont été créés pour automatiser la configuration :
 
 ### 1. `.github/create-sprint1-issues-v2.sh`
-**But :** Créer les 21 issues GitHub avec labels  
-**Usage :** `./github/create-sprint1-issues-v2.sh`  
+**But :** Créer les 21 issues GitHub avec labels
+**Usage :** `./github/create-sprint1-issues-v2.sh`
 **Résultat :** 21 issues créées (#1 à #21)
 
 ### 2. `.github/add-issues-to-project.sh`
-**But :** Ajouter toutes les issues au project board  
-**Usage :** `./.github/add-issues-to-project.sh`  
+**But :** Ajouter toutes les issues au project board
+**Usage :** `./.github/add-issues-to-project.sh`
 **Résultat :** 21 issues ajoutées au projet #2
 
 ### 3. `.github/create-sprint1-issues.sh` (legacy)
-**But :** Première version avec milestone (non fonctionnelle)  
+**But :** Première version avec milestone (non fonctionnelle)
 **Statut :** ❌ Deprecated, remplacé par v2
 
 ---
@@ -185,5 +185,5 @@ Pendant le sprint, tracker :
 
 ---
 
-**Dernière mise à jour :** 9 janvier 2026  
+**Dernière mise à jour :** 9 janvier 2026
 **Statut :** ✅ Configuration complète, prêt à démarrer le développement
