@@ -1,8 +1,7 @@
 """Tests for the display module - Rich display components."""
 
-import pytest
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from rich.table import Table
 from rich.progress import Progress
 from src.lms.display import (

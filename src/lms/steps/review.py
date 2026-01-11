@@ -68,13 +68,13 @@ def format_step_data_for_display(progress_data: dict) -> list[dict]:
 
 
 def calculate_metrics_from_progress(
-    progress_data: dict, all_progress_data: dict
+    progress_data: dict, all_progress_data: list
 ) -> dict:
     """Calculate metrics for display from progress data.
 
     Args:
         progress_data: Progress data for a specific date.
-        all_progress_data: All progress data (dict with dates as keys).
+        all_progress_data: All progress data (list of progress entries).
 
     Returns:
         Dictionary with keys: steps_completed, total_time, cards_created, streak.
@@ -92,14 +92,10 @@ def calculate_metrics_from_progress(
     cards_created = progress_data.get("cards_created", 0)
 
     # Calculate streak using MetricsManager
-    # Convert dict format to list format expected by calculate_streak
-    progress_list = [
-        {"date": date_str, **data} for date_str, data in all_progress_data.items()
-    ]
-
+    # all_progress_data is already a list, so we can use it directly
     temp_metrics_path = Path("storage/metrics_temp.json")
     metrics_manager = MetricsManager(temp_metrics_path)
-    streak = metrics_manager.calculate_streak(progress_list)
+    streak = metrics_manager.calculate_streak(all_progress_data)
 
     return {
         "steps_completed": steps_completed,

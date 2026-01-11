@@ -1,7 +1,6 @@
 """Tests for the CLI module - main menu and step navigation."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.lms.cli import (
     Step,
     STEPS,

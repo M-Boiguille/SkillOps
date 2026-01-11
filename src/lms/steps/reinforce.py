@@ -1,5 +1,6 @@
 """Étape Reinforce - Pratique d'exercices avec suivi de progression."""
 
+import json
 import os
 from datetime import datetime
 from pathlib import Path
@@ -16,7 +17,6 @@ from ..display import (
     display_success_message,
     format_time_duration,
 )
-from ..persistence import ProgressManager
 
 console = Console()
 
@@ -114,15 +114,21 @@ def get_exercise_progress(exercise_id: str, storage_path: Path) -> Optional[Dict
     Returns:
         Optional[Dict]: Données de progression ou None si non trouvé
     """
-    progress_manager = ProgressManager(storage_path)
-    today = datetime.now().strftime("%Y-%m-%d")
-    today_progress = progress_manager.load(today)
+    progress_file = storage_path / "reinforce_progress.json"
+    if not progress_file.exists():
+        return None
 
-    if today_progress and "reinforce" in today_progress:
-        exercises = today_progress["reinforce"].get("exercises", [])
+    try:
+        with progress_file.open("r") as f:
+            data = json.load(f)
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_data = data.get(today, {})
+        exercises = today_data.get("exercises", [])
         for exercise in exercises:
             if exercise.get("id") == exercise_id:
                 return exercise
+    except (json.JSONDecodeError, OSError):
+        return None
 
     return None
 
@@ -144,18 +150,27 @@ def save_exercise_progress(
         completed: Si l'exercice est terminé
         storage_path: Chemin vers le répertoire de stockage
     """
-    progress_manager = ProgressManager(storage_path)
+    storage_path.mkdir(parents=True, exist_ok=True)
+    progress_file = storage_path / "reinforce_progress.json"
+
+    # Charger les données existantes
+    if progress_file.exists():
+        try:
+            with progress_file.open("r") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            data = {}
+    else:
+        data = {}
+
     today = datetime.now().strftime("%Y-%m-%d")
 
-    # Charger la progression existante
-    progress = progress_manager.load(today) or {}
-
-    # Initialiser reinforce s'il n'existe pas
-    if "reinforce" not in progress:
-        progress["reinforce"] = {"exercises": [], "total_time": 0}
+    # Initialiser les données du jour
+    if today not in data:
+        data[today] = {"exercises": [], "total_time": 0}
 
     # Vérifier si l'exercice existe déjà
-    exercises = progress["reinforce"]["exercises"]
+    exercises = data[today]["exercises"]
     existing_exercise = None
     for i, ex in enumerate(exercises):
         if ex.get("id") == exercise_id:
@@ -171,19 +186,16 @@ def save_exercise_progress(
     }
 
     if existing_exercise is not None:
-        # Mettre à jour l'exercice existant
         exercises[existing_exercise] = exercise_data
     else:
-        # Ajouter un nouvel exercice
         exercises.append(exercise_data)
 
     # Mettre à jour le temps total
-    progress["reinforce"]["total_time"] = sum(
-        ex["duration_seconds"] for ex in exercises
-    )
+    data[today]["total_time"] = sum(ex["duration_seconds"] for ex in exercises)
 
     # Sauvegarder
-    progress_manager.save(today, progress)
+    with progress_file.open("w") as f:
+        json.dump(data, f, indent=2)
 
 
 def record_exercise_session(exercise: Dict[str, str], storage_path: Path) -> None:

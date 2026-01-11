@@ -1,7 +1,5 @@
 """Tests for the Review step."""
 
-import pytest
-from pathlib import Path
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 from src.lms.steps.review import (

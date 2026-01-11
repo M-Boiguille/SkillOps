@@ -1,12 +1,11 @@
 """Étape Formation - Affichage des statistiques de temps de code WakaTime."""
 
 import os
-from datetime import datetime, time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 from ..api_clients.wakatime_client import WakaTimeClient, WakaTimeError
@@ -173,7 +172,7 @@ def formation_step(storage_path: Optional[Path] = None) -> None:
         if should_show_alert(current_time, hours_coded):
             remaining_hours = MINIMUM_DAILY_HOURS - hours_coded
             display_warning_message(
-                f"⚠️ Objectif quotidien non atteint",
+                "⚠️ Objectif quotidien non atteint",
                 f"Il vous reste {remaining_hours:.1f}h à coder avant 17h pour atteindre "
                 f"l'objectif de {MINIMUM_DAILY_HOURS}h.",
             )
