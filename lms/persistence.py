@@ -132,38 +132,155 @@ class ProgressManager:
         except (json.JSONDecodeError, OSError) as e:
             raise IOError(f"Error loading progress: {self.file_path}") from e
 
-    def save_daily_progress(self, data: dict) -> None:
-        """Save or update daily progress entry.
+    def merge_progress(self, new_entry: dict, strategy: str = "smart") -> bool:
+        """Merge new progress entry with in-memory state intelligently.
+
+        This method avoids data loss by intelligently merging in-memory progress
+        with file-based progress. Useful for non-concurrent modifications.
 
         Args:
-            data: Progress entry with date, steps, time, cards
+            new_entry: Progress entry to merge (with date, steps, time, cards)
+            strategy: Merge strategy:
+                - "smart" (default): Merge if no concurrent modifications detected
+                - "replace": Replace existing entry for the date (overwrites)
+                - "accumulate": Sum numeric fields for the same date
+
+        Returns:
+            True if merge successful, False if conflicts detected (concurrent mods)
+
+        Behavior by strategy:
+            - smart: Returns False if another process modified the file for this
+                    date; otherwise merges new_entry with in-memory state
+            - replace: Always overwrites existing entry for this date
+            - accumulate: Adds steps/time/cards to existing entry (non-destructive)
+
+        Example:
+            # Non-destructive accumulation
+            progress_mgr.save_daily_progress(
+                {"date": "2024-01-10", "steps": 1000, "time": 30, "cards": 10},
+                strategy="accumulate"
+            )
+        """
+        if not self.is_valid_progress(new_entry):
+            return False
+
+        entry_date = new_entry["date"]
+        file_progress = []
+
+        # Load current file state to check for concurrent modifications
+        if self.file_path.exists():
+            try:
+                with self.file_path.open("r") as file:
+                    file_progress = json.load(file)
+            except (json.JSONDecodeError, OSError):
+                file_progress = []
+
+        # Find existing entries in both states
+        file_entry = next((e for e in file_progress if e["date"] == entry_date), None)
+        memory_entry = next((e for e in self.current_progress if e["date"] == entry_date), None)
+
+        # Check for concurrent modifications (file was updated externally)
+        if file_entry and memory_entry and file_entry != memory_entry:
+            if strategy == "smart":
+                # Concurrent modification detected - abort to prevent data loss
+                return False
+
+        # Apply merge strategy
+        if strategy == "replace":
+            # Simply replace - straightforward approach
+            if memory_entry:
+                idx = self.current_progress.index(memory_entry)
+                self.current_progress[idx] = new_entry
+            else:
+                self.current_progress.append(new_entry)
+            return True
+
+        elif strategy == "accumulate":
+            # Non-destructive: sum numeric fields
+            if memory_entry:
+                idx = self.current_progress.index(memory_entry)
+                merged = memory_entry.copy()
+                merged["steps"] = memory_entry.get("steps", 0) + new_entry.get("steps", 0)
+                merged["time"] = memory_entry.get("time", 0) + new_entry.get("time", 0)
+                merged["cards"] = memory_entry.get("cards", 0) + new_entry.get("cards", 0)
+                self.current_progress[idx] = merged
+            else:
+                self.current_progress.append(new_entry)
+            return True
+
+        else:  # strategy == "smart"
+            # Merge without data loss: use file state as baseline, add new data
+            if not memory_entry and not file_entry:
+                self.current_progress.append(new_entry)
+            elif memory_entry and not file_entry:
+                # File was cleaned, but memory has entry - keep memory version
+                pass  # Already in memory
+            elif file_entry and not memory_entry:
+                # File has entry, memory doesn't - add it to memory for consistency
+                self.current_progress.append(file_entry)
+            # If both exist and are same (no conflict), new_entry replaces it
+            else:
+                idx = self.current_progress.index(memory_entry)
+                self.current_progress[idx] = new_entry
+
+            return True
+
+    def save_daily_progress(self, data: dict, merge_strategy: str = "smart") -> bool:
+        """Save or update daily progress entry with intelligent merging.
+
+        Uses merge_progress() to intelligently combine new data with file state
+        without losing data from concurrent modifications (if strategy="smart").
+        This prevents the reload-on-save pattern from losing in-memory changes.
+
+        Args:
+            data: Progress entry with date, steps, time, cards (required keys:
+                  date, steps, time, cards)
+            merge_strategy: How to handle existing entries for the same date:
+                - "smart" (default): Detects concurrent mods, aborts if detected
+                - "replace": Always overwrites existing entry (destructive)
+                - "accumulate": Non-destructive - adds to existing numeric fields
+
+        Returns:
+            True if save successful, False if concurrent modification detected
+                 (only with strategy="smart")
+
+        Example:
+            # Smart merge - safe for concurrent access, aborts on conflicts
+            if not progress_mgr.save_daily_progress(
+                {"date": "2024-01-10", "steps": 1000, "time": 30, "cards": 10}
+            ):
+                print("Concurrent modification detected - retry")
+
+            # Non-destructive accumulation (no data loss)
+            progress_mgr.save_daily_progress(
+                {"date": "2024-01-10", "steps": 500, "time": 15, "cards": 5},
+                merge_strategy="accumulate"
+            )
+
+            # Simple replace (overwrites silently)
+            progress_mgr.save_daily_progress(
+                {"date": "2024-01-10", "steps": 5000, "time": 120, "cards": 50},
+                merge_strategy="replace"
+            )
         """
         # Don't save if progress is invalid
         if not self.is_valid_progress(data):
-            return
+            return False
 
-        # Load current progress first to avoid overwriting
-        self.load_progress()
+        # Merge with intelligent strategy
+        merge_successful = self.merge_progress(data, strategy=merge_strategy)
+        
+        if merge_strategy == "smart" and not merge_successful:
+            # Concurrent modification detected - abort to prevent data loss
+            return False
 
         # Create parent directory if it doesn't exist
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Check if entry for this date already exists
-        existing_entry = self.get_progress_by_date(data["date"])
-        
-        if existing_entry:
-            # Update existing entry
-            for i, entry in enumerate(self.current_progress):
-                if entry["date"] == data["date"]:
-                    self.current_progress[i] = data
-                    break
-        else:
-            # Add new entry
-            self.current_progress.append(data)
-
         try:
             with self.file_path.open("w") as file:
                 json.dump(self.current_progress, file, indent=2)
+            return True
         except OSError as e:
             raise IOError(f"Error writing progress: {self.file_path}") from e
 

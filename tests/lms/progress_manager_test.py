@@ -1,7 +1,5 @@
-import json
 import pytest
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from lms.persistence import ProgressManager
 
