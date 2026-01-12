@@ -15,6 +15,7 @@ from src.lms.monitoring import (
 )
 from src.lms.steps.notify import notify_step
 from src.lms.steps.share import share_step
+from src.lms.commands.setup_wizard import setup_command
 
 app = typer.Typer(
     name="skillops",
@@ -250,6 +251,25 @@ def share(
 
     if not success:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def setup(
+    output: Path = typer.Option(
+        Path(".env"),
+        "--output",
+        "-o",
+        help="Path to write the generated .env file",
+    ),
+    skip_health: bool = typer.Option(
+        False,
+        "--skip-health",
+        help="Skip running health check after writing .env",
+    ),
+):
+    """Guided setup to create a .env file and validate configuration."""
+
+    setup_command(output=output, skip_health=skip_health)
 
 
 if __name__ == "__main__":
