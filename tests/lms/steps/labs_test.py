@@ -2,17 +2,13 @@
 
 import json
 import os
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-
-import pytest
+from unittest.mock import Mock, patch
 
 from src.lms.steps.labs import (
     get_storage_path,
     get_missions_dir,
     get_profiles_dir,
-    select_role,
     profile_learner,
     generate_or_suggest_mission,
     display_mission_details,
@@ -79,64 +75,41 @@ class TestRoleSelection:
 class TestLearnerProfiling:
     """Test learner profiling functionality."""
 
-    @patch("src.lms.steps.labs.LearnerProfiler")
-    def test_profile_learner_success(self, mock_profiler_class):
+    @patch("src.lms.steps.labs.Prompt")
+    def test_profile_learner_success(self, mock_prompt):
         """Learner profiling should return profile data on success."""
-        # Setup mock profiler
-        mock_profiler = Mock()
-        mock_profiler_class.return_value = mock_profiler
-
-        profile_data = {
-            "level": "intermediate",
-            "overall_score": 75.5,
-            "reinforce_score": 80.0,
-            "anki_score": 70.0,
-            "github_score": 75.0,
-            "self_score": 76.0,
-        }
-        mock_profiler.evaluate_learner_level.return_value = profile_data
-        mock_profiler.is_ready_for_mission.return_value = True
+        mock_prompt.ask.return_value = "intermediate"
 
         with patch("src.lms.steps.labs.console"):
             result = profile_learner()
 
-        assert result == profile_data
+        assert result is not None
+        assert result["level"] == "intermediate"
+        assert result["overall_score"] == 80.0
 
-    @patch("src.lms.steps.labs.LearnerProfiler")
-    def test_profile_learner_not_ready(self, mock_profiler_class):
-        """Profiler should return None if learner not ready."""
-        mock_profiler = Mock()
-        mock_profiler_class.return_value = mock_profiler
-
-        profile_data = {
-            "level": "junior",
-            "overall_score": 45.0,
-            "reinforce_score": 40.0,
-            "anki_score": 50.0,
-            "github_score": 40.0,
-            "self_score": 50.0,
-        }
-        mock_profiler.evaluate_learner_level.return_value = profile_data
-        mock_profiler.is_ready_for_mission.return_value = False
+    @patch("src.lms.steps.labs.Prompt")
+    def test_profile_learner_junior(self, mock_prompt):
+        """Junior level should have lower score."""
+        mock_prompt.ask.return_value = "junior"
 
         with patch("src.lms.steps.labs.console"):
             result = profile_learner()
 
-        assert result is None
+        assert result is not None
+        assert result["level"] == "junior"
+        assert result["overall_score"] == 70.0
 
-    @patch("src.lms.steps.labs.LearnerProfiler")
-    def test_profile_learner_exception(self, mock_profiler_class):
-        """Profiler should return None on exception."""
-        mock_profiler = Mock()
-        mock_profiler_class.return_value = mock_profiler
-        mock_profiler.evaluate_learner_level.side_effect = Exception(
-            "Test error"
-        )
+    @patch("src.lms.steps.labs.Prompt")
+    def test_profile_learner_senior(self, mock_prompt):
+        """Senior level should have higher score."""
+        mock_prompt.ask.return_value = "senior"
 
         with patch("src.lms.steps.labs.console"):
             result = profile_learner()
 
-        assert result is None
+        assert result is not None
+        assert result["level"] == "senior"
+        assert result["overall_score"] == 90.0
 
 
 class TestMissionGeneration:
@@ -144,9 +117,7 @@ class TestMissionGeneration:
 
     @patch("src.lms.steps.labs.MissionGenerator")
     @patch("src.lms.steps.labs.Prompt")
-    def test_generate_mission_ai_suggested(
-        self, mock_prompt, mock_generator_class
-    ):
+    def test_generate_mission_ai_suggested(self, mock_prompt, mock_generator_class):
         """AI-suggested mode should generate mission based on learner level."""
         mock_generator = Mock()
         mock_generator_class.return_value = mock_generator
@@ -203,9 +174,7 @@ class TestMissionGeneration:
 
     @patch("src.lms.steps.labs.MissionGenerator")
     @patch("src.lms.steps.labs.Prompt")
-    def test_generate_mission_empty_idea(
-        self, mock_prompt, mock_generator_class
-    ):
+    def test_generate_mission_empty_idea(self, mock_prompt, mock_generator_class):
         """Empty user idea should be rejected."""
         mock_prompt.ask.side_effect = ["2", "   "]  # whitespace only
 
