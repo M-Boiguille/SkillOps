@@ -6,7 +6,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import inquirer
+import yaml
 from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
@@ -17,8 +21,55 @@ from ..display import (
     display_success_message,
     format_time_duration,
 )
+from ..integrations.exercise_generator import ExerciseGenerator
 
 console = Console()
+
+
+def _load_exercises_catalog() -> List[Dict]:
+    """
+    Charge le catalogue des exercices depuis exercises_catalog.yaml.
+    
+    Returns:
+        List[Dict]: Liste des exercices du catalogue ou liste vide si non disponible
+    """
+    catalog_path = Path(__file__).parent.parent / "data" / "exercises_catalog.yaml"
+    
+    try:
+        with open(catalog_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+            return data.get("exercises", [])
+    except (FileNotFoundError, yaml.YAMLError):
+        # Fallback : retourne une liste vide
+        return []
+
+
+def get_available_domains() -> List[str]:
+    """
+    Retourne la liste des domaines/technologies disponibles.
+    
+    Returns:
+        List[str]: Liste des domaines (Linux, Docker, Terraform, Kubernetes, AWS, GitLab CI)
+    """
+    return [
+        "Linux",
+        "Docker",
+        "Terraform",
+        "Kubernetes",
+        "AWS",
+        "GitLab CI",
+    ]
+
+
+def get_available_exercises() -> List[Dict]:
+    """
+    Retourne la liste des exercices disponibles du catalogue.
+
+    Returns:
+        List[Dict]: Liste des exercices avec id, key, titre, domaine, etc.
+    """
+    catalog = _load_exercises_catalog()
+    return catalog
 
 
 def get_storage_path() -> Path:
@@ -34,47 +85,6 @@ def get_storage_path() -> Path:
     return Path(storage_path_str).expanduser().absolute()
 
 
-def get_available_exercises() -> List[Dict[str, str]]:
-    """
-    Retourne la liste des exercices disponibles.
-
-    Returns:
-        List[Dict]: Liste des exercices avec id, titre, difficulté, durée estimée
-    """
-    return [
-        {
-            "id": "docker-basics",
-            "title": "Docker Basics - Créer et gérer des conteneurs",
-            "difficulty": "Débutant",
-            "estimated_time": "15min",
-        },
-        {
-            "id": "k8s-pods",
-            "title": "Kubernetes - Déploiement de Pods",
-            "difficulty": "Intermédiaire",
-            "estimated_time": "30min",
-        },
-        {
-            "id": "terraform-aws",
-            "title": "Terraform - Infrastructure AWS",
-            "difficulty": "Intermédiaire",
-            "estimated_time": "45min",
-        },
-        {
-            "id": "ansible-playbook",
-            "title": "Ansible - Configuration automatisée",
-            "difficulty": "Débutant",
-            "estimated_time": "20min",
-        },
-        {
-            "id": "cicd-pipeline",
-            "title": "CI/CD - Pipeline GitHub Actions",
-            "difficulty": "Avancé",
-            "estimated_time": "60min",
-        },
-    ]
-
-
 def display_exercises_table(exercises: List[Dict[str, str]]) -> None:
     """
     Affiche un tableau des exercices disponibles.
@@ -85,22 +95,56 @@ def display_exercises_table(exercises: List[Dict[str, str]]) -> None:
     table = Table(
         title="📝 Exercices disponibles", show_header=True, header_style="bold cyan"
     )
-    table.add_column("ID", style="cyan", width=20)
-    table.add_column("Titre", style="white", width=40)
+    table.add_column("#", style="cyan", width=3)
+    table.add_column("Domaine", style="magenta", width=18)
+    table.add_column("Titre", style="white", width=45)
     table.add_column("Difficulté", style="yellow", width=15)
     table.add_column("Durée", style="green", width=10)
 
     for exercise in exercises:
         table.add_row(
-            exercise["id"],
-            exercise["title"],
-            exercise["difficulty"],
-            exercise["estimated_time"],
+            str(exercise.get("id", "?")),
+            exercise.get("primary_domain", "N/A"),
+            exercise.get("title", "N/A"),
+            exercise.get("difficulty", "N/A"),
+            exercise.get("estimated_time", "N/A"),
         )
 
     console.print()
     console.print(table)
     console.print()
+
+
+def get_exercise_completion_count(exercise_id: str, storage_path: Path) -> int:
+    """
+    Compte le nombre de fois qu'un exercice a été complété avec succès.
+
+    Args:
+        exercise_id: Identifiant de l'exercice
+        storage_path: Chemin vers le répertoire de stockage
+
+    Returns:
+        int: Nombre de complétions réussies (historique complet)
+    """
+    progress_file = storage_path / "reinforce_progress.json"
+    if not progress_file.exists():
+        return 0
+
+    try:
+        with progress_file.open("r") as f:
+            data = json.load(f)
+        
+        # Compter sur TOUS les jours (pas juste aujourd'hui)
+        count = 0
+        for date, day_data in data.items():
+            exercises = day_data.get("exercises", [])
+            for exercise in exercises:
+                if exercise.get("id") == exercise_id and exercise.get("completed", False):
+                    count += 1
+        
+        return count
+    except (json.JSONDecodeError, OSError):
+        return 0
 
 
 def get_exercise_progress(exercise_id: str, storage_path: Path) -> Optional[Dict]:
@@ -198,32 +242,105 @@ def save_exercise_progress(
         json.dump(data, f, indent=2)
 
 
-def record_exercise_session(exercise: Dict[str, str], storage_path: Path) -> None:
+def display_exercise_content(exercise_content: Dict[str, str]) -> None:
+    """Display the full exercise instructions.
+
+    Args:
+        exercise_content: Generated exercise content from AI
+    """
+    console.print("\n")
+    console.print(
+        Panel(
+            f"[bold cyan]{exercise_content.get('title', 'Exercise')}[/bold cyan]",
+            border_style="cyan",
+        )
+    )
+
+    # Objectives
+    console.print("\n[bold yellow]🎯 Objectifs d'apprentissage:[/bold yellow]")
+    console.print(exercise_content.get("objectives", "N/A"))
+
+    # Prerequisites
+    if "prerequisites" in exercise_content:
+        console.print("\n[bold yellow]📋 Prérequis:[/bold yellow]")
+        console.print(exercise_content["prerequisites"])
+
+    # Scenario
+    if "scenario" in exercise_content:
+        console.print("\n[bold yellow]🎬 Contexte / Mission:[/bold yellow]")
+        console.print(exercise_content["scenario"])
+
+    # Requirements (what to achieve, not how)
+    console.print("\n[bold yellow]📋 Résultats attendus:[/bold yellow]")
+    console.print(exercise_content.get("requirements", "N/A"))
+
+    # Success criteria for self-evaluation
+    console.print("\n[bold yellow]✅ Critères de réussite (auto-évaluation):[/bold yellow]")
+    console.print(exercise_content.get("success_criteria", "N/A"))
+
+    # Resources
+    if "resources" in exercise_content:
+        console.print("\n[bold yellow]📚 Documentation:[/bold yellow]")
+        console.print(exercise_content["resources"])
+
+    console.print("\n" + "─" * 80 + "\n")
+
+
+def record_exercise_session(
+    exercise: Dict[str, str],
+    exercise_content: Dict[str, str],
+    storage_path: Path,
+) -> None:
     """
     Enregistre une session d'exercice avec chronomètre et validation.
 
     Args:
-        exercise: Dictionnaire avec les données de l'exercice
+        exercise: Dictionnaire avec les métadonnées de l'exercice
+        exercise_content: Contenu généré de l'exercice (instructions, etc.)
         storage_path: Chemin vers le répertoire de stockage
     """
-    display_info_panel(
-        f"Exercice : {exercise['title']}",
-        f"Difficulté : {exercise['difficulty']}\n"
-        f"Durée estimée : {exercise['estimated_time']}",
-    )
+    # Display full exercise instructions
+    display_exercise_content(exercise_content)
 
     console.print(
-        "\n[cyan]Appuyez sur Entrée quand vous avez terminé l'exercice...[/cyan]"
+        "[cyan]📌 Options:[/cyan]\n"
+        "  [yellow]h[/yellow] - Voir les indices\n"
+        "  [yellow]s[/yellow] - Voir la solution\n"
+        "  [yellow]Enter[/yellow] - Commencer l'exercice\n"
     )
+
+    choice = Prompt.ask("Votre choix", default="")
+
+    if choice.lower() == "h":
+        console.print("\n[bold yellow]💡 Indices:[/bold yellow]")
+        console.print(exercise_content.get("hints", "Aucun indice disponible."))
+        console.print("\n[cyan]Appuyez sur Entrée pour commencer...[/cyan]")
+        input()
+    elif choice.lower() == "s":
+        console.print("\n[bold yellow]✨ Solution:[/bold yellow]")
+        console.print(exercise_content.get("solution", "Solution non disponible."))
+        console.print(
+            "\n[yellow]⚠️  Essayez d'abord sans la solution pour mieux "
+            "apprendre![/yellow]"
+        )
+        console.print("\n[cyan]Appuyez sur Entrée pour continuer...[/cyan]")
+        input()
+
+    console.print("\n[cyan]⏱️  Chronomètre démarré ! Appuyez sur Entrée quand "
+                  "vous avez terminé...[/cyan]")
     start_time = datetime.now()
     input()  # Attendre que l'utilisateur appuie sur Entrée
 
     end_time = datetime.now()
     duration = int((end_time - start_time).total_seconds())
 
-    # Demander si l'exercice est terminé
+    # Auto-évaluation basée sur les critères de succès
+    console.print("\n[bold cyan]📊 Auto-évaluation[/bold cyan]")
+    console.print("\nRevisez les critères de réussite ci-dessus.")
+    console.print("Avez-vous validé TOUS les critères ?\n")
+    
     completed = Confirm.ask(
-        "\n✅ Avez-vous terminé l'exercice avec succès ?", default=True
+        "✅ J'ai vérifié et validé tous les critères de succès", default=False
     )
 
     # Sauvegarder la progression
@@ -258,8 +375,9 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
     Cette fonction:
     1. Affiche la liste des exercices disponibles
     2. Permet de choisir un exercice
-    3. Enregistre la session avec chronomètre
-    4. Sauvegarde la progression
+    3. Génère ou charge l'exercice avec l'IA
+    4. Enregistre la session avec chronomètre
+    5. Sauvegarde la progression
 
     Args:
         storage_path: Chemin vers le répertoire de stockage (optionnel)
@@ -273,32 +391,162 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
     # Récupérer les exercices disponibles
     exercises = get_available_exercises()
 
-    # Afficher le tableau
-    display_exercises_table(exercises)
-
-    # Demander à l'utilisateur de choisir un exercice
-    console.print(
-        "[cyan]Choisissez un exercice en entrant son ID (ou 'q' pour quitter) :[/cyan]"
-    )
-    exercise_id = Prompt.ask("ID de l'exercice")
-
-    if exercise_id.lower() == "q":
-        console.print("\n[yellow]À bientôt ! 👋[/yellow]\n")
+    if not exercises:
+        display_error_message(
+            "Aucun exercice disponible",
+            "Le catalogue d'exercices est vide. Vérifiez exercises_catalog.yaml",
+        )
         return
 
-    # Trouver l'exercice sélectionné
-    selected_exercise = None
+    # Calculer les completion counts pour tous les exercices
+    exercises_with_progress = []
     for exercise in exercises:
-        if exercise["id"] == exercise_id:
-            selected_exercise = exercise
-            break
+        exercise_key = exercise.get("key") or str(exercise.get("id"))
+        completion_count = get_exercise_completion_count(exercise_key, storage_path)
+        exercises_with_progress.append({
+            **exercise,
+            '_completion_count': completion_count
+        })
 
-    if selected_exercise is None:
+    # Définir l'ordre de difficulté
+    difficulty_order = {
+        'Débutant': 1,
+        'Intermédiaire': 2,
+        'Avancé': 3
+    }
+
+    # Trier les exercices:
+    # 1. Par statut (non complétés d'abord, complétés à la fin)
+    # 2. Par difficulté (Débutant, Intermédiaire, Avancé)
+    # 3. Par ID croissant
+    sorted_exercises = sorted(
+        exercises_with_progress,
+        key=lambda ex: (
+            ex['_completion_count'] > 0,  # False (0) avant True (1) - non complétés d'abord
+            difficulty_order.get(ex.get('difficulty', 'Débutant'), 1),
+            ex.get('id', 999)
+        )
+    )
+
+    # Créer les choix pour le menu interactif
+    choices = []
+    for exercise in sorted_exercises:
+        # Format: "ID. [Domaine] Titre (Difficulté - Durée) [✓ complété X fois]"
+        ex_id = exercise.get('id', '?')
+        ex_domain = exercise.get('primary_domain', 'N/A')
+        ex_title = exercise.get('title', 'N/A')
+        ex_difficulty = exercise.get('difficulty', 'N/A')
+        ex_time = exercise.get('estimated_time', 'N/A')
+        completion_count = exercise.get('_completion_count', 0)
+        
+        # Ajouter un indicateur si complété
+        status = f" [✓×{completion_count}]" if completion_count > 0 else ""
+        choice_text = f"{ex_id:>3}. [{ex_domain:15s}] {ex_title:45s} ({ex_difficulty:15s} - {ex_time}){status}"
+        choices.append(choice_text)
+    
+    choices.append("⬅️  Retour au menu principal")
+
+    # Menu interactif
+    questions = [
+        inquirer.List(
+            "exercise",
+            message="Choisissez un exercice (↑↓ ou j/k, Entrée pour sélectionner, ESC pour quitter)",
+            choices=choices,
+            carousel=True,
+        )
+    ]
+
+    try:
+        answers = inquirer.prompt(questions)
+
+        # Gérer ESC ou annulation (answers est None)
+        if answers is None:
+            console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
+            return
+
+        if answers.get("exercise") == "⬅️  Retour au menu principal":
+            console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
+            return
+
+        # Extraire l'ID de l'exercice sélectionné
+        selected_text = answers["exercise"]
+        exercise_id = int(selected_text.split(".")[0].strip())
+
+        # Trouver l'exercice correspondant dans la liste originale
+        selected_exercise = None
+        for exercise in sorted_exercises:
+            if exercise.get("id") == exercise_id:
+                selected_exercise = exercise
+                break
+
+        if selected_exercise is None:
+            display_error_message(
+                "Exercice introuvable",
+                f"L'ID '{exercise_id}' ne correspond à aucun exercice disponible.",
+            )
+            return
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
+        return
+
+    # Récupérer le completion_count (déjà calculé lors du tri)
+    completion_count = selected_exercise.get('_completion_count', 0)
+    
+    # Récupérer la clé unique de l'exercice
+    exercise_key = selected_exercise.get("key") or str(selected_exercise.get("id"))
+    
+    # Afficher la progression
+    if completion_count > 0:
+        console.print(
+            f"\n[cyan]📈 Progression: Vous avez complété cet exercice "
+            f"{completion_count} fois. Difficulté automatiquement augmentée ![/cyan]\n"
+        )
+
+    # Generate or load cached exercise content
+    console.print(
+        f"\n[cyan]🤖 Génération de l'exercice "
+        f"'{selected_exercise['title']}' (niveau {completion_count + 1})...[/cyan]"
+    )
+
+    try:
+        generator = ExerciseGenerator()
+        cache_dir = storage_path / "exercises_cache"
+
+        # Cache key includes completion count for progressive difficulty
+        cache_key = f"{exercise_key}_v{completion_count}"
+
+        # Try to load from cache first
+        exercise_content = generator.load_cached_exercise(cache_key, cache_dir)
+
+        if exercise_content is None:
+            # Generate new exercise with progressive difficulty
+            exercise_content = generator.generate_exercise(
+                topic=selected_exercise["title"],
+                difficulty=selected_exercise["difficulty"],
+                duration=selected_exercise["estimated_time"],
+                completion_count=completion_count,
+            )
+            # Cache for future use
+            generator.cache_exercise(cache_key, exercise_content, cache_dir)
+            console.print("[green]✓ Exercice généré avec succès![/green]")
+        else:
+            console.print("[green]✓ Exercice chargé depuis le cache![/green]")
+
+    except ValueError as e:
         display_error_message(
-            "Exercice introuvable",
-            f"L'ID '{exercise_id}' ne correspond à aucun exercice disponible.",
+            "Erreur de génération",
+            f"Impossible de générer l'exercice: {e}\n\n"
+            "Vérifiez que GEMINI_API_KEY est configuré dans .env",
+        )
+        return
+    except Exception as e:
+        display_error_message(
+            "Erreur",
+            f"Une erreur est survenue: {e}",
         )
         return
 
     # Enregistrer la session
-    record_exercise_session(selected_exercise, storage_path)
+    record_exercise_session(selected_exercise, exercise_content, storage_path)
+

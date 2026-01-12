@@ -7,7 +7,7 @@ import json
 from typing import Optional
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
 from rich.console import Console
 
 console = Console()
@@ -26,8 +26,11 @@ class MissionEvaluator:
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY environment variable not set")
 
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel("gemini-pro")
+        self.client = genai.Client(api_key=self.api_key)
+        # Using gemini-2.5-flash: best balance of speed, quality, and cost
+        # - 1M token context for detailed code/project evaluation
+        # - Hybrid reasoning for constructive feedback generation
+        # - 100% free (input + output)
 
     def evaluate_project(
         self,
@@ -54,7 +57,10 @@ class MissionEvaluator:
         )
 
         # Call Gemini for evaluation
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
 
         if not response.text:
             raise ValueError("Failed to get evaluation from Gemini")

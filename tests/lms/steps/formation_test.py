@@ -294,7 +294,7 @@ class TestFormationStep:
         """
         Given: Erreur lors de l'appel à l'API WakaTime
         When: Appel de formation_step()
-        Then: Lève WakaTimeError après avoir affiché le message
+        Then: Affiche l'erreur sans lever d'exception (graceful degradation)
         """
         mock_get_key.return_value = "test-key"
 
@@ -302,8 +302,8 @@ class TestFormationStep:
         mock_client_class.return_value = mock_client
         mock_client.get_today_stats.side_effect = WakaTimeError("API Error")
 
-        with pytest.raises(WakaTimeError):
-            formation_step()
+        # Should not raise - displays error message instead
+        formation_step()
 
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")
@@ -311,7 +311,7 @@ class TestFormationStep:
         """
         Given: Erreur d'authentification avec l'API WakaTime
         When: Appel de formation_step()
-        Then: Lève WakaTimeAuthError après avoir affiché le message
+        Then: Affiche l'erreur sans lever d'exception (graceful degradation)
         """
         mock_get_key.return_value = "invalid-key"
 
@@ -319,8 +319,8 @@ class TestFormationStep:
         mock_client_class.return_value = mock_client
         mock_client.get_today_stats.side_effect = WakaTimeAuthError("Invalid API key")
 
-        with pytest.raises(WakaTimeAuthError):
-            formation_step()
+        # Should not raise - displays error message instead
+        formation_step()
 
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.get_api_key_from_env")

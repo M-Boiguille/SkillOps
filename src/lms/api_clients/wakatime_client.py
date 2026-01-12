@@ -1,5 +1,6 @@
 """WakaTime API client for tracking coding statistics."""
 
+import base64
 import os
 from datetime import date
 from typing import Optional
@@ -50,8 +51,12 @@ class WakaTimeClient:
                 "WakaTime API key not provided. Set WAKATIME_API_KEY environment variable."
             )
 
+        # WakaTime uses HTTP Basic Auth with API key as username (no password)
+        # Encode "api_key:" in base64 and prepend "Basic "
+        credentials = base64.b64encode(f"{self.api_key}:".encode()).decode()
+        
         self.session = requests.Session()
-        self.session.headers.update({"Authorization": f"Bearer {self.api_key}"})
+        self.session.headers.update({"Authorization": f"Basic {credentials}"})
 
     def _make_request(self, endpoint: str, params: Optional[dict] = None) -> dict:
         """Make a request to the WakaTime API.

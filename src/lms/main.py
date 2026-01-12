@@ -1,11 +1,16 @@
 """Main entry point for SkillOps LMS CLI application."""
 
+# CRITICAL: Load environment variables FIRST, before any imports
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 import time
 from pathlib import Path
 from typing import Optional
 
 import typer
+
 from src.lms.cli import main_menu, execute_step
 from src.lms.commands.health import health_check
 from src.lms.commands.export import DataExporter
@@ -18,6 +23,7 @@ from src.lms.monitoring import (
 from src.lms.steps.notify import notify_step
 from src.lms.steps.share import share_step
 from src.lms.commands.setup_wizard import setup_command
+from src.lms.books import check_books_command, submit_books_command, fetch_books_command, import_books_command, process_pipeline_command
 
 app = typer.Typer(
     name="skillops",
@@ -48,9 +54,9 @@ def start(
     """Start the interactive SkillOps LMS menu.
 
     Launch the daily learning workflow with 9 steps:
-    1. 📊 Review - Check your metrics (WakaTime, GitHub)
-    2. ⏱️ Formation - Complete training modules
-    3. 🗂️ Anki - Review flashcards
+    1. 📊 Historique - Check yesterday's metrics & progress
+    2. ⏱️ Metrics - Complete training modules (WakaTime)
+    3. 🗂️ Flashcards - Review flashcards
     4. 📝 Create - Build projects or write code
     5. 📖 Read - Learn from technical articles
     6. 💪 Reinforce - Practice problem-solving
@@ -533,6 +539,210 @@ def import_data(
         )
         console.print(error_panel)
         raise typer.Exit(code=1)
+
+
+@app.command(name="check-books")
+def check_books():
+    """Display book processing queue status (read-only).
+    
+    Shows all books in the processing pipeline:
+        • Pending: Ready to be submitted
+        • Processing: Batch job running
+        • Ready: Results available for import
+        • Imported: Already imported to vault
+        • Failed: Error during processing
+    
+    Example:
+        skillops check-books
+    """
+    check_books_command()
+
+
+@app.command(name="submit-books")
+def submit_books(
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        "-k",
+        help="Gemini API key (or set GEMINI_API_KEY env var)",
+        envvar="GEMINI_API_KEY"
+    )
+):
+    """
+    Submit pending PDFs for batch processing.
+    
+    Scans books/pending/ directory for PDF files and submits them
+    to Gemini Batch API for extraction of:
+    • Zettelkasten notes (atomic concepts)
+    • Flashcards (Bloom's taxonomy)
+    • Pareto summary (20% → 80% value)
+    
+    Each book creates 3 parallel batch requests with ~24h turnaround.
+    
+    Requirements:
+        • GEMINI_API_KEY environment variable or --api-key flag
+        • PDF files in books/pending/ directory
+    
+    Example:
+        skillops submit-books
+        skillops submit-books --api-key "your-api-key"
+    """
+    submit_books_command(api_key)
+
+
+@app.command(name="fetch-books")
+def fetch_books(
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        "-k",
+        help="Gemini API key (or set GEMINI_API_KEY env var)",
+        envvar="GEMINI_API_KEY"
+    ),
+    book_name: Optional[str] = typer.Option(
+        None,
+        "--book",
+        "-b",
+        help="Specific book name to fetch (default: all processing books)"
+    )
+):
+    """
+    Fetch results from completed batch jobs.
+    
+    Checks the status of all books in "processing" state and downloads
+    completed results. For each completed batch job:
+    • Downloads output JSONL from Gemini Batch API
+    • Parses 3 JSON outputs (zettelkasten, flashcards, pareto)
+    • Saves results to books/completed/{book}/results/
+    • Updates manifest status: processing → completed
+    
+    Books that are still processing will show estimated time remaining.
+    
+    Requirements:
+        • GEMINI_API_KEY environment variable or --api-key flag
+        • Books must be in "processing" status
+    
+    Example:
+        skillops fetch-books
+        skillops fetch-books --book networking-sysadmins
+    """
+    fetch_books_command(api_key, book_name)
+
+
+@app.command(name="import-books")
+def import_books(
+    vault_path: Optional[str] = typer.Option(
+        None,
+        "--vault",
+        "-v",
+        help="Obsidian vault path (default: .skillopsvault)",
+        envvar="OBSIDIAN_VAULT_PATH"
+    ),
+    book_name: Optional[str] = typer.Option(
+        None,
+        "--book",
+        "-b",
+        help="Specific book name to import (default: all completed books)"
+    )
+):
+    """
+    Import completed books to Obsidian vault.
+    
+    Creates a structured knowledge base from extracted JSON results:
+    • Zettelkasten notes → Individual atomic concept files with backlinks
+    • Flashcards → Single deck file with spaced repetition format
+    • Pareto summaries → Must-know/should-know concepts + learning path
+    • MOC (Map of Content) → Index file linking all content
+    
+    Vault structure:
+        .skillopsvault/{book}/
+        ├── 00-INDEX.md              # Map of Content
+        ├── zettelkasten/
+        │   ├── ch1_001.md
+        │   └── ...
+        ├── flashcards/
+        │   └── {book}-deck.md
+        └── pareto/
+            ├── must-know.md
+            ├── should-know.md
+            └── learning-path.md
+    
+    Updates manifest status: completed → imported
+    
+    Requirements:
+        • Books must be in "completed" status
+        • Valid OBSIDIAN_VAULT_PATH or --vault flag
+    
+    Example:
+        skillops import-books
+        skillops import-books --vault ~/MyVault --book docker-deep-dive
+    """
+    import_books_command(vault_path, book_name)
+
+
+@app.command(name="process-pipeline")
+def process_pipeline(
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        "-k",
+        help="Gemini API key (or set GEMINI_API_KEY env var)",
+        envvar="GEMINI_API_KEY"
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Enable watch mode for continuous polling"
+    ),
+    interval: int = typer.Option(
+        30,
+        "--interval",
+        "-i",
+        help="Polling interval in minutes (for --watch mode)"
+    )
+):
+    """
+    Complete book processing pipeline (all-in-one).
+    
+    Runs the full workflow in a single command:
+    1. Submit pending PDFs for batch processing
+    2. Monitor until completion (optional --watch mode)
+    3. Fetch results from Gemini Batch API
+    4. Import to Obsidian vault
+    
+    Two modes:
+    
+    **One-time mode (default):**
+    - Submits pending books
+    - Fetches results (assumes already processing)
+    - Imports completed books
+    - Exits immediately
+    
+    **Watch mode (--watch):**
+    - Submits pending books
+    - Polls every N minutes (default 30min)
+    - Auto-fetches when completed
+    - Auto-imports when ready
+    - Continues until all books are processed
+    - Press Ctrl+C to stop watching
+    
+    Examples:
+        # One-time run (good for cron/CI)
+        skillops process-pipeline
+        
+        # Watch mode with default 30min interval
+        skillops process-pipeline --watch
+        
+        # Custom polling interval
+        skillops process-pipeline --watch --interval 15
+    
+    Requirements:
+        • GEMINI_API_KEY environment variable or --api-key flag
+        • PDFs in books/pending/ (for submit)
+        • Valid OBSIDIAN_VAULT_PATH or .skillopsvault
+    """
+    process_pipeline_command(api_key, watch, interval)
 
 
 def main():

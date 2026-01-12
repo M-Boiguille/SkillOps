@@ -20,10 +20,10 @@ class TestStep:
         When: Creating a new Step instance
         Then: All attributes are set correctly
         """
-        step = Step(1, "Review", "📊", completed=True)
+        step = Step(1, "Historique", "📊", completed=True)
 
         assert step.number == 1
-        assert step.name == "Review"
+        assert step.name == "Historique"
         assert step.emoji == "📊"
         assert step.completed is True
 
@@ -33,11 +33,11 @@ class TestStep:
         When: Converting to string
         Then: String contains filled circle (●)
         """
-        step = Step(1, "Review", "📊", completed=True)
+        step = Step(1, "Historique", "📊", completed=True)
         result = str(step)
 
         assert "●" in result
-        assert "Review" in result
+        assert "Historique" in result
         assert "📊" in result
 
     def test_step_str_not_completed(self):
@@ -78,7 +78,7 @@ class TestStepChoices:
 
         # Check first step format
         assert "📊" in choices[0]
-        assert "Review" in choices[0]
+        assert "Historique" in choices[0]
 
         # Check last step format (before Exit)
         assert "9. Labs" in choices[8]
@@ -125,13 +125,13 @@ class TestMainMenu:
         When: Displaying main menu
         Then: Returns the corresponding Step object
         """
-        mock_prompt.return_value = {"step": "📊 1. Review ○"}
+        mock_prompt.return_value = {"step": "📊 1. Historique ○"}
 
         result = main_menu()
 
         assert result is not None
         assert result.number == 1
-        assert result.name == "Review"
+        assert result.name == "Historique"
         assert result.emoji == "📊"
 
     @patch("src.lms.cli.inquirer.prompt")
@@ -169,11 +169,11 @@ class TestMainMenu:
         When: Calling main_menu multiple times
         Then: Returns correct Step for each selection
         """
-        # Test step 3 (Anki)
-        mock_prompt.return_value = {"step": "🗂️ 3. Anki ○"}
+        # Test step 2 (Metrics)
+        mock_prompt.return_value = {"step": "⏱️ 2. Metrics ○"}
         result = main_menu()
-        assert result.number == 3
-        assert result.name == "Anki"
+        assert result.number == 2
+        assert result.name == "Metrics"
 
         # Test step 8 (Reflection)
         mock_prompt.return_value = {"step": "🌅 8. Reflection ○"}
@@ -192,7 +192,7 @@ class TestExecuteStep:
         When: Executing the step
         Then: Calls review_step function
         """
-        step = Step(1, "Review", "📊")
+        step = Step(1, "Historique", "📊")
 
         execute_step(step)
 
@@ -205,7 +205,7 @@ class TestExecuteStep:
         When: Executing the step
         Then: Calls formation_step function
         """
-        step = Step(2, "Formation", "⏱️")
+        step = Step(2, "Metrics", "⏱️")
 
         execute_step(step)
 
@@ -262,9 +262,9 @@ class TestStepsConstants:
         Then: All steps have names defined
         """
         expected_names = [
-            "Review",
-            "Formation",
-            "Anki",
+            "Historique",
+            "Metrics",
+            "Flashcards",
             "Create",
             "Read",
             "Reinforce",

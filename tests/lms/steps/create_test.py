@@ -7,9 +7,10 @@ from src.lms.steps.create import compute_file_hash, create_step
 @patch("src.lms.steps.create.AnkiMarkdownGenerator")
 @patch("src.lms.steps.create.ObsidianScanner")
 def test_create_step_missing_vault_path(mock_scanner, mock_gen):
-    success = create_step(vault_path=None)
-    assert success is False
-    mock_scanner.assert_not_called()
+    with patch.dict("os.environ", {}, clear=True):
+        success = create_step(vault_path=None)
+        assert success is False
+        mock_scanner.assert_not_called()
 
 
 @patch("src.lms.steps.create.AnkiMarkdownGenerator")

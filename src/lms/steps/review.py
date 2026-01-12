@@ -36,9 +36,9 @@ def format_step_data_for_display(progress_data: dict) -> list[dict]:
         List of step dictionaries for create_step_summary_table().
     """
     step_names = [
-        "Review",
-        "Formation",
-        "Anki",
+        "Historique",
+        "Metrics",
+        "Flashcards",
         "Create",
         "Read",
         "Reinforce",

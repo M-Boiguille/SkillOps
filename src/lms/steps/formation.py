@@ -194,4 +194,4 @@ def formation_step(storage_path: Optional[Path] = None) -> None:
 
     except WakaTimeError as e:
         display_error_message("Erreur WakaTime", str(e))
-        raise
+        console.print("\n[yellow]Conseil:[/yellow] Vérifiez que votre clé API WakaTime est valide sur https://wakatime.com/settings/account")

@@ -1,5 +1,6 @@
 """Tests for WakaTime API client."""
 
+import base64
 import pytest
 import os
 from unittest.mock import patch, MagicMock
@@ -19,13 +20,15 @@ class TestWakaTimeClientInit:
         """
         Given: API key provided directly
         When: Creating WakaTimeClient
-        Then: Client is initialized with the key
+        Then: Client is initialized with the key using Basic Auth
         """
         client = WakaTimeClient(api_key="test_key_123")
 
         assert client.api_key == "test_key_123"
         assert "Authorization" in client.session.headers
-        assert client.session.headers["Authorization"] == "Bearer test_key_123"
+        # WakaTime uses HTTP Basic Auth with api_key:password format (password is empty)
+        expected_credentials = base64.b64encode(b"test_key_123:").decode()
+        assert client.session.headers["Authorization"] == f"Basic {expected_credentials}"
 
     @patch.dict(os.environ, {"WAKATIME_API_KEY": "env_key_456"})
     def test_init_from_environment(self):

@@ -1,0 +1,1985 @@
+# Catalogue des exercices Reinforce
+# Structure pour chaque exercice :
+# - id: Numéro unique (1, 2, 3, ...)
+# - key: Identifiant unique (docker-basics, k8s-pods, kata-001, etc.)
+# - title: Titre de l'exercice
+# - primary_domain: Domaine/technologie principal
+# - description: Description de l'exercice
+# - secondary_domains: Autres domaines concernés
+# - difficulty: Niveau (Débutant, Intermédiaire, Avancé)
+# - estimated_time: Durée estimée
+# - prerequisites: Prérequis recommandés
+# - learning_objectives: Objectifs pédagogiques clés
+# - tags: Tags pour recherche/catégorisation
+
+exercises:
+- id: 1
+  key: docker-basics
+  title: Docker Basics - Créer et gérer des conteneurs
+  primary_domain: Docker
+  description: 'Maîtriser les fondamentaux de Docker : lancer, gérer et supprimer
+    des conteneurs. Apprendre le mapping de ports et la ligne de commande.'
+  secondary_domains:
+  - Containerization
+  - Linux
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Connaissance de base CLI/Terminal
+  - Docker installé et en cours d'exécution
+  learning_objectives:
+  - Vérifier l'installation de Docker
+  - Lancer des conteneurs simples
+  - Mapper les ports entre hôte et conteneur
+  - Gérer le cycle de vie des conteneurs
+  tags:
+  - containers
+  - devops
+  - fundamentals
+- id: 2
+  key: ansible-playbook
+  title: Ansible - Configuration automatisée de serveurs
+  primary_domain: Ansible
+  description: Automatiser la configuration de serveurs avec Ansible. Écrire des playbooks,
+    gérer les inventaires et orchestrer des déploiements.
+  secondary_domains:
+  - Infrastructure as Code
+  - Configuration Management
+  - Linux
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Connaissance de base en ligne de commande
+  - SSH et authentification par clés
+  - Au moins 2 serveurs ou VMs
+  learning_objectives:
+  - Créer un inventaire Ansible
+  - Écrire des playbooks basiques
+  - Utiliser des modules Ansible courants
+  - Orchestrer des configurations
+  tags:
+  - automation
+  - configuration-management
+  - iac
+- id: 3
+  key: k8s-pods
+  title: Kubernetes - Déploiement et gestion de Pods
+  primary_domain: Kubernetes
+  description: Déployer et gérer des Pods dans un cluster Kubernetes. Comprendre les
+    ressources, les labels et la communication inter-pods.
+  secondary_domains:
+  - Containerization
+  - Orchestration
+  - Linux
+  difficulty: Intermédiaire
+  estimated_time: 30min
+  prerequisites:
+  - Maîtrise de Docker (au minimum niveau 1)
+  - Cluster Kubernetes disponible (minikube, k3s, etc.)
+  - kubectl installé
+  learning_objectives:
+  - Créer et gérer des Pods
+  - Utiliser les labels et selectors
+  - Exposer des Pods en tant que Services
+  - Déboguer les Pods
+  tags:
+  - kubernetes
+  - orchestration
+  - devops
+- id: 4
+  key: terraform-aws
+  title: Terraform - Infrastructure AWS déclarative
+  primary_domain: Terraform
+  description: Définir et déployer une infrastructure AWS avec Terraform. Apprendre
+    la syntaxe HCL et les bonnes pratiques d'IaC.
+  secondary_domains:
+  - AWS
+  - Infrastructure as Code
+  - Cloud
+  difficulty: Intermédiaire
+  estimated_time: 45min
+  prerequisites:
+  - Compte AWS avec permissions appropriées
+  - Terraform installé
+  - Connaissance de base d'AWS (EC2, VPC, IAM)
+  learning_objectives:
+  - Écrire des configurations Terraform
+  - Gérer l'état Terraform
+  - Créer et modifier des ressources AWS
+  - Utiliser les variables et outputs
+  tags:
+  - terraform
+  - iac
+  - aws
+  - cloud
+- id: 5
+  key: cicd-pipeline
+  title: CI/CD - Pipeline GitHub Actions complète
+  primary_domain: GitHub Actions
+  description: Créer un pipeline CI/CD complet avec GitHub Actions. Automatiser les
+    tests, builds et déploiements.
+  secondary_domains:
+  - CI/CD
+  - GitHub
+  - DevOps
+  difficulty: Avancé
+  estimated_time: 60min
+  prerequisites:
+  - Maîtrise de Git et GitHub
+  - Connaissance des workflows CI/CD
+  - Application ou code à déployer
+  learning_objectives:
+  - Écrire des workflows GitHub Actions
+  - Automatiser les tests
+  - Configurer les déploiements
+  - Gérer les secrets et variables
+  tags:
+  - cicd
+  - github
+  - devops
+  - automation
+- id: 6
+  key: docker-compose
+  title: Docker Compose - Orchestration locale multi-conteneurs
+  primary_domain: Docker Compose
+  description: Orchestrer plusieurs conteneurs localement avec Docker Compose. Gérer
+    les réseaux, volumes et dépendances entre services.
+  secondary_domains:
+  - Docker
+  - Containerization
+  - Networking
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Maîtrise de Docker (au minimum niveau 1)
+  - Docker Compose installé
+  - Connaissance YAML basique
+  learning_objectives:
+  - Écrire un docker-compose.yml
+  - Gérer plusieurs services
+  - Configurer les réseaux et volumes
+  - Gérer les variables d'environnement
+  tags:
+  - docker
+  - containers
+  - devops
+- id: 7
+  key: k8s-deployment
+  title: Kubernetes - Déploiements et ReplicaSets
+  primary_domain: Kubernetes
+  description: Gérer les déploiements Kubernetes avec ReplicaSets, stratégies de mise
+    à jour et rollbacks.
+  secondary_domains:
+  - Kubernetes
+  - Orchestration
+  - DevOps
+  difficulty: Intermédiaire
+  estimated_time: 35min
+  prerequisites:
+  - Maîtrise des Pods (au minimum niveau 3)
+  - Cluster Kubernetes accessible
+  - kubectl configuré
+  learning_objectives:
+  - Créer des Deployments
+  - Gérer les replicas
+  - Implémenter les stratégies de rolling update
+  - Effectuer des rollbacks
+  tags:
+  - kubernetes
+  - orchestration
+  - devops
+- id: 8
+  key: prometheus-grafana
+  title: Monitoring - Prometheus et Grafana
+  primary_domain: Prometheus
+  description: Mettre en place un stack de monitoring avec Prometheus pour collecter
+    les métriques et Grafana pour les visualiser.
+  secondary_domains:
+  - Grafana
+  - Monitoring
+  - Observability
+  difficulty: Intermédiaire
+  estimated_time: 40min
+  prerequisites:
+  - Docker ou serveurs disponibles
+  - Connaissance basique des métriques
+  - Containers/services à monitorer
+  learning_objectives:
+  - Configurer Prometheus
+  - Écrire des requêtes PromQL
+  - Créer des dashboards Grafana
+  - Configurer les alertes
+  tags:
+  - monitoring
+  - prometheus
+  - grafana
+  - observability
+- id: 9
+  key: linux-systemd
+  title: Linux - Services systemd et gestion de processus
+  primary_domain: Linux
+  description: Maîtriser systemd pour créer, gérer et monitorer les services système.
+    Automatiser les tâches récurrentes.
+  secondary_domains:
+  - System Administration
+  - Automation
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Accès à un serveur Linux
+  - Permissions sudo/root
+  - Connaissance CLI de base
+  learning_objectives:
+  - Créer des services systemd
+  - Gérer les dépendances
+  - Configurer les timers
+  - Monitorer les processus
+  tags:
+  - linux
+  - sysadmin
+  - automation
+- id: 10
+  key: aws-s3-iam
+  title: AWS - S3 et gestion des droits IAM
+  primary_domain: AWS
+  description: Gérer le stockage S3 et les permissions d'accès avec IAM. Sécuriser
+    et optimiser les ressources AWS.
+  secondary_domains:
+  - Cloud Storage
+  - Security
+  - AWS
+  difficulty: Intermédiaire
+  estimated_time: 30min
+  prerequisites:
+  - Compte AWS actif
+  - Permissions pour créer des ressources
+  - Connaissance de base d'AWS
+  learning_objectives:
+  - Créer et gérer des buckets S3
+  - Configurer les politiques d'accès
+  - Utiliser les rôles IAM
+  - Implémenter le versioning et le chiffrement
+  tags:
+  - aws
+  - s3
+  - iam
+  - security
+- id: 11
+  key: kata-001
+  title: List files and navigate
+  primary_domain: Linux
+  description: 'Maîtriser: List files and navigate'
+  secondary_domains: &id001
+  - CLI
+  - System Administration
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 12
+  key: kata-002
+  title: File operations (create, copy, move, delete)
+  primary_domain: Linux
+  description: 'Maîtriser: File operations (create, copy, move, delete)'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 13
+  key: kata-003
+  title: User and permissions
+  primary_domain: Linux
+  description: 'Maîtriser: User and permissions'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 14
+  key: kata-004
+  title: Echo and variables
+  primary_domain: Linux
+  description: 'Maîtriser: Echo and variables'
+  secondary_domains: &id002
+  - Bash
+  - Scripting
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 15
+  key: kata-005
+  title: Reading user input
+  primary_domain: Linux
+  description: 'Maîtriser: Reading user input'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 16
+  key: kata-006
+  title: Grep and text searching
+  primary_domain: Linux
+  description: 'Maîtriser: Grep and text searching'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 17
+  key: kata-007
+  title: Conditional statements (if/else)
+  primary_domain: Linux
+  description: 'Maîtriser: Conditional statements (if/else)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 18
+  key: kata-008
+  title: Loops (for, while)
+  primary_domain: Linux
+  description: 'Maîtriser: Loops (for, while)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 19
+  key: kata-009
+  title: Functions and arguments
+  primary_domain: Linux
+  description: 'Maîtriser: Functions and arguments'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 20
+  key: kata-010
+  title: Script template and best practices
+  primary_domain: Linux
+  description: 'Maîtriser: Script template and best practices'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 21
+  key: kata-011
+  title: String manipulation (substring, length, replace)
+  primary_domain: Linux
+  description: 'Maîtriser: String manipulation (substring, length, replace)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 22
+  key: kata-012
+  title: Arrays
+  primary_domain: Linux
+  description: 'Maîtriser: Arrays'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 23
+  key: kata-013
+  title: Case statements
+  primary_domain: Linux
+  description: 'Maîtriser: Case statements'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 24
+  key: kata-014
+  title: Arithmetic and math operations
+  primary_domain: Linux
+  description: 'Maîtriser: Arithmetic and math operations'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 25
+  key: kata-015
+  title: Process management (ps, top, kill)
+  primary_domain: Linux
+  description: 'Maîtriser: Process management (ps, top, kill)'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 26
+  key: kata-016
+  title: Disk and storage (df, du, lsof, mount)
+  primary_domain: Linux
+  description: 'Maîtriser: Disk and storage (df, du, lsof, mount)'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 27
+  key: kata-017
+  title: Environment variables and PATH
+  primary_domain: Linux
+  description: 'Maîtriser: Environment variables and PATH'
+  secondary_domains: *id001
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - linux
+  - devops
+  - kata
+- id: 28
+  key: kata-018
+  title: Pipes and redirections (advanced)
+  primary_domain: Linux
+  description: 'Maîtriser: Pipes and redirections (advanced)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 29
+  key: kata-019
+  title: Sed and Awk (text processing)
+  primary_domain: Linux
+  description: 'Maîtriser: Sed and Awk (text processing)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 30
+  key: kata-020
+  title: Regular expressions (grep, sed, awk)
+  primary_domain: Linux
+  description: 'Maîtriser: Regular expressions (grep, sed, awk)'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 31
+  key: kata-021
+  title: Error handling and debugging
+  primary_domain: Linux
+  description: 'Maîtriser: Error handling and debugging'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 32
+  key: kata-022
+  title: File operations with find and xargs
+  primary_domain: Linux
+  description: 'Maîtriser: File operations with find and xargs'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 33
+  key: kata-023
+  title: Cron jobs and scheduling
+  primary_domain: Linux
+  description: 'Maîtriser: Cron jobs and scheduling'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 34
+  key: kata-024
+  title: Functions and code organization
+  primary_domain: Linux
+  description: 'Maîtriser: Functions and code organization'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 35
+  key: kata-025
+  title: Complete system admin script
+  primary_domain: Linux
+  description: 'Maîtriser: Complete system admin script'
+  secondary_domains: *id002
+  difficulty: Débutant
+  estimated_time: 20min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - bash
+  - devops
+  - kata
+- id: 36
+  key: kata-026
+  title: Init, add, commit, status
+  primary_domain: Git
+  description: 'Maîtriser: Init, add, commit, status'
+  secondary_domains: &id003
+  - Version Control
+  - Collaboration
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 37
+  key: kata-027
+  title: Branches, merge, resolve conflicts
+  primary_domain: Git
+  description: 'Maîtriser: Branches, merge, resolve conflicts'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 38
+  key: kata-028
+  title: Remotes and collaboration
+  primary_domain: Git
+  description: 'Maîtriser: Remotes and collaboration'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 39
+  key: kata-029
+  title: Rebase, cherry-pick, stash
+  primary_domain: Git
+  description: 'Maîtriser: Rebase, cherry-pick, stash'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 40
+  key: kata-030
+  title: Tags and versioning
+  primary_domain: Git
+  description: 'Maîtriser: Tags and versioning'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 41
+  key: kata-031
+  title: Undoing changes (revert, reset, restore)
+  primary_domain: Git
+  description: 'Maîtriser: Undoing changes (revert, reset, restore)'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 42
+  key: kata-032
+  title: Hooks (pre-commit, pre-push)
+  primary_domain: Git
+  description: 'Maîtriser: Hooks (pre-commit, pre-push)'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 43
+  key: kata-033
+  title: Gitflow and branching strategies
+  primary_domain: Git
+  description: 'Maîtriser: Gitflow and branching strategies'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 44
+  key: kata-034
+  title: Troubleshooting and advanced tips
+  primary_domain: Git
+  description: 'Maîtriser: Troubleshooting and advanced tips'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 45
+  key: kata-035
+  title: 'Real project: Contribute to open source'
+  primary_domain: Git
+  description: 'Maîtriser: Real project: Contribute to open source'
+  secondary_domains: *id003
+  difficulty: Débutant
+  estimated_time: 15min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - git
+  - devops
+  - kata
+- id: 46
+  key: kata-036
+  title: Docker fundamentals and architecture
+  primary_domain: Docker
+  description: 'Maîtriser: Docker fundamentals and architecture'
+  secondary_domains: &id004
+  - Containerization
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 47
+  key: kata-037
+  title: Run containers, basics
+  primary_domain: Docker
+  description: 'Maîtriser: Run containers, basics'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 48
+  key: kata-038
+  title: Build custom Dockerfile (basics)
+  primary_domain: Docker
+  description: 'Maîtriser: Build custom Dockerfile (basics)'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 49
+  key: kata-039
+  title: Dockerfile best practices and optimization
+  primary_domain: Docker
+  description: 'Maîtriser: Dockerfile best practices and optimization'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 50
+  key: kata-040
+  title: Working with networks
+  primary_domain: Docker
+  description: 'Maîtriser: Working with networks'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 51
+  key: kata-041
+  title: Volumes and data persistence
+  primary_domain: Docker
+  description: 'Maîtriser: Volumes and data persistence'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 52
+  key: kata-042
+  title: Docker Compose (multi-container apps)
+  primary_domain: Docker
+  description: 'Maîtriser: Docker Compose (multi-container apps)'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 53
+  key: kata-043
+  title: Environment files and configuration
+  primary_domain: Docker
+  description: 'Maîtriser: Environment files and configuration'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 54
+  key: kata-044
+  title: Healthchecks and readiness
+  primary_domain: Docker
+  description: 'Maîtriser: Healthchecks and readiness'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 55
+  key: kata-045
+  title: Logging and log drivers
+  primary_domain: Docker
+  description: 'Maîtriser: Logging and log drivers'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 56
+  key: kata-046
+  title: Tagging and registries
+  primary_domain: Docker
+  description: 'Maîtriser: Tagging and registries'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 57
+  key: kata-047
+  title: Security basics
+  primary_domain: Docker
+  description: 'Maîtriser: Security basics'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 58
+  key: kata-048
+  title: Debugging containers
+  primary_domain: Docker
+  description: 'Maîtriser: Debugging containers'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 59
+  key: kata-049
+  title: Building complex applications
+  primary_domain: Docker
+  description: 'Maîtriser: Building complex applications'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 60
+  key: kata-050
+  title: Docker in CI/CD (preview)
+  primary_domain: Docker
+  description: 'Maîtriser: Docker in CI/CD (preview)'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 61
+  key: kata-051
+  title: Docker with local development
+  primary_domain: Docker
+  description: 'Maîtriser: Docker with local development'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 62
+  key: kata-052
+  title: Image analysis and optimization
+  primary_domain: Docker
+  description: 'Maîtriser: Image analysis and optimization'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 63
+  key: kata-053
+  title: Docker without Docker (podman, containerd)
+  primary_domain: Docker
+  description: 'Maîtriser: Docker without Docker (podman, containerd)'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 64
+  key: kata-054
+  title: Docker networking deep dive
+  primary_domain: Docker
+  description: 'Maîtriser: Docker networking deep dive'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 65
+  key: kata-055
+  title: Running stateful applications
+  primary_domain: Docker
+  description: 'Maîtriser: Running stateful applications'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 66
+  key: kata-056
+  title: Performance tuning
+  primary_domain: Docker
+  description: 'Maîtriser: Performance tuning'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 67
+  key: kata-057
+  title: Container security scanning
+  primary_domain: Docker
+  description: 'Maîtriser: Container security scanning'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 68
+  key: kata-058
+  title: Advanced Dockerfile patterns
+  primary_domain: Docker
+  description: 'Maîtriser: Advanced Dockerfile patterns'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 69
+  key: kata-059
+  title: Container orchestration intro
+  primary_domain: Docker
+  description: 'Maîtriser: Container orchestration intro'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 70
+  key: kata-060
+  title: Docker in production (checklists)
+  primary_domain: Docker
+  description: 'Maîtriser: Docker in production (checklists)'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 71
+  key: kata-061
+  title: Docker with cloud providers
+  primary_domain: Docker
+  description: 'Maîtriser: Docker with cloud providers'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 72
+  key: kata-062
+  title: Container registry management
+  primary_domain: Docker
+  description: 'Maîtriser: Container registry management'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 73
+  key: kata-063
+  title: Troubleshooting Docker in production
+  primary_domain: Docker
+  description: 'Maîtriser: Troubleshooting Docker in production'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 74
+  key: kata-064
+  title: Docker ecosystem tools
+  primary_domain: Docker
+  description: 'Maîtriser: Docker ecosystem tools'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 75
+  key: kata-065
+  title: Complete full-stack application with Docker
+  primary_domain: Docker
+  description: 'Maîtriser: Complete full-stack application with Docker'
+  secondary_domains: *id004
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - docker
+  - devops
+  - kata
+- id: 76
+  key: kata-066
+  title: Basics and HCL syntax
+  primary_domain: Terraform
+  description: 'Maîtriser: Basics and HCL syntax'
+  secondary_domains: &id005
+  - Infrastructure as Code
+  - AWS
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 77
+  key: kata-067
+  title: Variables and locals
+  primary_domain: Terraform
+  description: 'Maîtriser: Variables and locals'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 78
+  key: kata-068
+  title: Outputs and state
+  primary_domain: Terraform
+  description: 'Maîtriser: Outputs and state'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 79
+  key: kata-069
+  title: Data sources
+  primary_domain: Terraform
+  description: 'Maîtriser: Data sources'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 80
+  key: kata-070
+  title: Multiple resources and dependencies
+  primary_domain: Terraform
+  description: 'Maîtriser: Multiple resources and dependencies'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 81
+  key: kata-071
+  title: Resource interpolation and functions
+  primary_domain: Terraform
+  description: 'Maîtriser: Resource interpolation and functions'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 82
+  key: kata-072
+  title: Terraform workspaces
+  primary_domain: Terraform
+  description: 'Maîtriser: Terraform workspaces'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 83
+  key: kata-073
+  title: Modules and code reusability
+  primary_domain: Terraform
+  description: 'Maîtriser: Modules and code reusability'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 84
+  key: kata-074
+  title: Remote state and backends
+  primary_domain: Terraform
+  description: 'Maîtriser: Remote state and backends'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 85
+  key: kata-075
+  title: Provisioners and null_resource
+  primary_domain: Terraform
+  description: 'Maîtriser: Provisioners and null_resource'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 86
+  key: kata-076
+  title: Conditional logic and dynamic blocks
+  primary_domain: Terraform
+  description: 'Maîtriser: Conditional logic and dynamic blocks'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 87
+  key: kata-077
+  title: Validation and testing (terraform test)
+  primary_domain: Terraform
+  description: 'Maîtriser: Validation and testing (terraform test)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 88
+  key: kata-078
+  title: AWS VPC infrastructure
+  primary_domain: Terraform
+  description: 'Maîtriser: AWS VPC infrastructure'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 89
+  key: kata-079
+  title: RDS database provisioning
+  primary_domain: Terraform
+  description: 'Maîtriser: RDS database provisioning'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 90
+  key: kata-080
+  title: EC2 and auto-scaling
+  primary_domain: Terraform
+  description: 'Maîtriser: EC2 and auto-scaling'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 91
+  key: kata-081
+  title: S3 and static website hosting
+  primary_domain: Terraform
+  description: 'Maîtriser: S3 and static website hosting'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 92
+  key: kata-082
+  title: Secrets management (AWS Secrets Manager)
+  primary_domain: Terraform
+  description: 'Maîtriser: Secrets management (AWS Secrets Manager)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 93
+  key: kata-083
+  title: ECS and container orchestration
+  primary_domain: Terraform
+  description: 'Maîtriser: ECS and container orchestration'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 94
+  key: kata-084
+  title: Policy as Code (Sentinel)
+  primary_domain: Terraform
+  description: 'Maîtriser: Policy as Code (Sentinel)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 95
+  key: kata-085
+  title: Refactoring and module extraction
+  primary_domain: Terraform
+  description: 'Maîtriser: Refactoring and module extraction'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 96
+  key: kata-086
+  title: Multi-region deployment
+  primary_domain: Terraform
+  description: 'Maîtriser: Multi-region deployment'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 97
+  key: kata-087
+  title: CI/CD integration (plan in pipeline)
+  primary_domain: Terraform
+  description: 'Maîtriser: CI/CD integration (plan in pipeline)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 98
+  key: kata-088
+  title: Scaling and organization for large teams
+  primary_domain: Terraform
+  description: 'Maîtriser: Scaling and organization for large teams'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 99
+  key: kata-089
+  title: Debugging and state troubleshooting
+  primary_domain: Terraform
+  description: 'Maîtriser: Debugging and state troubleshooting'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 100
+  key: kata-090
+  title: Cost optimization
+  primary_domain: Terraform
+  description: 'Maîtriser: Cost optimization'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 101
+  key: kata-091
+  title: Compliance and governance (IAM policies)
+  primary_domain: Terraform
+  description: 'Maîtriser: Compliance and governance (IAM policies)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 102
+  key: kata-092
+  title: Disaster recovery and backup
+  primary_domain: Terraform
+  description: 'Maîtriser: Disaster recovery and backup'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 103
+  key: kata-093
+  title: Containerization and Kubernetes (preview)
+  primary_domain: Terraform
+  description: 'Maîtriser: Containerization and Kubernetes (preview)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 104
+  key: kata-094
+  title: Terraform Cloud and team workflows
+  primary_domain: Terraform
+  description: 'Maîtriser: Terraform Cloud and team workflows'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata
+- id: 105
+  key: kata-095
+  title: Complete infrastructure project (multi-tier app)
+  primary_domain: Terraform
+  description: 'Maîtriser: Complete infrastructure project (multi-tier app)'
+  secondary_domains: *id005
+  difficulty: Intermédiaire
+  estimated_time: 25min
+  prerequisites:
+  - Terminal/CLI knowledge
+  learning_objectives:
+  - Complete practical exercise
+  - Apply in real scenarios
+  - Build automation skills
+  tags:
+  - terraform
+  - devops
+  - kata

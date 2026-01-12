@@ -59,9 +59,9 @@ class Step:
 
 # Define the 8 steps of the LMS workflow (+ optional Labs)
 STEPS = [
-    Step(1, "Review", "📊"),
-    Step(2, "Formation", "⏱️"),
-    Step(3, "Anki", "🗂️"),
+    Step(1, "Historique", "📊"),
+    Step(2, "Metrics", "⏱️"),
+    Step(3, "Flashcards", "🗂️"),
     Step(4, "Create", "📝"),
     Step(5, "Read", "📖"),
     Step(6, "Reinforce", "💪"),
@@ -106,9 +106,9 @@ def main_menu() -> Optional[Step]:
     Returns None if user selects Exit.
 
     The 9-step Learning Workflow:
-        1️⃣ Review - Analyze your coding metrics & progress
-        2️⃣ Formation - Work through structured learning modules
-        3️⃣ Anki - Space repetition with flashcards
+        1️⃣ Historique - Review yesterday's metrics & progress
+        2️⃣ Metrics - Work through structured learning modules (WakaTime)
+        3️⃣ Flashcards - Space repetition with flashcards
         4️⃣ Create - Build projects & write real code
         5️⃣ Read - Study technical articles & documentation
         6️⃣ Reinforce - Solve problems & reinforce concepts
@@ -169,9 +169,9 @@ def execute_step(step: Step) -> None:
     """
     # Map step numbers to their implementations
     step_map = {
-        1: review_step,  # Review
-        2: formation_step,  # Formation
-        3: anki_step,  # Anki
+        1: review_step,  # Historique
+        2: formation_step,  # Metrics
+        3: anki_step,  # Flashcards
         4: create_step,  # Create
         5: read_step,  # Read
         6: reinforce_step,  # Reinforce

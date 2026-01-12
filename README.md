@@ -8,7 +8,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![DevOps](https://img.shields.io/badge/Focus-DevOps%20Learning-orange.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-276%2F276%20✓-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-passing-brightgreen.svg)]()
 
 ---
 
@@ -58,6 +58,79 @@ Un **outil CLI Python** qui :
 - ✅ **Daily Notifications** (Sprint 2 - NEW!)
 - 🔄 UX Polish (Sprint 3 - Coming Soon)
 - 🔄 DevOps Automation (Sprint 3 - Coming Soon)
+
+---
+
+## 🚀 Quickstart
+
+1. **Installer les dépendances**
+  ```bash
+  python -m venv .venv && source .venv/bin/activate
+  pip install -e .[dev]
+  # ou : pip install -r requirements.txt
+  ```
+2. **Configurer l'environnement**
+  ```bash
+  cp .env.example .env
+  # Renseigner GEMINI_API_KEY, TELEGRAM_*, OBSIDIAN_VAULT_PATH, etc.
+  ```
+3. **Vérifier l'installation**
+  ```bash
+  skillops version
+  skillops health
+  ```
+4. **Lancer le menu interactif**
+  ```bash
+  skillops start
+  ```
+
+---
+
+## 📚 Book Processing Pipeline (Gemini Batch)
+
+Répertoire attendu :
+- `books/pending/` → PDF à traiter
+- `books/processing/` → jobs en cours (manifest)
+- `books/completed/` → résultats JSONL téléchargés
+- `books/books-manifest.yaml` → état global
+
+Commandes principales (via Typer) :
+
+```bash
+# Visualiser la file d'attente
+skillops check-books
+
+# Soumettre les PDFs en attente (GEMINI_API_KEY requis)
+skillops submit-books --api-key "$GEMINI_API_KEY"
+
+# Récupérer les résultats terminés
+skillops fetch-books --book networking-fundamentals
+
+# Importer dans votre vault Obsidian
+skillops import-books --vault ~/Obsidian --book networking-fundamentals
+
+# Pipeline complet : soumettre → attendre → fetch → import
+skillops process-pipeline --watch --interval 15
+```
+
+👉 Les commandes ci-dessus appellent directement les fonctions de [src/lms/books/manager.py](src/lms/books/manager.py) et sont exposées dans l'interface Typer ([src/lms/main.py](src/lms/main.py)).
+
+---
+
+## 🧪 Tests
+
+```bash
+# Activer l'environnement
+source .venv/bin/activate
+
+# Exécuter les tests du module books
+python -m pytest tests/lms/books -v
+
+# Exécuter toute la suite
+python -m pytest -v
+```
+
+---
 
 ---
 

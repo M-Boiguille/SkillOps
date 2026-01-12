@@ -77,7 +77,7 @@ class TestCreateStepSummaryTable:
         steps_data = [
             {
                 "number": 1,
-                "name": "Review",
+                "name": "Historique",
                 "emoji": "📊",
                 "completed": True,
                 "time_spent": 600,

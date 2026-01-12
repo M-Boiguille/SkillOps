@@ -6,7 +6,7 @@ import os
 from typing import Optional
 import json
 
-import google.generativeai as genai
+from google import genai
 from rich.console import Console
 
 console = Console()
@@ -83,8 +83,11 @@ class MissionGenerator:
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY environment variable not set")
 
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel("gemini-pro")
+        self.client = genai.Client(api_key=self.api_key)
+        # Using gemini-2.5-flash: best balance of speed, quality, and cost
+        # - 1M token context for understanding learner profiles
+        # - Hybrid reasoning for adaptive mission generation
+        # - 100% free (input + output)
 
     def generate_mission(
         self,
@@ -124,7 +127,10 @@ class MissionGenerator:
             )
 
         # Call Gemini
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
 
         if not response.text:
             raise ValueError("Failed to generate mission from Gemini")

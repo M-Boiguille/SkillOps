@@ -143,7 +143,7 @@ class TestWakaTimeIntegration:
         """
         Given: API key invalide
         When: Exécution de formation_step()
-        Then: Lève WakaTimeAuthError après affichage du message
+        Then: Affiche l'erreur sans lever d'exception (graceful degradation)
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "invalid-key"
@@ -154,9 +154,8 @@ class TestWakaTimeIntegration:
             "Invalid API key. Please check your WAKATIME_API_KEY."
         )
 
-        # Execute & Verify
-        with pytest.raises(WakaTimeAuthError):
-            formation_step()
+        # Execute - should not raise
+        formation_step()
 
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
@@ -166,7 +165,7 @@ class TestWakaTimeIntegration:
         """
         Given: Rate limit atteint sur l'API WakaTime
         When: Exécution de formation_step()
-        Then: Lève WakaTimeRateLimitError
+        Then: Affiche l'erreur sans lever d'exception (graceful degradation)
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
@@ -177,9 +176,8 @@ class TestWakaTimeIntegration:
             "Rate limit exceeded. Please wait before retrying."
         )
 
-        # Execute & Verify
-        with pytest.raises(WakaTimeRateLimitError):
-            formation_step()
+        # Execute - should not raise
+        formation_step()
 
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
@@ -189,7 +187,7 @@ class TestWakaTimeIntegration:
         """
         Given: Erreur réseau lors de l'appel API
         When: Exécution de formation_step()
-        Then: Lève WakaTimeError
+        Then: Affiche l'erreur sans lever d'exception (graceful degradation)
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
@@ -200,9 +198,8 @@ class TestWakaTimeIntegration:
             "Network error: Could not connect to WakaTime API."
         )
 
-        # Execute & Verify
-        with pytest.raises(WakaTimeError):
-            formation_step()
+        # Execute - should not raise
+        formation_step()
 
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]

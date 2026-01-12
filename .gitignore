@@ -6,6 +6,7 @@ best-practices/
 storage/*
 !storage/.gitkeep
 lms-docs
+FEATURES_TREE.md
 
 # Temporary scripts and files
 calculate_*.py

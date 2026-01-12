@@ -243,9 +243,9 @@ class TestHealthCheck:
         mock_api_token.return_value = True
         mock_github.return_value = True
         mock_telegram.return_value = True
-        # First directory check passes, second fails
+        # Storage passes, Labs fails, Obsidian not checked (env var not set)
         mock_directory.side_effect = [True, False]
 
-        with patch.dict("os.environ", {}):
+        with patch.dict("os.environ", {}, clear=True):
             result = health_check()
             assert result is False

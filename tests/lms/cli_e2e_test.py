@@ -96,14 +96,14 @@ class TestMainMenuIntegration:
         Then: Retourne l'objet Step correspondant
         """
         # Simuler la sélection de la première étape
-        mock_prompt.return_value = {"step": "1. 📊 Review"}
+        mock_prompt.return_value = {"step": "1. 📊 Historique"}
 
         result = main_menu()
 
         assert result is not None
         assert isinstance(result, Step)
         assert result.number == 1
-        assert result.name == "Review"
+        assert result.name == "Historique"
 
     @patch("src.lms.cli.inquirer.prompt")
     def test_menu_returns_none_on_quit(self, mock_prompt):
@@ -161,7 +161,7 @@ class TestExecuteStepIntegration:
         When: Appel de execute_step()
         Then: Appelle l'implémentation correspondante
         """
-        test_step = Step(1, "Review", "📊", False)
+        test_step = Step(1, "Metrics", "📊", False)
 
         execute_step(test_step)
 
@@ -208,17 +208,17 @@ class TestEndToEndWorkflow:
         When: Navigation dans le menu
         Then: Exécute Review puis quitte proprement
         """
-        # Premier appel : sélectionner Review
+        # Premier appel : sélectionner Historique
         # Deuxième appel : quitter
         mock_prompt.side_effect = [
-            {"step": "1. 📊 Review"},
+            {"step": "1. 📊 Historique"},
             {"step": "❌ Exit"},
         ]
 
         # Simuler le workflow
         step1 = main_menu()
         assert step1 is not None
-        assert step1.name == "Review"
+        assert step1.name == "Historique"
         execute_step(step1)
 
         step2 = main_menu()
@@ -253,7 +253,7 @@ class TestEndToEndWorkflow:
             steps_executed.append(step.name)
             execute_step(step)
 
-        assert steps_executed == ["Review", "Formation", "Reinforce"]
+        assert steps_executed == ["Historique", "Metrics", "Reinforce"]
         mock_review.assert_called_once()
         mock_formation.assert_called_once()
         mock_reinforce.assert_called_once()
@@ -266,7 +266,7 @@ class TestEndToEndWorkflow:
         When: Exécution via CliRunner
         Then: Intégration complète fonctionne
         """
-        step1 = Step(1, "Review", "📊", False)
+        step1 = Step(1, "Historique", "📊", False)
         step2 = Step(2, "Formation", "📚", False)
         mock_menu.side_effect = [step1, step2, None]
 

@@ -101,9 +101,9 @@ class TestFormatStepDataForDisplay:
         result = format_step_data_for_display(progress_data)
 
         expected_names = [
-            "Review",
-            "Formation",
-            "Anki",
+            "Historique",
+            "Metrics",
+            "Flashcards",
             "Create",
             "Read",
             "Reinforce",

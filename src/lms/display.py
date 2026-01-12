@@ -215,11 +215,11 @@ def create_progress_bar(description: str = "Processing") -> Progress:
     )
 
 
-def format_time_duration(seconds: int) -> str:
+def format_time_duration(seconds: float) -> str:
     """Format seconds into a human-readable duration string.
 
     Args:
-        seconds: Duration in seconds.
+        seconds: Duration in seconds (can be float).
 
     Returns:
         Formatted string like "2h 30min" or "45min" or "0h 00min".
@@ -227,8 +227,8 @@ def format_time_duration(seconds: int) -> str:
     if seconds < 0:
         seconds = 0
 
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
 
     if hours > 0:
         return f"{hours}h {minutes:02d}min"
