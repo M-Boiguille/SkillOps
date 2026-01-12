@@ -9,6 +9,7 @@ from src.lms.commands.health import (
     check_github_token,
     check_telegram_token,
     health_check,
+    is_fine_grained_github_token,
 )
 
 
@@ -31,6 +32,12 @@ class TestCheckApiToken:
         """Test check_api_token returns False when token is empty string."""
         with patch.dict("os.environ", {"EMPTY_TOKEN": ""}):
             result = check_api_token("Test", "EMPTY_TOKEN")
+            assert result is False
+
+    def test_check_api_token_wakatime_format_invalid(self):
+        """Invalid WakaTime format should fail the check."""
+        with patch.dict("os.environ", {"WAKATIME_API_KEY": "invalid"}):
+            result = check_api_token("WakaTime", "WAKATIME_API_KEY")
             assert result is False
 
 
@@ -66,6 +73,11 @@ class TestCheckGithubToken:
         with patch.dict("os.environ", {}, clear=True):
             result = check_github_token()
             assert result is False
+
+    def test_check_github_token_fine_grained_prefix(self):
+        """Fine-grained token prefixes should be detected without error."""
+        assert is_fine_grained_github_token("github_pat_abc") is True
+        assert is_fine_grained_github_token("ghp_abc") is False
 
     @patch("src.lms.commands.health.requests.get")
     def test_check_github_token_network_error(self, mock_get):

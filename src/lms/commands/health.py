@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -13,37 +14,74 @@ console = Console()
 
 
 def check_api_token(name: str, env_var: str) -> bool:
-    """Check if an API token is set and non-empty."""
+    """Check if an API token is set and non-empty with format hints."""
     token = os.getenv(env_var, "").strip()
     if not token:
         console.print(f"  [yellow]⚠ {name}: not configured[/yellow]")
         return False
+
+    if env_var == "WAKATIME_API_KEY":
+        pattern = re.compile(
+            r"^waka_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        )
+        if not pattern.match(token):
+            console.print(
+                "  [yellow]⚠ WakaTime: token format looks invalid "
+                "(expected waka_xxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)[/yellow]"
+            )
+            return False
+
     console.print(f"  [green]✓ {name}: configured[/green]")
     return True
 
 
+def is_fine_grained_github_token(token: str) -> bool:
+    """Best-effort detection of fine-grained PATs (github_pat_ prefix)."""
+    return token.startswith("github_pat_")
+
+
 def check_github_token() -> bool:
-    """Verify GitHub token is valid."""
+    """Verify GitHub token validity and surface scope hints."""
     token = os.getenv("GITHUB_TOKEN", "").strip()
     if not token:
         console.print("  [yellow]⚠ GitHub: token not set[/yellow]")
         return False
 
+    headers = {"Authorization": f"token {token}"}
     try:
         response = requests.get(
-            "https://api.github.com/user",
-            headers={"Authorization": f"token {token}"},
-            timeout=5,
+            "https://api.github.com/user", headers=headers, timeout=5
         )
         if response.status_code == 200:
             username = response.json().get("login", "Unknown")
+            scopes_header = response.headers.get("X-OAuth-Scopes", "") or ""
+            scopes = [s.strip() for s in scopes_header.split(",") if s.strip()]
+            fine_grained = is_fine_grained_github_token(token)
+
             console.print(f"  [green]✓ GitHub: authenticated as {username}[/green]")
+            if fine_grained:
+                console.print(
+                    "  [dim]GitHub: fine-grained PAT detected (preferred)[/dim]"
+                )
+            else:
+                if scopes:
+                    console.print(f"  [dim]GitHub scopes: {', '.join(scopes)}[/dim]")
+                    if "repo" not in scopes:
+                        console.print(
+                            "  [yellow]⚠ GitHub: classic token without 'repo' "
+                            "scope may fail 'share' step[/yellow]"
+                        )
+                else:
+                    console.print(
+                        "  [yellow]⚠ GitHub: scopes not reported; ensure 'repo' "
+                        "scope for classic tokens[/yellow]"
+                    )
             return True
-        else:
-            console.print(
-                f"  [red]✗ GitHub: token invalid (HTTP {response.status_code})[/red]"
-            )
-            return False
+
+        console.print(
+            f"  [red]✗ GitHub: token invalid (HTTP {response.status_code})[/red]"
+        )
+        return False
     except requests.RequestException as e:
         console.print(f"  [yellow]⚠ GitHub: network error ({str(e)[:30]}...)[/yellow]")
         return False
