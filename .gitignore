@@ -7,6 +7,7 @@ storage/*
 !storage/.gitkeep
 lms-docs
 FEATURES_TREE.md
+books/pending/  # Large EPUB files (>500KB each)
 
 # Temporary scripts and files
 calculate_*.py
