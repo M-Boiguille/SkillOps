@@ -272,5 +272,10 @@ def setup(
     setup_command(output=output, skip_health=skip_health)
 
 
+def main():
+    """Main entry point for console_scripts."""
+    app()
+
+
 if __name__ == "__main__":
     app()
