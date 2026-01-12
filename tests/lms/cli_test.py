@@ -61,11 +61,11 @@ class TestStepChoices:
         """
         Given: The predefined STEPS list
         When: Getting step choices
-        Then: Returns 8 steps + Exit option = 9 choices
+        Then: Returns 9 steps + Exit option = 10 choices
         """
         choices = get_step_choices()
 
-        assert len(choices) == 9
+        assert len(choices) == 10
         assert "❌ Exit" in choices
 
     def test_get_step_choices_format(self):
@@ -81,8 +81,8 @@ class TestStepChoices:
         assert "Review" in choices[0]
 
         # Check last step format (before Exit)
-        assert "🌅" in choices[7]
-        assert "Reflection" in choices[7]
+        assert "9. Labs" in choices[8]
+        assert "Labs" in choices[8]
 
 
 class TestDisplayHeader:
@@ -232,9 +232,9 @@ class TestStepsConstants:
         """
         Given: The STEPS constant
         When: Checking length
-        Then: Contains exactly 8 steps
+        Then: Contains exactly 9 steps (1-8 core + 9 Labs)
         """
-        assert len(STEPS) == 8
+        assert len(STEPS) == 9
 
     def test_steps_sequential_numbers(self):
         """
@@ -270,6 +270,7 @@ class TestStepsConstants:
             "Reinforce",
             "Share",
             "Reflection",
+            "Labs",
         ]
 
         for i, step in enumerate(STEPS):

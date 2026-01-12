@@ -21,6 +21,7 @@ from src.lms.steps import (
     review_step,
 )
 from src.lms.steps.create import create_step
+from src.lms.steps.labs import labs_step
 from src.lms.steps.share import share_step
 
 console = Console()
@@ -56,7 +57,7 @@ class Step:
         return f"{self.emoji} {self.number}. {self.name} {status}"
 
 
-# Define the 8 steps of the LMS workflow
+# Define the 8 steps of the LMS workflow (+ optional Labs)
 STEPS = [
     Step(1, "Review", "📊"),
     Step(2, "Formation", "⏱️"),
@@ -66,6 +67,7 @@ STEPS = [
     Step(6, "Reinforce", "💪"),
     Step(7, "Share", "🌐"),
     Step(8, "Reflection", "🌅"),
+    Step(9, "Labs", "🎯"),
 ]
 
 
@@ -163,6 +165,7 @@ def execute_step(step: Step) -> None:
         6: reinforce_step,  # Reinforce
         7: share_step,  # Share
         8: reflection_step,  # Reflection
+        9: labs_step,  # Labs - AI Missions
     }
 
     # Execute the corresponding step

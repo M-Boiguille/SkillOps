@@ -173,10 +173,12 @@ class TestExecuteStepIntegration:
     @patch("src.lms.cli.reinforce_step")
     @patch("src.lms.cli.create_step")
     @patch("src.lms.cli.share_step")
+    @patch("src.lms.cli.labs_step")
     @patch("src.lms.cli.console.print")
     def test_execute_step_with_all_steps(
         self,
         mock_print,
+        mock_labs,
         mock_share,
         mock_create,
         mock_reinforce,
