@@ -29,12 +29,12 @@ console = Console()
 def _load_exercises_catalog() -> List[Dict]:
     """
     Charge le catalogue des exercices depuis exercises_catalog.yaml.
-    
+
     Returns:
         List[Dict]: Liste des exercices du catalogue ou liste vide si non disponible
     """
     catalog_path = Path(__file__).parent.parent / "data" / "exercises_catalog.yaml"
-    
+
     try:
         with open(catalog_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
@@ -47,7 +47,7 @@ def _load_exercises_catalog() -> List[Dict]:
 def get_available_domains() -> List[str]:
     """
     Retourne la liste des domaines/technologies disponibles.
-    
+
     Returns:
         List[str]: Liste des domaines (Linux, Docker, Terraform, Kubernetes, AWS, GitLab CI)
     """
@@ -133,7 +133,7 @@ def get_exercise_completion_count(exercise_id: str, storage_path: Path) -> int:
     try:
         with progress_file.open("r") as f:
             data = json.load(f)
-        
+
         # Compter sur TOUS les jours (pas juste aujourd'hui)
         count = 0
         for date, day_data in data.items():
@@ -141,7 +141,7 @@ def get_exercise_completion_count(exercise_id: str, storage_path: Path) -> int:
             for exercise in exercises:
                 if exercise.get("id") == exercise_id and exercise.get("completed", False):
                     count += 1
-        
+
         return count
     except (json.JSONDecodeError, OSError):
         return 0
@@ -338,7 +338,7 @@ def record_exercise_session(
     console.print("\n[bold cyan]📊 Auto-évaluation[/bold cyan]")
     console.print("\nRevisez les critères de réussite ci-dessus.")
     console.print("Avez-vous validé TOUS les critères ?\n")
-    
+
     completed = Confirm.ask(
         "✅ J'ai vérifié et validé tous les critères de succès", default=False
     )
@@ -438,12 +438,12 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
         ex_difficulty = exercise.get('difficulty', 'N/A')
         ex_time = exercise.get('estimated_time', 'N/A')
         completion_count = exercise.get('_completion_count', 0)
-        
+
         # Ajouter un indicateur si complété
         status = f" [✓×{completion_count}]" if completion_count > 0 else ""
         choice_text = f"{ex_id:>3}. [{ex_domain:15s}] {ex_title:45s} ({ex_difficulty:15s} - {ex_time}){status}"
         choices.append(choice_text)
-    
+
     choices.append("⬅️  Retour au menu principal")
 
     # Menu interactif
@@ -492,10 +492,10 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
 
     # Récupérer le completion_count (déjà calculé lors du tri)
     completion_count = selected_exercise.get('_completion_count', 0)
-    
+
     # Récupérer la clé unique de l'exercice
     exercise_key = selected_exercise.get("key") or str(selected_exercise.get("id"))
-    
+
     # Afficher la progression
     if completion_count > 0:
         console.print(
@@ -549,4 +549,3 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
 
     # Enregistrer la session
     record_exercise_session(selected_exercise, exercise_content, storage_path)
-

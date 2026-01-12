@@ -46,12 +46,13 @@ class ExerciseGenerator:
         Returns:
             Dict with exercise content (instructions, objectives, validation, hints, solution)
         """
-        prompt = self._build_exercise_prompt(topic, difficulty, duration, completion_count)
+        prompt = self._build_exercise_prompt(
+            topic, difficulty, duration, completion_count
+        )
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
+                model="gemini-2.5-flash", contents=prompt
             )
             if not response or not response.text:
                 raise ValueError("Failed to generate exercise from Gemini")
@@ -67,7 +68,7 @@ class ExerciseGenerator:
         self, topic: str, difficulty: str, duration: str, completion_count: int = 0
     ) -> str:
         """Build the complete prompt for exercise generation.
-        
+
         Full context is reprocessed each time, but response is cached locally
         in JSON. Before reaching 1M tokens, we'll have time to optimize.
         """
@@ -75,13 +76,15 @@ class ExerciseGenerator:
         difficulty_levels = {
             "Débutant": ["Débutant", "Débutant+", "Intermédiaire"],
             "Intermédiaire": ["Intermédiaire", "Intermédiaire+", "Avancé"],
-            "Avancé": ["Avancé", "Avancé+", "Expert"]
+            "Avancé": ["Avancé", "Avancé+", "Expert"],
         }
-        
+
         # Augmenter la difficulté tous les 2 succès
         level_index = min(completion_count // 2, 2)
-        adjusted_difficulty = difficulty_levels.get(difficulty, [difficulty])[level_index]
-        
+        adjusted_difficulty = difficulty_levels.get(difficulty, [difficulty])[
+            level_index
+        ]
+
         # Contextes variés pour éviter le par cœur
         contexts = [
             "en production avec haute disponibilité",
@@ -91,10 +94,14 @@ class ExerciseGenerator:
             "avec monitoring et alerting intégrés",
             "en respectant les bonnes pratiques DevSecOps",
             "avec intégration CI/CD complète",
-            "dans un cluster Kubernetes existant"
+            "dans un cluster Kubernetes existant",
         ]
-        context_variation = contexts[completion_count % len(contexts)] if completion_count > 0 else "en conditions réelles"
-        
+        context_variation = (
+            contexts[completion_count % len(contexts)]
+            if completion_count > 0
+            else "en conditions réelles"
+        )
+
         return f"""Tu es un expert DevOps qui crée des exercices pratiques type "défi" pour l'apprentissage.
 
 Génère un exercice pratique de DevOps avec les caractéristiques suivantes:

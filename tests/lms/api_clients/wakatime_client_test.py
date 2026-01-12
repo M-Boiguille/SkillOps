@@ -28,7 +28,9 @@ class TestWakaTimeClientInit:
         assert "Authorization" in client.session.headers
         # WakaTime uses HTTP Basic Auth with api_key:password format (password is empty)
         expected_credentials = base64.b64encode(b"test_key_123:").decode()
-        assert client.session.headers["Authorization"] == f"Basic {expected_credentials}"
+        assert (
+            client.session.headers["Authorization"] == f"Basic {expected_credentials}"
+        )
 
     @patch.dict(os.environ, {"WAKATIME_API_KEY": "env_key_456"})
     def test_init_from_environment(self):

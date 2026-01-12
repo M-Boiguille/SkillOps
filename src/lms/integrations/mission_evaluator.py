@@ -58,8 +58,7 @@ class MissionEvaluator:
 
         # Call Gemini for evaluation
         response = self.client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
+            model="gemini-2.5-flash", contents=prompt
         )
 
         if not response.text:

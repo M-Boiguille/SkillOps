@@ -87,9 +87,9 @@ Temporary documentation, research, and development notes.
 ## Key Files Explained
 
 ### exercises_catalog.yaml
-**Purpose**: Central repository of all 105 exercises  
-**Size**: 1,985 lines  
-**Format**: YAML with structured metadata per exercise  
+**Purpose**: Central repository of all 105 exercises
+**Size**: 1,985 lines
+**Format**: YAML with structured metadata per exercise
 **Content**:
 - IDs 1-10: Original exercises (Docker, Kubernetes, Terraform, AWS, GitLab CI)
 - IDs 11-105: 95 katas integrated from DevOps training collection
@@ -110,8 +110,8 @@ Temporary documentation, research, and development notes.
 ```
 
 ### reinforce.py
-**Purpose**: Main exercise selection and execution module  
-**Size**: 552 lines  
+**Purpose**: Main exercise selection and execution module
+**Size**: 552 lines
 **Key Functions**:
 - `get_available_domains()` - Returns 6 primary domains
 - `_load_exercises_catalog()` - Loads YAML catalog
@@ -125,10 +125,10 @@ Temporary documentation, research, and development notes.
 - Added visual completion indicators `[✓×N]`
 
 ### reinforcetest.py
-**Purpose**: Unit tests for reinforce module  
-**Size**: 523 lines  
-**Tests**: 21 tests, all passing (100%)  
-**Coverage**: ~92% of reinforce.py  
+**Purpose**: Unit tests for reinforce module
+**Size**: 523 lines
+**Tests**: 21 tests, all passing (100%)
+**Coverage**: ~92% of reinforce.py
 **Key Areas**:
 - Menu rendering and sorting
 - Completion indicator display
@@ -293,6 +293,6 @@ for ex in exercises[:5]:
 
 ---
 
-**Last Updated**: January 12, 2026  
-**Maintained By**: GitHub Copilot  
+**Last Updated**: January 12, 2026
+**Maintained By**: GitHub Copilot
 **Next Review**: After v1.1.0 release

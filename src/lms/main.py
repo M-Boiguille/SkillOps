@@ -544,14 +544,14 @@ def import_data(
 @app.command(name="check-books")
 def check_books():
     """Display book processing queue status (read-only).
-    
+
     Shows all books in the processing pipeline:
         • Pending: Ready to be submitted
         • Processing: Batch job running
         • Ready: Results available for import
         • Imported: Already imported to vault
         • Failed: Error during processing
-    
+
     Example:
         skillops check-books
     """
@@ -570,19 +570,19 @@ def submit_books(
 ):
     """
     Submit pending PDFs for batch processing.
-    
+
     Scans books/pending/ directory for PDF files and submits them
     to Gemini Batch API for extraction of:
     • Zettelkasten notes (atomic concepts)
     • Flashcards (Bloom's taxonomy)
     • Pareto summary (20% → 80% value)
-    
+
     Each book creates 3 parallel batch requests with ~24h turnaround.
-    
+
     Requirements:
         • GEMINI_API_KEY environment variable or --api-key flag
         • PDF files in books/pending/ directory
-    
+
     Example:
         skillops submit-books
         skillops submit-books --api-key "your-api-key"
@@ -608,20 +608,20 @@ def fetch_books(
 ):
     """
     Fetch results from completed batch jobs.
-    
+
     Checks the status of all books in "processing" state and downloads
     completed results. For each completed batch job:
     • Downloads output JSONL from Gemini Batch API
     • Parses 3 JSON outputs (zettelkasten, flashcards, pareto)
     • Saves results to books/completed/{book}/results/
     • Updates manifest status: processing → completed
-    
+
     Books that are still processing will show estimated time remaining.
-    
+
     Requirements:
         • GEMINI_API_KEY environment variable or --api-key flag
         • Books must be in "processing" status
-    
+
     Example:
         skillops fetch-books
         skillops fetch-books --book networking-sysadmins
@@ -647,13 +647,13 @@ def import_books(
 ):
     """
     Import completed books to Obsidian vault.
-    
+
     Creates a structured knowledge base from extracted JSON results:
     • Zettelkasten notes → Individual atomic concept files with backlinks
     • Flashcards → Single deck file with spaced repetition format
     • Pareto summaries → Must-know/should-know concepts + learning path
     • MOC (Map of Content) → Index file linking all content
-    
+
     Vault structure:
         .skillopsvault/{book}/
         ├── 00-INDEX.md              # Map of Content
@@ -666,13 +666,13 @@ def import_books(
             ├── must-know.md
             ├── should-know.md
             └── learning-path.md
-    
+
     Updates manifest status: completed → imported
-    
+
     Requirements:
         • Books must be in "completed" status
         • Valid OBSIDIAN_VAULT_PATH or --vault flag
-    
+
     Example:
         skillops import-books
         skillops import-books --vault ~/MyVault --book docker-deep-dive
@@ -704,21 +704,21 @@ def process_pipeline(
 ):
     """
     Complete book processing pipeline (all-in-one).
-    
+
     Runs the full workflow in a single command:
     1. Submit pending PDFs for batch processing
     2. Monitor until completion (optional --watch mode)
     3. Fetch results from Gemini Batch API
     4. Import to Obsidian vault
-    
+
     Two modes:
-    
+
     **One-time mode (default):**
     - Submits pending books
     - Fetches results (assumes already processing)
     - Imports completed books
     - Exits immediately
-    
+
     **Watch mode (--watch):**
     - Submits pending books
     - Polls every N minutes (default 30min)
@@ -726,17 +726,17 @@ def process_pipeline(
     - Auto-imports when ready
     - Continues until all books are processed
     - Press Ctrl+C to stop watching
-    
+
     Examples:
         # One-time run (good for cron/CI)
         skillops process-pipeline
-        
+
         # Watch mode with default 30min interval
         skillops process-pipeline --watch
-        
+
         # Custom polling interval
         skillops process-pipeline --watch --interval 15
-    
+
     Requirements:
         • GEMINI_API_KEY environment variable or --api-key flag
         • PDFs in books/pending/ (for submit)

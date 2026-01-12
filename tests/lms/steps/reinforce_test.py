@@ -95,11 +95,11 @@ class TestGetAvailableExercises:
         Then: Si des exercices existent, tous les IDs sont uniques
         """
         exercises = get_available_exercises()
-        
+
         # Si pas d'exercices, test passe (liste vide acceptable)
         if len(exercises) == 0:
             return
-            
+
         ids = [ex["id"] for ex in exercises]
         keys = [ex.get("key") for ex in exercises]
 
@@ -108,7 +108,7 @@ class TestGetAvailableExercises:
 
         # Tous les IDs sont uniques
         assert len(ids) == len(set(ids))
-        
+
         # Tous les keys existent et sont des strings uniques
         assert all(isinstance(key, str) and key for key in keys)
         assert len(keys) == len(set(keys))
@@ -263,7 +263,7 @@ class TestRecordExerciseSession:
             "difficulty": "Easy",
             "estimated_time": "10min",
         }
-        
+
         exercise_content = {
             "title": "Test Exercise",
             "instructions": "Test instructions",
@@ -307,7 +307,7 @@ class TestRecordExerciseSession:
             "difficulty": "Hard",
             "estimated_time": "30min",
         }
-        
+
         exercise_content = {
             "title": "Test Exercise",
             "instructions": "Test instructions",
@@ -355,7 +355,7 @@ class TestReinforceStep:
             "exercise": "  1. [Test           ] Test Exercise                                          (Easy - 10min)"
         }
         mock_completion_count.return_value = 0
-        
+
         # Mock exercise generator
         mock_generator = mock_generator_class.return_value
         mock_generator.load_cached_exercise.return_value = {
@@ -446,7 +446,7 @@ class TestReinforceStep:
         }
         mock_storage.return_value = Path("/default/path")
         mock_completion_count.return_value = 0
-        
+
         # Mock exercise generator
         mock_generator = MagicMock()
         mock_generator_class.return_value = mock_generator
@@ -481,13 +481,13 @@ class TestExerciseProgression:
 
         # Save progress on day 1
         save_exercise_progress("docker-basics", "Docker", 600, True, tmp_path)
-        
+
         # Manually add another day's data
         progress_file = tmp_path / "reinforce_progress.json"
         with progress_file.open("r") as f:
             import json
             data = json.load(f)
-        
+
         # Add data for another day
         data["2026-01-11"] = {
             "exercises": [
@@ -495,10 +495,10 @@ class TestExerciseProgression:
             ],
             "total_time": 900
         }
-        
+
         with progress_file.open("w") as f:
             json.dump(data, f)
-        
+
         # Should count both completions
         count = get_exercise_completion_count("docker-basics", tmp_path)
         assert count == 2

@@ -235,12 +235,12 @@ concurrent = 4  # Jobs parallèles
   url = "https://gitlab.com/"
   token = "YOUR_TOKEN"
   executor = "docker"
-  
+
   [runners.docker]
     image = "alpine:latest"
     privileged = true  # Pour Docker-in-Docker
     volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
-    
+
   [runners.cache]
     Type = "s3"
     Path = "gitlab-runner-cache"
@@ -335,7 +335,7 @@ deploy:
     - tags
   except:
     - develop
-    
+
 deploy-feature:
   script: echo "Deploy feature"
   only:

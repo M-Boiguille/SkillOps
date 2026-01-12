@@ -9,7 +9,7 @@ Control Node (Ansible installed)
     ↓ SSH / WinRM
 Managed Nodes (No agent needed!)
     - Server 1
-    - Server 2  
+    - Server 2
     - Server N
 ```
 
@@ -93,7 +93,7 @@ all:
       vars:
         ansible_user: deploy
         http_port: 80
-        
+
     databases:
       hosts:
         db1:
@@ -181,28 +181,28 @@ Scripts YAML définissant l'état désiré.
 - name: Configure web servers
   hosts: webservers
   become: yes  # Sudo
-  
+
   vars:
     http_port: 80
     app_user: webapp
-  
+
   tasks:
     - name: Update apt cache
       apt:
         update_cache: yes
         cache_valid_time: 3600
-    
+
     - name: Install Nginx
       apt:
         name: nginx
         state: present
-    
+
     - name: Create app user
       user:
         name: "{{ app_user }}"
         state: present
         shell: /bin/bash
-    
+
     - name: Copy Nginx config
       template:
         src: templates/nginx.conf.j2
@@ -211,13 +211,13 @@ Scripts YAML définissant l'état désiré.
         group: root
         mode: '0644'
       notify: Restart Nginx
-    
+
     - name: Ensure Nginx is running
       service:
         name: nginx
         state: started
         enabled: yes
-  
+
   handlers:
     - name: Restart Nginx
       service:
@@ -255,7 +255,7 @@ ansible-playbook playbook.yml --tags "install,config"
 # APT (Debian/Ubuntu)
 - name: Install packages
   apt:
-    name: 
+    name:
       - nginx
       - postgresql
       - python3-pip
@@ -461,13 +461,13 @@ tasks:
   - name: Display hostname
     debug:
       msg: "Hostname is {{ ansible_hostname }}"
-  
+
   - name: Install package based on OS
     apt:
       name: apache2
       state: present
     when: ansible_os_family == "Debian"
-  
+
   - name: Show all facts
     debug:
       var: ansible_facts
@@ -588,7 +588,7 @@ http {
     server {
         listen {{ http_port }};
         server_name {{ server_name }};
-        
+
         location / {
             proxy_pass http://{{ app_host }}:{{ app_port }};
             proxy_set_header Host $host;

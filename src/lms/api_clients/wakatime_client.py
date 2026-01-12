@@ -54,7 +54,7 @@ class WakaTimeClient:
         # WakaTime uses HTTP Basic Auth with API key as username (no password)
         # Encode "api_key:" in base64 and prepend "Basic "
         credentials = base64.b64encode(f"{self.api_key}:".encode()).decode()
-        
+
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Basic {credentials}"})
 
