@@ -105,10 +105,22 @@ def main_menu() -> Optional[Step]:
     Uses Inquirer for keyboard navigation with arrow keys or vim keys (j/k).
     Returns None if user selects Exit.
 
+    The 9-step Learning Workflow:
+        1️⃣ Review - Analyze your coding metrics & progress
+        2️⃣ Formation - Work through structured learning modules
+        3️⃣ Anki - Space repetition with flashcards
+        4️⃣ Create - Build projects & write real code
+        5️⃣ Read - Study technical articles & documentation
+        6️⃣ Reinforce - Solve problems & reinforce concepts
+        7️⃣ Share - Document & share your learnings
+        8️⃣ Reflection - Reflect on your daily progress
+        9️⃣ Labs - AI-powered learning missions & challenges
+
     Navigation:
-        - Arrow Up/Down or j/k to navigate
-        - Enter to select
-        - Ctrl+C to quit
+        • Arrow Up/Down: Move between steps
+        • j/k: Vim-style navigation
+        • Enter: Execute selected step
+        • Ctrl+C: Exit
 
     Returns:
         The selected Step object, or None if Exit was chosen.

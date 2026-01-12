@@ -546,7 +546,295 @@ pre-commit run --all-files
 
 ---
 
-## 📋 Workflow Quotidien
+## � CLI Usage Guide
+
+### Quick Start - Start the Daily Learning Workflow
+
+```bash
+skillops start
+```
+
+**What happens:**
+- Interactive menu appears with 9 learning steps
+- Navigate with ↑↓ arrows (or j/k for vim users)
+- Select a step and execute its workflow
+- After completion, return to menu for next step
+- Press Ctrl+C to exit
+
+### All Available Commands
+
+#### `skillops start` - Main Interactive Menu
+```bash
+# Start with default settings
+skillops start
+
+# Enable debug logging for troubleshooting
+skillops start --verbose
+
+# Enable monitoring (metrics + alerts)
+skillops start --enable-monitoring
+```
+
+**Navigation Tips:**
+- **↑↓ arrows** or **j/k** to move between steps
+- **Enter** to execute selected step
+- **Ctrl+C** to exit menu
+- Each step displays emoji and completion status
+
+#### `skillops setup` - Initial Configuration
+```bash
+# Interactive setup wizard
+skillops setup
+
+# Create/switch profiles
+skillops setup --profile profile-name
+```
+
+**Configuration includes:**
+- API key setup (WakaTime, Gemini, GitHub, Telegram)
+- Storage location
+- Notification preferences
+- Learning goals
+
+#### `skillops health` - System Diagnostics
+```bash
+# Check all integrations and configuration
+skillops health
+```
+
+**Validates:**
+- ✓ Configuration files (.env)
+- ✓ API connections (all external services)
+- ✓ File storage access
+- ✓ Required dependencies
+
+#### `skillops export` - Backup Your Progress
+```bash
+# Export to JSON (complete backup)
+skillops export --format json --output backup.json
+
+# Export to CSV (for Excel analysis)
+skillops export --format csv --output ./exports/
+
+# Short form
+skillops export -f json -o ~/backups/$(date +%Y%m%d).json
+```
+
+**Output formats:**
+- **JSON**: Single file with metadata + all progress history
+- **CSV**: Flat table (date, steps, time, cards per row)
+
+#### `skillops import-data` - Restore Progress
+```bash
+# Import from JSON file
+skillops import-data backup.json
+
+# Import from CSV file
+skillops import-data progress.csv
+
+# Merge with existing data instead of replacing
+skillops import-data backup.json --merge
+
+# Import without auto-backup
+skillops import-data backup.json --no-backup
+```
+
+**Import features:**
+- Automatic backup created before import (unless --no-backup)
+- Merge mode combines with existing data
+- Replace mode overwrites existing
+
+#### `skillops notify` - Send Telegram Summary
+```bash
+# Send daily summary notification
+skillops notify --storage-path storage
+
+# Respect schedule time from .env
+skillops notify --storage-path storage --respect-schedule
+
+# With debug output
+skillops notify --storage-path storage --verbose
+```
+
+**Notification includes:**
+- Total steps completed
+- Time spent coding
+- Current streak
+- Flashcards reviewed
+- Tomorrow's goals
+
+#### `skillops version` - Check Version
+```bash
+skillops version
+```
+
+### Step-by-Step Workflow Descriptions
+
+#### 1️⃣ Review Metrics `📊`
+```bash
+# Select from menu and press Enter
+> Displays yesterday's metrics:
+  • Coding time from WakaTime
+  • Steps completed
+  • Streak counter
+  • Progress towards daily goals
+```
+
+#### 2️⃣ Formation `⏱️`
+```bash
+# Work through training modules
+> Tracks time spent in:
+  • Online courses (KodeKloud, Linux Academy)
+  • Structured learning platforms
+  • Shows time remaining for daily quota
+```
+
+#### 3️⃣ Anki `🗂️`
+```bash
+# Review existing flashcards
+> Syncs with:
+  • Anki desktop
+  • Tracks cards reviewed
+  • Updates metrics
+```
+
+#### 4️⃣ Create `📝`
+```bash
+# Generate flashcards from notes
+> Creates cards from:
+  • Obsidian vault
+  • Formats: Q:/A:, Q::/A::, inline ::
+  • Auto-deduplicates by hash
+  • Exports to Anki TSV
+  • Creates GitHub repos from ~/labs projects
+```
+
+#### 5️⃣ Read `📖`
+```bash
+# Learn from articles
+> Parse and store:
+  • Technical articles
+  • Documentation
+  • Research papers
+  • Saved for Zettelkasten notes
+```
+
+#### 6️⃣ Reinforce `💪`
+```bash
+# AI-generated exercises
+> Get personalized:
+  • Practice problems
+  • Code challenges
+  • Hands-on labs
+  • Based on your progress
+```
+
+#### 7️⃣ Share `🌐`
+```bash
+# Publish your learnings
+> Actions:
+  • Publish to blog
+  • Create GitHub repos
+  • Share insights on social
+  • Auto-generate READMEs
+```
+
+#### 8️⃣ Reflection `🌅`
+```bash
+# Daily journal entry
+> Journal about:
+  • What you learned
+  • Challenges faced
+  • Insights gained
+  • Tomorrow's goals
+```
+
+#### 9️⃣ Labs `🎯`
+```bash
+# AI-powered learning missions
+> Get:
+  • Personalized learning paths
+  • Challenge projects
+  • Real-world scenarios
+  • Based on your skill level
+```
+
+### Configuration & Environment Variables
+
+**Minimal Setup (.env file):**
+```bash
+# Must have - Core functionality
+WAKATIME_API_KEY=waka_xxxxxxxxxxxxx
+
+# Optional - Full features
+GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxx
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxx
+GITHUB_USERNAME=your_username
+
+# Optional - Notifications
+TELEGRAM_BOT_TOKEN=123456:ABCdef
+TELEGRAM_CHAT_ID=987654321
+TELEGRAM_SCHEDULE_TIME=20:00
+
+# Optional - Integrations
+OBSIDIAN_VAULT_PATH=~/Obsidian
+ANKI_SYNC_PATH=~/Anki/sync
+LABS_PATH=~/labs
+```
+
+**Getting Tokens:**
+- **WakaTime**: https://wakatime.com/settings/account
+- **Gemini AI**: https://aistudio.google.com/apikey
+- **GitHub**: https://github.com/settings/tokens (scope: repo)
+- **Telegram**: Message @BotFather, `/start`, `/newbot`
+
+### Keyboard Shortcuts in Menu
+
+| Key | Action |
+|-----|--------|
+| ↑ | Move up |
+| ↓ | Move down |
+| j | Move down (vim) |
+| k | Move up (vim) |
+| Enter | Execute step |
+| Ctrl+C | Exit |
+| Tab | Quick navigation |
+
+### Examples: Common Use Cases
+
+**Daily morning routine:**
+```bash
+# Start workflow for today
+skillops start
+```
+
+**Weekly backup:**
+```bash
+# Export progress as JSON backup
+skillops export -f json -o ~/.backups/progress-$(date +%Y%m%d).json
+```
+
+**Monday recovery (restore from backup):**
+```bash
+# Restore if something went wrong
+skillops import-data ~/.backups/progress-20260112.json --merge
+```
+
+**Automate daily notifications (cron):**
+```bash
+# In crontab -e:
+0 20 * * * cd /path/to/SkillOps && skillops notify --storage-path storage --respect-schedule
+```
+
+**Check system health before starting:**
+```bash
+# Verify all integrations work
+skillops health && skillops start
+```
+
+---
+
+## �📋 Workflow Quotidien
 
 ```bash
 # Démarrer la routine du matin (7h00)

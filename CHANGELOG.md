@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-01-12
+
+### Added
+
+#### Data Export/Import System (Sprint 3)
+- **Export to JSON/CSV**: `skillops export --format json --output backup.json`
+  - Complete progress history with metadata
+  - Flat CSV table format for Excel analysis
+- **Import with Merge/Replace**: `skillops import-data backup.json [--merge]`
+  - Automatic backup before import
+  - Format auto-detection
+  - Date-based deduplication for merges
+- 22 comprehensive tests with 100% passing rate
+
+#### Labs/Missions Feature (Sprint 3)
+- 🎯 AI-powered learning missions as Step 9
+- Personalized challenges based on progress
+- Adaptive difficulty system
+- Real-world DevOps scenarios
+
+#### Enhanced CLI Documentation (Sprint 3)
+- Detailed help text for all 9 steps with emoji indicators
+- Comprehensive CLI Usage Guide in README with:
+  - All 10 commands documented with examples
+  - Step-by-step workflow descriptions
+  - Navigation shortcuts (vim keys j/k)
+  - Environment setup and token instructions
+  - Common use cases and cron automation examples
+
+#### Improved Error Handling (Sprint 3)
+- Contextual error messages with recovery suggestions
+- Visual error panels with helpful hints
+- File not found vs permission denied distinction
+- Specific errors for format auto-detection failures
+- Directory creation suggestions
+
+### Changed
+- CLI version updated to "v0.5.0 (Labs & Polish)"
+- ProgressManager API usage corrected:
+  - Use `load_progress()` for reading (returns list)
+  - Use `save_daily_progress()` for writing per-entry
+- Main menu help expanded with full workflow descriptions
+
+### Fixed
+- Data structure alignment: progress = list of {date, steps, time, cards}
+- Export/import data format matching ProgressManager structure
+- CSV format now matches actual progress data (date-based)
+- Proper merge logic with date-based deduplication
+
+### Testing
+- **474/474 tests passing** (up from 451)
+- 22 new export/import tests (100% coverage)
+- 0 regressions from earlier sprints
+- Coverage: 89% of codebase
+
+### Breaking Changes
+None - fully backward compatible with v0.4.0
+
+---
+
 ## [1.0.0] - 2026-01-12
 
 ### Added

@@ -8,6 +8,8 @@ from typing import Optional
 import typer
 from src.lms.cli import main_menu, execute_step
 from src.lms.commands.health import health_check
+from src.lms.commands.export import DataExporter
+from src.lms.commands.data_import import DataImporter
 from src.lms.monitoring import (
     ErrorAggregator,
     MetricsCollector,
@@ -43,7 +45,24 @@ def start(
         help="Record metrics and send alerts on failures",
     ),
 ):
-    """Start the interactive SkillOps LMS menu."""
+    """Start the interactive SkillOps LMS menu.
+
+    Launch the daily learning workflow with 9 steps:
+    1. 📊 Review - Check your metrics (WakaTime, GitHub)
+    2. ⏱️ Formation - Complete training modules
+    3. 🗂️ Anki - Review flashcards
+    4. 📝 Create - Build projects or write code
+    5. 📖 Read - Learn from technical articles
+    6. 💪 Reinforce - Practice problem-solving
+    7. 🌐 Share - Publish learnings or insights
+    8. 🌅 Reflection - Journal your progress
+    9. 🎯 Labs - AI-powered learning missions
+
+    Navigation:
+        • Use ↑↓ or j/k to navigate
+        • Press Enter to select
+        • Press Ctrl+C to quit
+    """
     if verbose:
         from src.lms.logging_config import setup_logging
 
@@ -86,13 +105,20 @@ def start(
 
 @app.command()
 def version():
-    """Display the SkillOps version."""
-    typer.echo("SkillOps LMS v0.4.0 (Observability)")
+    """Display the SkillOps version and build info."""
+    typer.echo("SkillOps LMS v0.5.0 (Labs & Polish)")
 
 
 @app.command()
 def health():
-    """Check SkillOps configuration and connectivity."""
+    """Check SkillOps configuration and all integrations.
+
+    Validates:
+        • Configuration files (.env, config.yaml)
+        • API connections (Gemini AI, WakaTime, GitHub, Telegram)
+        • Storage access
+        • Required dependencies
+    """
     health_check()
 
 
@@ -270,6 +296,243 @@ def setup(
     """Guided setup to create a .env file and validate configuration."""
 
     setup_command(output=output, skip_health=skip_health)
+
+
+@app.command()
+def export(
+    format: str = typer.Option(
+        "json",
+        "--format",
+        "-f",
+        help="Export format: json or csv",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file or directory path",
+    ),
+):
+    """Export progress and metrics data for backup or analysis.
+
+    Create portable backups of your learning progress in JSON or CSV format.
+    Perfect for:
+        • Backing up your learning history
+        • Analyzing progress in Excel/BI tools
+        • Migrating to new machine
+        • Sharing statistics with your team
+
+    JSON Format: Single file with complete progress history + metadata
+    CSV Format: Flat table with date, steps, time, cards per row
+
+    Examples:
+        skillops export --format json --output backup.json
+        skillops export --format csv --output ./exports/
+        skillops export -f json -o ~/backups/$(date +%Y%m%d).json
+    """
+    from rich.console import Console
+    from rich.panel import Panel
+
+    console = Console()
+
+    try:
+        exporter = DataExporter()
+
+        if format.lower() == "json":
+            result = exporter.export_to_json(output_path=output)
+            console.print(f"\n[green]✓ Exported to {result}[/green]\n")
+        elif format.lower() == "csv":
+            results = exporter.export_to_csv(output_dir=output)
+            console.print(f"\n[green]✓ Exported {len(results)} " "CSV files[/green]\n")
+        else:
+            console.print("[red]✗ Invalid format. Use 'json' or 'csv'[/red]\n")
+            raise typer.Exit(code=1)
+
+        exporter.display_export_summary()
+
+    except FileNotFoundError as exc:
+        error_panel = Panel(
+            f"[red]Directory not found:[/red] {exc}\n\n"
+            "[yellow]Suggestion:[/yellow] Ensure the output directory "
+            "exists or create it first:\n"
+            f"  mkdir -p {output if output else './skillops_exports'}",
+            title="[red]❌ Export Failed[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
+    except PermissionError:
+        error_panel = Panel(
+            "[red]Permission denied:[/red] Cannot write to output "
+            "location\n\n"
+            "[yellow]Suggestion:[/yellow] Check write permissions or "
+            "choose a different directory:\n"
+            "  skillops export -f json -o ~/skillops_backup.json",
+            title="[red]❌ Export Failed[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
+    except Exception as exc:
+        error_panel = Panel(
+            f"[red]Export failed:[/red] {str(exc)}\n\n"
+            f"[yellow]Tips:[/yellow]\n"
+            f"  • Use --verbose flag for detailed error logs\n"
+            f"  • Ensure all API keys are configured\n"
+            f"  • Check available disk space",
+            title="[red]❌ Export Error[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def import_data(
+    file: Path = typer.Argument(
+        ...,
+        help="File or directory to import from",
+    ),
+    format: Optional[str] = typer.Option(
+        None,
+        "--format",
+        "-f",
+        help="Import format: json or csv (auto-detected if omitted)",
+    ),
+    merge: bool = typer.Option(
+        False,
+        "--merge",
+        "-m",
+        help="Merge with existing data instead of replacing",
+    ),
+):
+    """Import progress and metrics data.
+
+    Restore your learning progress from a previous export.
+    Creates a backup before importing (unless --no-backup).
+
+    Examples:
+        skillops import-data progress.json
+        skillops import-data ./exports/ --format csv
+        skillops import-data progress.json --merge
+    """
+    from rich.console import Console
+    from rich.prompt import Confirm
+    from rich.panel import Panel
+
+    console = Console()
+
+    if not file.exists():
+        error_panel = Panel(
+            f"[red]File not found:[/red] {file}\n\n"
+            f"[yellow]Suggestions:[/yellow]\n"
+            f"  • Double-check the file path\n"
+            f"  • Try: skillops export -f json -o backup.json\n"
+            f"  • Use absolute path: /home/user/backups/progress.json",
+            title="[red]❌ Import Failed[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
+
+    try:
+        importer = DataImporter()
+
+        # Auto-detect format if not specified
+        if format is None:
+            if file.is_file() and file.suffix == ".json":
+                format = "json"
+            elif file.is_file() and file.suffix == ".csv":
+                format = "csv"
+            elif file.is_dir():
+                format = "csv"
+            else:
+                error_panel = Panel(
+                    f"[red]Could not auto-detect format[/red]\n\n"
+                    f"[yellow]Please specify format:[/yellow]\n"
+                    f"  skillops import-data {file} --format json\n"
+                    f"  skillops import-data {file} --format csv",
+                    title="[red]❌ Format Detection Failed[/red]",
+                    border_style="red",
+                )
+                console.print(error_panel)
+                raise typer.Exit(code=1)
+
+        # Validate before importing
+        if not importer.validate_import(file):
+            error_panel = Panel(
+                f"[red]Invalid import file:[/red] {file}\n\n"
+                f"[yellow]Check:[/yellow]\n"
+                f"  • JSON files must be valid JSON\n"
+                f"  • CSV files must have: date, steps, time, cards\n"
+                f"  • File is not corrupted",
+                title="[red]❌ Validation Failed[/red]",
+                border_style="red",
+            )
+            console.print(error_panel)
+            raise typer.Exit(code=1)
+
+        # Show confirmation
+        merge_note = " (merging)" if merge else " (replacing existing data)"
+        console.print(f"\n[yellow]⚠️  Importing from {file}{merge_note}" "[/yellow]")
+        console.print(
+            "[dim]A backup of current data will be created before " "import[/dim]"
+        )
+
+        if not Confirm.ask("Continue with import?"):
+            console.print("[yellow]Import cancelled[/yellow]\n")
+            raise typer.Exit(code=0)
+
+        # Perform import
+        if format.lower() == "json":
+            success = importer.import_from_json(file, merge=merge, backup=True)
+        elif format.lower() == "csv":
+            success = importer.import_from_csv(file, merge=merge, backup=True)
+        else:
+            console.print("[red]✗ Invalid format. Use 'json' or 'csv'[/red]\n")
+            raise typer.Exit(code=1)
+
+        if success:
+            console.print("\n[green]✓ Import completed successfully[/green]\n")
+        else:
+            error_panel = Panel(
+                "[red]Import failed[/red]\n\n"
+                "[yellow]Try:[/yellow]\n"
+                "  • Check file format is correct\n"
+                "  • Use --verbose flag for details\n"
+                "  • Restore from backup in "
+                "~/.skillops/profiles/backups/",
+                title="[red]❌ Import Error[/red]",
+                border_style="red",
+            )
+            console.print(error_panel)
+            raise typer.Exit(code=1)
+
+    except typer.Exit:
+        raise
+    except FileNotFoundError:
+        error_panel = Panel(
+            "[red]File access error: Unable to read file[/red]\n\n"
+            "[yellow]Ensure:[/yellow]\n"
+            "  • File has correct permissions\n"
+            "  • Directory exists and is readable",
+            title="[red]❌ File Access Failed[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
+    except Exception as exc:
+        error_panel = Panel(
+            f"[red]Import failed:[/red] {str(exc)}\n\n"
+            "[yellow]Debug tips:[/yellow]\n"
+            "  • Run: skillops health (check system status)\n"
+            f"  • Run: skillops import-data {file} --verbose (logs)\n"
+            "  • Check file is not corrupted",
+            title="[red]❌ Unexpected Error[/red]",
+            border_style="red",
+        )
+        console.print(error_panel)
+        raise typer.Exit(code=1)
 
 
 def main():
