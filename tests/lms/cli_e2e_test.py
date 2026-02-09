@@ -31,12 +31,14 @@ class TestCliCommands:
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
-    def test_start_command_with_quit(self, mock_execute, mock_menu):
+    @patch("src.lms.main.pagerduty_check")
+    def test_start_command_with_quit(self, mock_pagerduty, mock_execute, mock_menu):
         """
         Given: Menu qui retourne None (quit)
         When: Exécution de la commande 'start'
         Then: Quitte le programme
         """
+        mock_pagerduty.return_value = True
         mock_menu.return_value = None
 
         result = runner.invoke(app, ["start"])
@@ -47,13 +49,15 @@ class TestCliCommands:
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
-    def test_start_command_executes_step(self, mock_execute, mock_menu):
+    @patch("src.lms.main.pagerduty_check")
+    def test_start_command_executes_step(self, mock_pagerduty, mock_execute, mock_menu):
         """
         Given: Menu qui retourne une étape puis None
         When: Exécution de la commande 'start'
         Then: Exécute l'étape puis quitte
         """
         test_step = Step(1, "Test Step", "🧪", False)
+        mock_pagerduty.return_value = True
         mock_menu.side_effect = [test_step, None]
 
         result = runner.invoke(app, ["start"])
@@ -64,7 +68,10 @@ class TestCliCommands:
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
-    def test_start_command_handles_multiple_steps(self, mock_execute, mock_menu):
+    @patch("src.lms.main.pagerduty_check")
+    def test_start_command_handles_multiple_steps(
+        self, mock_pagerduty, mock_execute, mock_menu
+    ):
         """
         Given: Menu qui retourne plusieurs étapes puis None
         When: Exécution de la commande 'start'
@@ -73,6 +80,7 @@ class TestCliCommands:
         step1 = Step(1, "Step 1", "1️⃣", False)
         step2 = Step(2, "Step 2", "2️⃣", False)
         step3 = Step(3, "Step 3", "3️⃣", False)
+        mock_pagerduty.return_value = True
         mock_menu.side_effect = [step1, step2, step3, None]
 
         result = runner.invoke(app, ["start"])
@@ -154,22 +162,23 @@ class TestMainMenuIntegration:
 class TestExecuteStepIntegration:
     """Tests d'intégration pour execute_step()."""
 
-    @patch("src.lms.cli.review_step")
+    @patch("src.lms.cli.daily_standup_step")
     def test_execute_step_calls_implementation(self, mock_review):
         """
         Given: Un Step à exécuter
         When: Appel de execute_step()
         Then: Appelle l'implémentation correspondante
         """
-        test_step = Step(1, "Metrics", "📊", False)
+        test_step = Step(1, "Daily Stand-up", "📊", False)
 
         execute_step(test_step)
 
         # Vérifier qu'on a appelé la fonction
         mock_review.assert_called_once()
 
-    @patch("src.lms.cli.review_step")
-    @patch("src.lms.cli.formation_step")
+    @patch("src.lms.cli.daily_standup_step")
+    @patch("src.lms.cli.anki_step")
+    @patch("src.lms.cli.tutor_step")
     @patch("src.lms.cli.missions_step")
     @patch("src.lms.cli.create_step")
     @patch("src.lms.cli.share_step")
@@ -182,7 +191,8 @@ class TestExecuteStepIntegration:
         mock_share,
         mock_create,
         mock_missions,
-        mock_formation,
+        mock_tutor,
+        mock_anki,
         mock_review,
     ):
         """
@@ -194,7 +204,12 @@ class TestExecuteStepIntegration:
             execute_step(step)
 
         # Vérifier que les implémentations réelles ont été appelées
-        assert mock_review.called or mock_formation.called or mock_print.called
+        assert (
+            mock_review.called
+            or mock_anki.called
+            or mock_tutor.called
+            or mock_print.called
+        )
 
 
 class TestEndToEndWorkflow:
@@ -225,20 +240,20 @@ class TestEndToEndWorkflow:
         assert step2 is None
 
     @patch("src.lms.cli.inquirer.prompt")
-    @patch("src.lms.cli.review_step")
-    @patch("src.lms.cli.formation_step")
+    @patch("src.lms.cli.daily_standup_step")
+    @patch("src.lms.cli.anki_step")
     @patch("src.lms.cli.missions_step")
     def test_complete_workflow_multiple_steps(
-        self, mock_missions, mock_formation, mock_review, mock_prompt
+        self, mock_missions, mock_anki, mock_review, mock_prompt
     ):
         """
-        Given: Workflow avec 3 étapes (Daily Stand-up → Metrics → Mission Control → Quit)
+        Given: Workflow avec 3 étapes (Daily Stand-up → Flashcards → Mission Control → Quit)
         When: Navigation dans le menu
         Then: Exécute chaque étape dans l'ordre
         """
         mock_prompt.side_effect = [
             {"step": "1. 📊 Daily Stand-up"},
-            {"step": "2. ⏱️ Metrics"},
+            {"step": "2. 🗂️ Flashcards"},
             {"step": "6. 💪 Mission Control"},
             {"step": "❌ Exit"},
         ]
@@ -253,21 +268,23 @@ class TestEndToEndWorkflow:
             steps_executed.append(step.name)
             execute_step(step)
 
-        assert steps_executed == ["Daily Stand-up", "Metrics", "Mission Control"]
+        assert steps_executed == ["Daily Stand-up", "Flashcards", "Mission Control"]
         mock_review.assert_called_once()
-        mock_formation.assert_called_once()
+        mock_anki.assert_called_once()
         mock_missions.assert_called_once()
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
-    def test_typer_app_integration(self, mock_execute, mock_menu):
+    @patch("src.lms.main.pagerduty_check")
+    def test_typer_app_integration(self, mock_pagerduty, mock_execute, mock_menu):
         """
         Given: Application Typer complète
         When: Exécution via CliRunner
         Then: Intégration complète fonctionne
         """
         step1 = Step(1, "Daily Stand-up", "📊", False)
-        step2 = Step(2, "Formation", "📚", False)
+        step2 = Step(2, "Flashcards", "🗂️", False)
+        mock_pagerduty.return_value = True
         mock_menu.side_effect = [step1, step2, None]
 
         result = runner.invoke(app, ["start"])
@@ -309,13 +326,17 @@ class TestCliErrorHandling:
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
-    def test_app_handles_execute_step_exception(self, mock_execute, mock_menu):
+    @patch("src.lms.main.pagerduty_check")
+    def test_app_handles_execute_step_exception(
+        self, mock_pagerduty, mock_execute, mock_menu
+    ):
         """
         Given: execute_step() lève une exception
         When: Exécution de l'app
         Then: L'exception est propagée (pour débogage)
         """
         step = Step(1, "Test", "🧪", False)
+        mock_pagerduty.return_value = True
         mock_menu.side_effect = [step, None]
         mock_execute.side_effect = RuntimeError("Test error")
 

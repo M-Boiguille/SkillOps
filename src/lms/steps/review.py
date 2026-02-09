@@ -7,6 +7,7 @@ including completed steps, time coded, cards created, and current streak.
 from pathlib import Path
 from datetime import datetime, timedelta
 from src.lms.persistence import MetricsManager, ProgressManager
+from src.lms.steps.formation import formation_step
 from src.lms.display import (
     create_metrics_table,
     create_step_summary_table,
@@ -37,15 +38,15 @@ def format_step_data_for_display(progress_data: dict) -> list[dict]:
     """
     step_names = [
         "Daily Stand-up",
-        "Metrics",
         "Flashcards",
         "Create",
         "Read",
+        "Tutor",
         "Mission Control",
         "Pull Request",
         "Reflection",
     ]
-    step_emojis = ["📊", "⏱️", "🗂️", "📝", "📖", "💪", "🌐", "🌅"]
+    step_emojis = ["📊", "🗂️", "📝", "📖", "🧑‍🏫", "💪", "🌐", "🌅"]
 
     steps = progress_data.get("steps", {})
 
@@ -162,3 +163,9 @@ def review_step(storage_path: Path = Path("storage")) -> None:
         console.print(
             "[yellow]There's room for improvement. Try to complete more steps today![/yellow]\n"
         )
+
+
+def daily_standup_step(storage_path: Path = Path("storage")) -> None:
+    """Execute the Daily Stand-up step (metrics recap + WakaTime stats)."""
+    review_step(storage_path)
+    formation_step(storage_path)

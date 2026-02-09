@@ -62,16 +62,15 @@ def start(
 ):
     """Start the interactive SkillOps LMS menu.
 
-    Launch the daily learning workflow with 9 steps:
-    1. 📊 Daily Stand-up - Check yesterday's metrics & progress
-    2. ⏱️ Metrics - Complete training modules (WakaTime)
-    3. 🗂️ Flashcards - Review flashcards
-    4. 📝 Create - Build projects or write code
-    5. 📖 Read - Learn from technical articles
-    6. 💪 Mission Control - Solve tickets & incidents
-    7. 🌐 Pull Request - Publish learnings or insights
-    8. 🌅 Reflection - Journal your progress
-    9. 🎯 Labs - AI-powered learning missions
+    Launch the daily learning workflow with 8 steps:
+    1. 📊 Daily Stand-up - Metrics recap + WakaTime stats
+    2. 🗂️ Flashcards - Review flashcards
+    3. 📝 Create - Build projects or write code
+    4. 📖 Read - Learn from technical articles
+    5. 💪 Mission Control - Solve tickets & incidents
+    6. 🌐 Pull Request - Publish learnings or insights
+    7. 🌅 Reflection - Journal your progress
+    8. 🎯 Labs - AI-powered learning missions
 
     Navigation:
         • Use ↑↓ or j/k to navigate

@@ -46,12 +46,12 @@ class TestStep:
         When: Converting to string
         Then: String contains empty circle (○)
         """
-        step = Step(2, "Formation", "⏱️", completed=False)
+        step = Step(2, "Flashcards", "🗂️", completed=False)
         result = str(step)
 
         assert "○" in result
-        assert "Formation" in result
-        assert "⏱️" in result
+        assert "Flashcards" in result
+        assert "🗂️" in result
 
 
 class TestStepChoices:
@@ -169,11 +169,11 @@ class TestMainMenu:
         When: Calling main_menu multiple times
         Then: Returns correct Step for each selection
         """
-        # Test step 2 (Metrics)
-        mock_prompt.return_value = {"step": "⏱️ 2. Metrics ○"}
+        # Test step 2 (Flashcards)
+        mock_prompt.return_value = {"step": "🗂️ 2. Flashcards ○"}
         result = main_menu()
         assert result.number == 2
-        assert result.name == "Metrics"
+        assert result.name == "Flashcards"
 
         # Test step 8 (Reflection)
         mock_prompt.return_value = {"step": "🌅 8. Reflection ○"}
@@ -185,31 +185,31 @@ class TestMainMenu:
 class TestExecuteStep:
     """Tests for step execution."""
 
-    @patch("src.lms.cli.review_step")
-    def test_execute_step_calls_review(self, mock_review):
+    @patch("src.lms.cli.daily_standup_step")
+    def test_execute_step_calls_review(self, mock_standup):
         """
-        Given: Step 1 (Review)
+        Given: Step 1 (Daily Stand-up)
         When: Executing the step
-        Then: Calls review_step function
+        Then: Calls daily_standup_step function
         """
         step = Step(1, "Daily Stand-up", "📊")
 
         execute_step(step)
 
-        mock_review.assert_called_once()
+        mock_standup.assert_called_once()
 
-    @patch("src.lms.cli.formation_step")
-    def test_execute_step_calls_formation(self, mock_formation):
+    @patch("src.lms.cli.anki_step")
+    def test_execute_step_calls_formation(self, mock_anki):
         """
-        Given: Step 2 (Formation)
+        Given: Step 2 (Flashcards)
         When: Executing the step
-        Then: Calls formation_step function
+        Then: Calls anki_step function
         """
-        step = Step(2, "Metrics", "⏱️")
+        step = Step(2, "Flashcards", "🗂️")
 
         execute_step(step)
 
-        mock_formation.assert_called_once()
+        mock_anki.assert_called_once()
 
     @patch("src.lms.cli.missions_step")
     def test_execute_step_calls_reinforce(self, mock_missions):
@@ -232,7 +232,7 @@ class TestStepsConstants:
         """
         Given: The STEPS constant
         When: Checking length
-        Then: Contains exactly 9 steps (1-8 core + 9 Labs)
+        Then: Contains exactly 9 steps (1-8 core + Labs)
         """
         assert len(STEPS) == 9
 
@@ -263,10 +263,10 @@ class TestStepsConstants:
         """
         expected_names = [
             "Daily Stand-up",
-            "Metrics",
             "Flashcards",
             "Create",
             "Read",
+            "Tutor",
             "Mission Control",
             "Pull Request",
             "Reflection",

@@ -102,15 +102,15 @@ class TestFormatStepDataForDisplay:
 
         expected_names = [
             "Daily Stand-up",
-            "Metrics",
             "Flashcards",
             "Create",
             "Read",
+            "Tutor",
             "Mission Control",
             "Pull Request",
             "Reflection",
         ]
-        expected_emojis = ["📊", "⏱️", "🗂️", "📝", "📖", "💪", "🌐", "🌅"]
+        expected_emojis = ["📊", "🗂️", "📝", "📖", "🧑‍🏫", "💪", "🌐", "🌅"]
 
         for i, step in enumerate(result):
             assert step["name"] == expected_names[i]

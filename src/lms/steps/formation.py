@@ -138,7 +138,7 @@ def formation_step(storage_path: Optional[Path] = None) -> None:
     Raises:
         WakaTimeError: En cas d'erreur avec l'API WakaTime
     """
-    display_section_header("Formation", "📚")
+    display_section_header("Metrics", "📚")
 
     # Récupérer la clé API
     api_key = get_api_key_from_env()
@@ -195,5 +195,6 @@ def formation_step(storage_path: Optional[Path] = None) -> None:
     except WakaTimeError as e:
         display_error_message("Erreur WakaTime", str(e))
         console.print(
-            "\n[yellow]Conseil:[/yellow] Vérifiez que votre clé API WakaTime est valide sur https://wakatime.com/settings/account"
+            "\n[yellow]Conseil:[/yellow] Vérifiez que votre clé API WakaTime "
+            "est valide sur https://wakatime.com/settings/account"
         )

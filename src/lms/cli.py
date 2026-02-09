@@ -14,11 +14,11 @@ import readchar
 
 from src.lms.steps import (
     anki_step,
-    formation_step,
+    daily_standup_step,
     missions_step,
     read_step,
     reflection_step,
-    review_step,
+    tutor_step,
 )
 from src.lms.steps.create import create_step
 from src.lms.steps.labs import labs_step
@@ -57,13 +57,13 @@ class Step:
         return f"{self.emoji} {self.number}. {self.name} {status}"
 
 
-# Define the 8 steps of the LMS workflow (+ optional Labs)
+# Define the 9 steps of the LMS workflow (+ optional Labs)
 STEPS = [
     Step(1, "Daily Stand-up", "📊"),
-    Step(2, "Metrics", "⏱️"),
-    Step(3, "Flashcards", "🗂️"),
-    Step(4, "Create", "📝"),
-    Step(5, "Read", "📖"),
+    Step(2, "Flashcards", "🗂️"),
+    Step(3, "Create", "📝"),
+    Step(4, "Read", "📖"),
+    Step(5, "Tutor", "🧑‍🏫"),
     Step(6, "Mission Control", "💪"),
     Step(7, "Pull Request", "🌐"),
     Step(8, "Reflection", "🌅"),
@@ -106,11 +106,11 @@ def main_menu() -> Optional[Step]:
     Returns None if user selects Exit.
 
     The 9-step Learning Workflow:
-        1️⃣ Daily Stand-up - Review yesterday's metrics & progress
-        2️⃣ Metrics - Work through structured learning modules (WakaTime)
-        3️⃣ Flashcards - Space repetition with flashcards
-        4️⃣ Create - Build projects & write real code
-        5️⃣ Read - Study technical articles & documentation
+        1️⃣ Daily Stand-up - Metrics recap + WakaTime stats
+        2️⃣ Flashcards - Space repetition with flashcards
+        3️⃣ Create - Build projects & write real code
+        4️⃣ Read - Study technical articles & documentation
+        5️⃣ Tutor - Smart note taker with Socratic dialogue
         6️⃣ Mission Control - Solve tickets & incidents
         7️⃣ Pull Request - Submit & share your learnings
         8️⃣ Reflection - Reflect on your daily progress
@@ -169,11 +169,11 @@ def execute_step(step: Step) -> None:
     """
     # Map step numbers to their implementations
     step_map = {
-        1: review_step,  # Historique
-        2: formation_step,  # Metrics
-        3: anki_step,  # Flashcards
-        4: create_step,  # Create
-        5: read_step,  # Read
+        1: daily_standup_step,  # Daily Stand-up
+        2: anki_step,  # Flashcards
+        3: create_step,  # Create
+        4: read_step,  # Read
+        5: tutor_step,  # Tutor
         6: missions_step,  # Mission Control
         7: share_step,  # Pull Request
         8: reflection_step,  # Reflection
