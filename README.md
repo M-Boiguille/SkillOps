@@ -14,7 +14,7 @@
 
 ## 📖 Overview
 
-**SkillOps** is an automated learning management system designed to optimize daily DevOps training routines. Rather than manually managing tracking, notes, and revisions across 10 different tools, I built a CLI tool that intelligently orchestrates 8 learning steps using a state machine.
+**SkillOps** is an automated learning management system designed to optimize daily DevOps training routines. Rather than manually managing tracking, notes, and revisions across 10 different tools, I built a CLI tool that intelligently orchestrates 9 learning steps (8 core + Labs) using a state machine.
 
 ### 🎯 Le Problème Résolu
 
@@ -48,10 +48,10 @@ Un **outil CLI Python** qui :
 
 ### Features Status
 
-- ✅ Review Metrics (Sprint 1)
+- ✅ Daily Stand-up (Sprint 1)
 - ✅ Formation Tracking (Sprint 1)
 - ✅ Analysis with AI (Sprint 1)
-- ✅ Reinforcement (Sprint 1)
+- ✅ Mission Control (Sprint 1)
 - ✅ Zettelkasten Notes (Sprint 1)
 - ✅ **Flashcard Generation** (Sprint 2 - NEW!)
 - ✅ **Portfolio Automation** (Sprint 2 - NEW!)
@@ -137,7 +137,7 @@ python -m pytest -v
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                    SkillOps CLI Engine                       │
-│                   State Machine (8 Steps)                    │
+│                   State Machine (9 Steps)                    │
 └────────────┬─────────────────────────────────┬───────────────┘
              │                                 │
     ┌────────▼─────────┐              ┌───────▼────────┐
@@ -176,7 +176,7 @@ Ce dossier démontre ma compréhension du cycle de développement logiciel en en
 
 ## 🎨 Fonctionnalités Principales
 
-### 1️⃣ **Review Metrics** 📊
+### 1️⃣ **Daily Stand-up** 📊
 - Affiche les métriques de la veille (temps codé, étapes complétées)
 - Compare avec les objectifs quotidiens
 - Calcule le "streak" de jours consécutifs
@@ -191,10 +191,10 @@ Ce dossier démontre ma compréhension du cycle de développement logiciel en en
 - Gemini génère des réponses contextuelles
 - Stocke les Q&A pour révisions futures
 
-### 4️⃣ **Reinforcement** 💪
-- Génère des exercices pratiques personnalisés
-- Labs hands-on basés sur la progression
-- Validation des acquis
+### 4️⃣ **Mission Control** 💪
+- Backlog de tickets & incidents contextualisés
+- Exécution guidée avec critères d’acceptation
+- Validation locale (checks) + revue AI (placeholder)
 
 ### 5️⃣ **Zettelkasten Notes** 📝
 - Prise de notes atomiques (méthode Zettelkasten)
@@ -213,7 +213,7 @@ Ce dossier démontre ma compréhension du cycle de développement logiciel en en
 skillops create --storage-path storage --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
 ```
 
-### 7️⃣ **Portfolio Automation** 🔧
+### 7️⃣ **Pull Request (Portfolio Automation)** 🔧
 - ✅ **[SPRINT 2]** Détection automatique des projets dans ~/labs/ sans remote
 - ✅ **[SPRINT 2]** Génération de README avec badges tech (Python, Node.js, Docker, etc.)
 - ✅ **[SPRINT 2]** Création de repo GitHub via API
@@ -284,7 +284,7 @@ Result: `skillops-YYYY-MM-DD.txt` in `ANKI_SYNC_PATH` ready for Anki import!
 
 ---
 
-### 🚀 GitHub Portfolio Automation (Sprint 2)
+### 🚀 Pull Request - GitHub Portfolio Automation (Sprint 2)
 
 Automatically push lab projects to GitHub:
 
@@ -294,7 +294,7 @@ export GITHUB_TOKEN=ghp_xxxxxxxxx         # From https://github.com/settings/tok
 export GITHUB_USERNAME=your_username
 export LABS_PATH=~/labs
 
-# Share projects to GitHub
+# Pull Request: share projects to GitHub
 skillops share --labs-path $LABS_PATH
 ```
 
@@ -352,18 +352,18 @@ skillops notify --storage-path storage --respect-schedule
 📊 SkillOps Daily Summary
 
 ✓ Steps Completed: 6/8
-  ├─ Review Metrics ✓
-  ├─ Formation ✓
-  ├─ Analysis ✓
-  ├─ Reinforce ✓
-  └─ Zettelkasten ✓
+  ├─ Daily Stand-up ✓
+  ├─ Metrics ✓
+  ├─ Flashcards ✓
+  ├─ Mission Control ✓
+  └─ Read ✓
 
 ⏱️ Time Spent: 3h 45m
 🔥 Current Streak: 12 days
 📈 Total Cards Reviewed: 342
 
 🎯 Goals for Tomorrow:
-  • Complete all 8 steps
+  • Complete all 8 core steps
   • Code for 4+ hours
   • Review 15+ flashcards
 ```
@@ -376,33 +376,31 @@ skillops notify --storage-path storage --respect-schedule
 
 ---
 
-## 🧭 8-Step Workflow (MVP)
+## 🧭 9-Step Workflow (Core + Labs)
 
 ### Overview
-- **1. Review:** View yesterday’s coding metrics and streak.
+- **1. Daily Stand-up:** View yesterday’s coding metrics and streak.
 - **2. Formation:** Plan today’s study focus using tracked time.
-- **3. Anki:** Review flashcards in the desktop app (placeholder in CLI).
+- **3. Flashcards:** Review flashcards in the desktop app (placeholder in CLI).
 - **4. Create:** Generate flashcards from Obsidian notes and export for Anki.
 - **5. Read:** Review notes (placeholder guidance in CLI).
-- **6. Reinforce:** Practice exercises with timer and progress tracking.
-- **7. Share:** Detect local labs, create GitHub repos, generate README, push.
+- **6. Mission Control:** Solve tickets and incidents with acceptance criteria.
+- **7. Pull Request:** Detect local labs, create GitHub repos, generate README, push.
 - **8. Reflection:** Journal your day (placeholder guidance in CLI).
+- **9. Labs:** AI-powered learning missions.
 
 ### Commands
 ```bash
-# Interactive menu (all 8 steps)
+# Interactive menu (all 9 steps)
 python -m src.lms.main start
 
 # Run specific steps
-python -m src.lms.main review
-python -m src.lms.main formation
-python -m src.lms.main reinforce
 python -m src.lms.main create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
 python -m src.lms.main share --labs-path ~/labs
 python -m src.lms.main notify --respect-schedule
 ```
 
-### GitHub Token Scopes (for Share step)
+### GitHub Token Scopes (for Pull Request step)
 - **Classic token:** `repo` (full control of private/public repos)
 - **Fine-grained token (recommended):** Repository permissions
   - **Contents:** Read & Write
@@ -528,7 +526,7 @@ SkillOps/
 │       └── ...
 ├── storage/                  # Données locales (gitignored)
 │   ├── .state.yaml          # État actuel
-│   ├── .progress.json       # Historique
+│   ├── .progress.json       # Daily Stand-up data
 │   └── .metrics.json        # Métriques agrégées
 ├── project-lifecycle/        # Documentation projet
 │   ├── 01-product-discovery.md
@@ -743,7 +741,7 @@ skillops version
 
 ### Step-by-Step Workflow Descriptions
 
-#### 1️⃣ Review Metrics `📊`
+#### 1️⃣ Daily Stand-up `📊`
 ```bash
 # Select from menu and press Enter
 > Displays yesterday's metrics:
@@ -762,7 +760,7 @@ skillops version
   • Shows time remaining for daily quota
 ```
 
-#### 3️⃣ Anki `🗂️`
+#### 3️⃣ Flashcards `🗂️`
 ```bash
 # Review existing flashcards
 > Syncs with:
@@ -792,24 +790,23 @@ skillops version
   • Saved for Zettelkasten notes
 ```
 
-#### 6️⃣ Reinforce `💪`
+#### 6️⃣ Mission Control `💪`
 ```bash
-# AI-generated exercises
-> Get personalized:
-  • Practice problems
-  • Code challenges
-  • Hands-on labs
-  • Based on your progress
+# Tickets & incidents
+> Work on:
+  • Mission backlog (tickets/incidents)
+  • Acceptance criteria checks
+  • Post-mission validation summary
 ```
 
-#### 7️⃣ Share `🌐`
+#### 7️⃣ Pull Request `🌐`
 ```bash
 # Publish your learnings
 > Actions:
-  • Publish to blog
   • Create GitHub repos
-  • Share insights on social
   • Auto-generate READMEs
+  • Share insights on social
+  • Portfolio updates
 ```
 
 #### 8️⃣ Reflection `🌅`
@@ -923,13 +920,13 @@ skillops start
 │   🔥 Streak : 18 jours                  │
 ├─────────────────────────────────────────┤
 │ 🎯 Programme aujourd'hui :              │
-│   1. [●○○○○○○○] Review Metrics          │
+│   1. [●○○○○○○○] Daily Stand-up          │
 │   2. [○○○○○○○○] Formation               │
 │   ...                                   │
 └─────────────────────────────────────────┘
 
 # Navigation interactive (flèches ↑↓ ou touches vim j/k)
-> Appuyez sur Entrée pour Step 1: Review Metrics
+> Appuyez sur Entrée pour Step 1: Daily Stand-up
 
 # Notification Telegram automatique en fin de journée
 📱 "✅ Bilan : 8/8 étapes | 4h12 codé | 15 cartes créées"

@@ -1,14 +1,68 @@
-# SkillOps LMS - Reinforce Module Implementation
+# SkillOps LMS - Mission Control (v2) Implementation
 
-**Date** : January 12, 2026
-**Version** : 1.0.0
-**Status** : ✅ Production Ready (539/539 tests passing)
+**Date** : February 08, 2026
+**Version** : 2.0.0
+**Status** : ✅ Mission Control added (Reinforce deprecated but retained)
 
 ## Overview
 
-Complete refactoring of the `reinforce` module to replace hardcoded exercises with a scalable catalog system, interactive menu interface, and smart sorting algorithm.
+Introduces **Mission Control** to shift the LMS into a DevOps Career Simulator. Missions replace exercises by adding business context, acceptance criteria, and validation hooks while keeping the legacy `reinforce` module available (deprecated).
 
-## Changes Summary
+## Mission Control (NEW)
+
+### 1. Data Layer
+
+#### Added
+- `src/lms/data/companies.yaml` — fictitious employers
+- `src/lms/data/missions/` — mission scenarios (YAML)
+
+#### Example Mission Format
+```yaml
+- id: 1
+  key: mission-001
+  title: "Onboarding: provisionner un environnement de dev"
+  company_id: techcorp
+  scenario: "Contexte métier + tâche"
+  objectives:
+    - Standardiser la configuration via Docker Compose
+  acceptance_criteria:
+    - Un fichier docker-compose.yml expose l'app sur le port 8080
+  validators:
+    - check_docker_compose
+```
+
+### 2. Domain Models
+
+- `src/lms/classes/mission.py`
+  - `Company` and `Mission` Pydantic models
+  - Central schema for tickets/incidents
+
+### 3. Step Implementation
+
+- `src/lms/steps/missions.py`
+  - Loads companies + missions
+  - Displays backlog table
+  - Shows mission details with acceptance criteria
+  - Triggers validation workflow
+
+### 4. Validation
+
+- `src/lms/steps/validator.py`
+  - `validate_mission()` placeholder
+  - Returns `ValidationResult` with checks/failures
+
+### 5. CLI Integration
+
+- Step 6 renamed to **Mission Control**
+- Step 7 renamed to **Pull Request** (Share)
+
+---
+
+## Reinforce Module (DEPRECATED)
+
+The legacy `reinforce` module remains intact for backwards compatibility. Details below are retained for reference.
+
+### Changes Summary (Reinforce)
 
 ### 1. Data Layer
 

@@ -96,14 +96,14 @@ class TestMainMenuIntegration:
         Then: Retourne l'objet Step correspondant
         """
         # Simuler la sélection de la première étape
-        mock_prompt.return_value = {"step": "1. 📊 Historique"}
+        mock_prompt.return_value = {"step": "1. 📊 Daily Stand-up"}
 
         result = main_menu()
 
         assert result is not None
         assert isinstance(result, Step)
         assert result.number == 1
-        assert result.name == "Historique"
+        assert result.name == "Daily Stand-up"
 
     @patch("src.lms.cli.inquirer.prompt")
     def test_menu_returns_none_on_quit(self, mock_prompt):
@@ -170,7 +170,7 @@ class TestExecuteStepIntegration:
 
     @patch("src.lms.cli.review_step")
     @patch("src.lms.cli.formation_step")
-    @patch("src.lms.cli.reinforce_step")
+    @patch("src.lms.cli.missions_step")
     @patch("src.lms.cli.create_step")
     @patch("src.lms.cli.share_step")
     @patch("src.lms.cli.labs_step")
@@ -181,7 +181,7 @@ class TestExecuteStepIntegration:
         mock_labs,
         mock_share,
         mock_create,
-        mock_reinforce,
+        mock_missions,
         mock_formation,
         mock_review,
     ):
@@ -204,21 +204,21 @@ class TestEndToEndWorkflow:
     @patch("src.lms.cli.console.print")
     def test_complete_workflow_review_then_quit(self, mock_print, mock_prompt):
         """
-        Given: Workflow complet (Review → Quit)
+        Given: Workflow complet (Daily Stand-up → Quit)
         When: Navigation dans le menu
         Then: Exécute Review puis quitte proprement
         """
-        # Premier appel : sélectionner Historique
+        # Premier appel : sélectionner Daily Stand-up
         # Deuxième appel : quitter
         mock_prompt.side_effect = [
-            {"step": "1. 📊 Historique"},
+            {"step": "1. 📊 Daily Stand-up"},
             {"step": "❌ Exit"},
         ]
 
         # Simuler le workflow
         step1 = main_menu()
         assert step1 is not None
-        assert step1.name == "Historique"
+        assert step1.name == "Daily Stand-up"
         execute_step(step1)
 
         step2 = main_menu()
@@ -227,19 +227,19 @@ class TestEndToEndWorkflow:
     @patch("src.lms.cli.inquirer.prompt")
     @patch("src.lms.cli.review_step")
     @patch("src.lms.cli.formation_step")
-    @patch("src.lms.cli.reinforce_step")
+    @patch("src.lms.cli.missions_step")
     def test_complete_workflow_multiple_steps(
-        self, mock_reinforce, mock_formation, mock_review, mock_prompt
+        self, mock_missions, mock_formation, mock_review, mock_prompt
     ):
         """
-        Given: Workflow avec 3 étapes (Review → Formation → Reinforce → Quit)
+        Given: Workflow avec 3 étapes (Daily Stand-up → Metrics → Mission Control → Quit)
         When: Navigation dans le menu
         Then: Exécute chaque étape dans l'ordre
         """
         mock_prompt.side_effect = [
-            {"step": "1. 📊 Review"},
-            {"step": "2. ⏱️ Formation"},
-            {"step": "6. 💪 Reinforce"},
+            {"step": "1. 📊 Daily Stand-up"},
+            {"step": "2. ⏱️ Metrics"},
+            {"step": "6. 💪 Mission Control"},
             {"step": "❌ Exit"},
         ]
 
@@ -253,10 +253,10 @@ class TestEndToEndWorkflow:
             steps_executed.append(step.name)
             execute_step(step)
 
-        assert steps_executed == ["Historique", "Metrics", "Reinforce"]
+        assert steps_executed == ["Daily Stand-up", "Metrics", "Mission Control"]
         mock_review.assert_called_once()
         mock_formation.assert_called_once()
-        mock_reinforce.assert_called_once()
+        mock_missions.assert_called_once()
 
     @patch("src.lms.main.main_menu")
     @patch("src.lms.main.execute_step")
@@ -266,7 +266,7 @@ class TestEndToEndWorkflow:
         When: Exécution via CliRunner
         Then: Intégration complète fonctionne
         """
-        step1 = Step(1, "Historique", "📊", False)
+        step1 = Step(1, "Daily Stand-up", "📊", False)
         step2 = Step(2, "Formation", "📚", False)
         mock_menu.side_effect = [step1, step2, None]
 

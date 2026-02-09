@@ -1,0 +1,21 @@
+companies:
+  - id: techcorp
+    name: TechCorp
+    industry: SaaS
+    culture: "Fast-paced, customer-obsessed, automation-first"
+    stack:
+      - Docker
+      - Kubernetes
+      - Terraform
+      - AWS
+      - GitLab CI
+  - id: cloudpulse
+    name: CloudPulse
+    industry: FinTech
+    culture: "Security-first, compliance-driven, zero-downtime"
+    stack:
+      - Terraform
+      - AWS
+      - GitHub Actions
+      - Prometheus
+      - Grafana

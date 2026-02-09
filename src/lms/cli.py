@@ -15,9 +15,9 @@ import readchar
 from src.lms.steps import (
     anki_step,
     formation_step,
+    missions_step,
     read_step,
     reflection_step,
-    reinforce_step,
     review_step,
 )
 from src.lms.steps.create import create_step
@@ -59,13 +59,13 @@ class Step:
 
 # Define the 8 steps of the LMS workflow (+ optional Labs)
 STEPS = [
-    Step(1, "Historique", "📊"),
+    Step(1, "Daily Stand-up", "📊"),
     Step(2, "Metrics", "⏱️"),
     Step(3, "Flashcards", "🗂️"),
     Step(4, "Create", "📝"),
     Step(5, "Read", "📖"),
-    Step(6, "Reinforce", "💪"),
-    Step(7, "Share", "🌐"),
+    Step(6, "Mission Control", "💪"),
+    Step(7, "Pull Request", "🌐"),
     Step(8, "Reflection", "🌅"),
     Step(9, "Labs", "🎯"),
 ]
@@ -106,13 +106,13 @@ def main_menu() -> Optional[Step]:
     Returns None if user selects Exit.
 
     The 9-step Learning Workflow:
-        1️⃣ Historique - Review yesterday's metrics & progress
+        1️⃣ Daily Stand-up - Review yesterday's metrics & progress
         2️⃣ Metrics - Work through structured learning modules (WakaTime)
         3️⃣ Flashcards - Space repetition with flashcards
         4️⃣ Create - Build projects & write real code
         5️⃣ Read - Study technical articles & documentation
-        6️⃣ Reinforce - Solve problems & reinforce concepts
-        7️⃣ Share - Document & share your learnings
+        6️⃣ Mission Control - Solve tickets & incidents
+        7️⃣ Pull Request - Submit & share your learnings
         8️⃣ Reflection - Reflect on your daily progress
         9️⃣ Labs - AI-powered learning missions & challenges
 
@@ -174,8 +174,8 @@ def execute_step(step: Step) -> None:
         3: anki_step,  # Flashcards
         4: create_step,  # Create
         5: read_step,  # Read
-        6: reinforce_step,  # Reinforce
-        7: share_step,  # Share
+        6: missions_step,  # Mission Control
+        7: share_step,  # Pull Request
         8: reflection_step,  # Reflection
         9: labs_step,  # Labs - AI Missions
     }

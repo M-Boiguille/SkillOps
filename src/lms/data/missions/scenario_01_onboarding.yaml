@@ -1,0 +1,32 @@
+missions:
+  - id: 1
+    key: mission-001
+    title: "Onboarding: provisionner un environnement de dev"
+    company_id: techcorp
+    scenario: >
+      Tu rejoins l'équipe Platform de TechCorp. Ton premier ticket consiste à
+      préparer un environnement de développement standardisé pour les nouveaux
+      développeurs backend.
+    objectives:
+      - Standardiser la configuration via Docker Compose
+      - Documenter les variables d'environnement nécessaires
+      - Fournir une procédure de démarrage rapide
+    acceptance_criteria:
+      - Un fichier docker-compose.yml expose l'app sur le port 8080
+      - Un fichier .env.example décrit les variables requises
+      - Un README indique les étapes de lancement
+    difficulty: "Débutant"
+    estimated_time: "45min"
+    prerequisites:
+      - Connaissances de base Docker
+      - Accès à un terminal
+    tags:
+      - onboarding
+      - docker
+      - documentation
+    hints:
+      - Utilise une image officielle légère (ex: python:3.12-slim)
+      - Prévois des volumes pour hot-reload
+    validators:
+      - check_docker_compose
+      - check_env_example

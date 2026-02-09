@@ -1,0 +1,32 @@
+missions:
+  - id: 2
+    key: mission-002
+    title: "Incident: conteneur en boucle de crash"
+    company_id: techcorp
+    scenario: >
+      Un service critique redémarre en boucle depuis le dernier déploiement.
+      Ton rôle est d'identifier la cause, stabiliser le service et proposer
+      une action corrective.
+    objectives:
+      - Diagnostiquer les logs du conteneur
+      - Corriger la configuration défaillante
+      - Préparer un plan de prévention
+    acceptance_criteria:
+      - Le service reste stable pendant 10 minutes
+      - Une note d'incident résume la cause racine
+      - Un plan d'action court terme est proposé
+    difficulty: "Intermédiaire"
+    estimated_time: "60min"
+    prerequisites:
+      - Connaissances Docker
+      - Notions de logs applicatifs
+    tags:
+      - incident
+      - docker
+      - troubleshooting
+    hints:
+      - Vérifie les variables d'environnement manquantes
+      - Analyse les derniers déploiements
+    validators:
+      - check_container_uptime
+      - check_incident_note

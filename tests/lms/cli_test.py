@@ -20,10 +20,10 @@ class TestStep:
         When: Creating a new Step instance
         Then: All attributes are set correctly
         """
-        step = Step(1, "Historique", "📊", completed=True)
+        step = Step(1, "Daily Stand-up", "📊", completed=True)
 
         assert step.number == 1
-        assert step.name == "Historique"
+        assert step.name == "Daily Stand-up"
         assert step.emoji == "📊"
         assert step.completed is True
 
@@ -33,11 +33,11 @@ class TestStep:
         When: Converting to string
         Then: String contains filled circle (●)
         """
-        step = Step(1, "Historique", "📊", completed=True)
+        step = Step(1, "Daily Stand-up", "📊", completed=True)
         result = str(step)
 
         assert "●" in result
-        assert "Historique" in result
+        assert "Daily Stand-up" in result
         assert "📊" in result
 
     def test_step_str_not_completed(self):
@@ -78,7 +78,7 @@ class TestStepChoices:
 
         # Check first step format
         assert "📊" in choices[0]
-        assert "Historique" in choices[0]
+        assert "Daily Stand-up" in choices[0]
 
         # Check last step format (before Exit)
         assert "9. Labs" in choices[8]
@@ -125,13 +125,13 @@ class TestMainMenu:
         When: Displaying main menu
         Then: Returns the corresponding Step object
         """
-        mock_prompt.return_value = {"step": "📊 1. Historique ○"}
+        mock_prompt.return_value = {"step": "📊 1. Daily Stand-up ○"}
 
         result = main_menu()
 
         assert result is not None
         assert result.number == 1
-        assert result.name == "Historique"
+        assert result.name == "Daily Stand-up"
         assert result.emoji == "📊"
 
     @patch("src.lms.cli.inquirer.prompt")
@@ -192,7 +192,7 @@ class TestExecuteStep:
         When: Executing the step
         Then: Calls review_step function
         """
-        step = Step(1, "Historique", "📊")
+        step = Step(1, "Daily Stand-up", "📊")
 
         execute_step(step)
 
@@ -211,18 +211,18 @@ class TestExecuteStep:
 
         mock_formation.assert_called_once()
 
-    @patch("src.lms.cli.reinforce_step")
-    def test_execute_step_calls_reinforce(self, mock_reinforce):
+    @patch("src.lms.cli.missions_step")
+    def test_execute_step_calls_reinforce(self, mock_missions):
         """
-        Given: Step 6 (Reinforce)
+        Given: Step 6 (Mission Control)
         When: Executing the step
-        Then: Calls reinforce_step function
+        Then: Calls missions_step function
         """
-        step = Step(6, "Reinforce", "💪")
+        step = Step(6, "Mission Control", "💪")
 
         execute_step(step)
 
-        mock_reinforce.assert_called_once()
+        mock_missions.assert_called_once()
 
 
 class TestStepsConstants:
@@ -262,13 +262,13 @@ class TestStepsConstants:
         Then: All steps have names defined
         """
         expected_names = [
-            "Historique",
+            "Daily Stand-up",
             "Metrics",
             "Flashcards",
             "Create",
             "Read",
-            "Reinforce",
-            "Share",
+            "Mission Control",
+            "Pull Request",
             "Reflection",
             "Labs",
         ]

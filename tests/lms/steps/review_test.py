@@ -101,13 +101,13 @@ class TestFormatStepDataForDisplay:
         result = format_step_data_for_display(progress_data)
 
         expected_names = [
-            "Historique",
+            "Daily Stand-up",
             "Metrics",
             "Flashcards",
             "Create",
             "Read",
-            "Reinforce",
-            "Share",
+            "Mission Control",
+            "Pull Request",
             "Reflection",
         ]
         expected_emojis = ["📊", "⏱️", "🗂️", "📝", "📖", "💪", "🌐", "🌅"]

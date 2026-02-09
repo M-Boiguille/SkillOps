@@ -36,13 +36,13 @@ def format_step_data_for_display(progress_data: dict) -> list[dict]:
         List of step dictionaries for create_step_summary_table().
     """
     step_names = [
-        "Historique",
+        "Daily Stand-up",
         "Metrics",
         "Flashcards",
         "Create",
         "Read",
-        "Reinforce",
-        "Share",
+        "Mission Control",
+        "Pull Request",
         "Reflection",
     ]
     step_emojis = ["📊", "⏱️", "🗂️", "📝", "📖", "💪", "🌐", "🌅"]
@@ -111,7 +111,7 @@ def review_step(storage_path: Path = Path("storage")) -> None:
     Args:
         storage_path: Path to the storage directory (default: "storage").
     """
-    display_section_header("Review Yesterday's Progress", emoji="📊")
+    display_section_header("Daily Stand-up", emoji="📊")
 
     # Initialize managers
     progress_file = storage_path / "progress.json"

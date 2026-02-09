@@ -2,28 +2,37 @@
 
 # CRITICAL: Load environment variables FIRST, before any imports
 from dotenv import load_dotenv
+
 load_dotenv()
 
-import os
-import time
-from pathlib import Path
-from typing import Optional
+import os  # noqa: E402
+import time  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Optional  # noqa: E402
 
-import typer
+import typer  # noqa: E402
 
-from src.lms.cli import main_menu, execute_step
-from src.lms.commands.health import health_check
-from src.lms.commands.export import DataExporter
-from src.lms.commands.data_import import DataImporter
-from src.lms.monitoring import (
+from src.lms.cli import main_menu, execute_step  # noqa: E402
+from src.lms.commands.health import health_check  # noqa: E402
+from src.lms.commands.export import DataExporter  # noqa: E402
+from src.lms.commands.data_import import DataImporter  # noqa: E402
+from src.lms.monitoring import (  # noqa: E402
     ErrorAggregator,
     MetricsCollector,
     send_alert_from_aggregator,
 )
-from src.lms.steps.notify import notify_step
-from src.lms.steps.share import share_step
-from src.lms.commands.setup_wizard import setup_command
-from src.lms.books import check_books_command, submit_books_command, fetch_books_command, import_books_command, process_pipeline_command
+from src.lms.steps.notify import notify_step  # noqa: E402
+from src.lms.steps.pagerduty import pagerduty_check  # noqa: E402
+from src.lms.steps.missions import missions_step  # noqa: E402
+from src.lms.steps.share import share_step  # noqa: E402
+from src.lms.commands.setup_wizard import setup_command  # noqa: E402
+from src.lms.books import (  # noqa: E402
+    check_books_command,
+    submit_books_command,
+    fetch_books_command,
+    import_books_command,
+    process_pipeline_command,
+)
 
 app = typer.Typer(
     name="skillops",
@@ -54,13 +63,13 @@ def start(
     """Start the interactive SkillOps LMS menu.
 
     Launch the daily learning workflow with 9 steps:
-    1. 📊 Historique - Check yesterday's metrics & progress
+    1. 📊 Daily Stand-up - Check yesterday's metrics & progress
     2. ⏱️ Metrics - Complete training modules (WakaTime)
     3. 🗂️ Flashcards - Review flashcards
     4. 📝 Create - Build projects or write code
     5. 📖 Read - Learn from technical articles
-    6. 💪 Reinforce - Practice problem-solving
-    7. 🌐 Share - Publish learnings or insights
+    6. 💪 Mission Control - Solve tickets & incidents
+    7. 🌐 Pull Request - Publish learnings or insights
     8. 🌅 Reflection - Journal your progress
     9. 🎯 Labs - AI-powered learning missions
 
@@ -81,6 +90,11 @@ def start(
     metrics = MetricsCollector() if enable_monitoring else None
     alert_type = _alert_type() if enable_monitoring else "email"
     logger.debug("Starting SkillOps interactive menu")
+
+    continue_to_menu = pagerduty_check(on_incident=missions_step)
+    if not continue_to_menu:
+        logger.debug("PagerDuty check halted the session")
+        return
 
     while True:
         step = main_menu()
@@ -565,7 +579,7 @@ def submit_books(
         "--api-key",
         "-k",
         help="Gemini API key (or set GEMINI_API_KEY env var)",
-        envvar="GEMINI_API_KEY"
+        envvar="GEMINI_API_KEY",
     )
 ):
     """
@@ -597,14 +611,14 @@ def fetch_books(
         "--api-key",
         "-k",
         help="Gemini API key (or set GEMINI_API_KEY env var)",
-        envvar="GEMINI_API_KEY"
+        envvar="GEMINI_API_KEY",
     ),
     book_name: Optional[str] = typer.Option(
         None,
         "--book",
         "-b",
-        help="Specific book name to fetch (default: all processing books)"
-    )
+        help="Specific book name to fetch (default: all processing books)",
+    ),
 ):
     """
     Fetch results from completed batch jobs.
@@ -636,14 +650,14 @@ def import_books(
         "--vault",
         "-v",
         help="Obsidian vault path (default: .skillopsvault)",
-        envvar="OBSIDIAN_VAULT_PATH"
+        envvar="OBSIDIAN_VAULT_PATH",
     ),
     book_name: Optional[str] = typer.Option(
         None,
         "--book",
         "-b",
-        help="Specific book name to import (default: all completed books)"
-    )
+        help="Specific book name to import (default: all completed books)",
+    ),
 ):
     """
     Import completed books to Obsidian vault.
@@ -687,20 +701,14 @@ def process_pipeline(
         "--api-key",
         "-k",
         help="Gemini API key (or set GEMINI_API_KEY env var)",
-        envvar="GEMINI_API_KEY"
+        envvar="GEMINI_API_KEY",
     ),
     watch: bool = typer.Option(
-        False,
-        "--watch",
-        "-w",
-        help="Enable watch mode for continuous polling"
+        False, "--watch", "-w", help="Enable watch mode for continuous polling"
     ),
     interval: int = typer.Option(
-        30,
-        "--interval",
-        "-i",
-        help="Polling interval in minutes (for --watch mode)"
-    )
+        30, "--interval", "-i", help="Polling interval in minutes (for --watch mode)"
+    ),
 ):
     """
     Complete book processing pipeline (all-in-one).

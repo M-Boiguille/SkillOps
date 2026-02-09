@@ -94,7 +94,9 @@ class TestVerboseLoggingIntegration:
             with patch("src.lms.main.main_menu") as mock_menu:
                 mock_menu.return_value = None
                 with patch("src.lms.main.execute_step"):
-                    main.start(verbose=True)
+                    with patch("src.lms.main.pagerduty_check") as mock_pagerduty:
+                        mock_pagerduty.return_value = True
+                        main.start(verbose=True)
             # Verify setup_logging was called with verbose=True
             mock_setup.assert_called_with(verbose=True)
 
@@ -106,7 +108,9 @@ class TestVerboseLoggingIntegration:
             with patch("src.lms.main.main_menu") as mock_menu:
                 mock_menu.return_value = None
                 with patch("src.lms.main.execute_step"):
-                    main.start(verbose=False)
+                    with patch("src.lms.main.pagerduty_check") as mock_pagerduty:
+                        mock_pagerduty.return_value = True
+                        main.start(verbose=False)
             # Verbose setup should not be called
             mock_setup.assert_not_called()
 

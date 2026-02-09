@@ -18,14 +18,14 @@
 
 ### Navigation Classique
 ```
-python skillops.py start
+skillops start
 [Utiliser ↑↓ pour naviguer]
 [Appuyer sur Enter pour sélectionner]
 ```
 
 ### Navigation Vim
 ```
-python skillops.py start
+skillops start
 [Utiliser j/k pour naviguer]
   j = descendre (down)
   k = monter (up)
@@ -37,6 +37,7 @@ python skillops.py start
 - ✅ **Carousel mode** : Navigation circulaire (retour au début/fin)
 - ✅ **Highlight visuel** : Sélection en couleur cyan
 - ✅ **Support multi-méthode** : Flèches ET vim simultanément
+- ✅ **Mission Control backlog** : mêmes raccourcis dans la liste des missions
 - ✅ **Interruption propre** : Ctrl+C sort proprement du menu
 
 ## Tips
