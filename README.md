@@ -53,13 +53,13 @@ Un **outil CLI Python** qui :
 ## ✅ Current Status
 
 **Implemented and usable now:**
-- Interactive 9-step workflow
+- Interactive 9-step workflow with **learning/engineering modes**
 - WakaTime metrics + SQLite tracking
 - Obsidian/Anki flashcard pipeline
 - GitHub portfolio automation
 - Telegram notifications + health/doctor checks
 - **Chaos Monkey (local)**: `skillops chaos` with levels 1–3
-- **On-Call simulation**: `skillops oncall` for incident management
+- **🤖 AI-Powered On-Call**: `skillops oncall` with adaptive incidents, progressive hints, validation questions, and spaced repetition (Anki-style for debugging skills)
 - **Post-Mortem documentation**: `skillops post-mortem` for incident analysis
 
 **Planned (not implemented yet):**

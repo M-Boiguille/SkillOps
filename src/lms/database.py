@@ -170,7 +170,14 @@ def init_db(storage_path: Optional[Path] = None):
         status TEXT NOT NULL,
         resolution TEXT,
         postmortem_id INTEGER,
-        FOREIGN KEY (postmortem_id) REFERENCES postmortems(id)
+        resolution_score INTEGER,
+        next_review_date TEXT,
+        hints_used INTEGER DEFAULT 0,
+        parent_incident_id INTEGER,
+        difficulty_level INTEGER DEFAULT 1,
+        generated_by TEXT DEFAULT 'template',
+        FOREIGN KEY (postmortem_id) REFERENCES postmortems(id),
+        FOREIGN KEY (parent_incident_id) REFERENCES incidents(id)
     );
     """
     )
