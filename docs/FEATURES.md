@@ -70,6 +70,19 @@ skillops doctor --help
 skillops migrate --help
 ```
 
+### Workflow Modes
+
+```bash
+# Full workflow (all 9 steps)
+skillops start
+
+# Learning mode (morning: acquisition steps 1-3)
+skillops start --mode=learning
+
+# Engineering mode (afternoon: production steps 4-9)
+skillops start --mode=engineering
+```
+
 ### Verbose Output
 
 ```bash

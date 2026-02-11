@@ -63,18 +63,30 @@ def start(
         "--enable-monitoring",
         help="Record metrics and send alerts on failures",
     ),
+    mode: str = typer.Option(
+        "full",
+        "--mode",
+        "-m",
+        help="Workflow mode: learning (steps 1-3), engineering (steps 4-9), or full (all steps)",
+    ),
 ):
     """Start the interactive SkillOps LMS menu.
 
-    Launch the daily learning workflow with 8 steps:
+    Launch the daily learning workflow with 9 steps:
     1. 📊 Daily Stand-up - Metrics recap + WakaTime stats
-    2. 🗂️ Flashcards - Review flashcards
-    3. 📝 Create - Build projects or write code
-    4. 📖 Read - Learn from technical articles
-    5. 💪 Mission Control - Solve tickets & incidents
-    6. 🌐 Pull Request - Publish learnings or insights
-    7. 🌅 Reflection - Journal your progress
-    8. 🎯 Labs - AI-powered learning missions
+    2. 📖 Read - Learn from technical articles
+    3. 🧠 Tutor - AI Q&A and concept reinforcement
+    4. 💪 Reinforce - Practice exercises
+    5. 📝 Create - Generate flashcards from Obsidian
+    6. 🗂️ Flashcards - Review flashcards
+    7. 🚀 Mission Control - Solve tickets & incidents
+    8. 🌐 Pull Request - Publish learnings or insights
+    9. 🌅 Reflection - Journal your progress
+
+    Modes:
+        • learning: Steps 1-3 (acquisition phase, morning)
+        • engineering: Steps 4-9 (production phase, afternoon)
+        • full: All 9 steps (default)
 
     Navigation:
         • Use ↑↓ or j/k to navigate
@@ -92,7 +104,7 @@ def start(
     aggregator = ErrorAggregator() if enable_monitoring else None
     metrics = MetricsCollector() if enable_monitoring else None
     alert_type = _alert_type() if enable_monitoring else "email"
-    logger.debug("Starting SkillOps interactive menu")
+    logger.debug("Starting SkillOps interactive menu with mode=%s", mode)
 
     continue_to_menu = pagerduty_check(on_incident=missions_step)
     if not continue_to_menu:
@@ -100,7 +112,7 @@ def start(
         return
 
     while True:
-        step = main_menu()
+        step = main_menu(mode=mode)
         if step is None:
             logger.debug("User exited interactive menu")
             break

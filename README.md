@@ -175,6 +175,12 @@ skillops notify --storage-path storage --respect-schedule
 # Interactive menu (all 9 steps)
 skillops start
 
+# Learning mode (morning: steps 1-3)
+skillops start --mode=learning
+
+# Engineering mode (afternoon: steps 4-9)
+skillops start --mode=engineering
+
 # Run specific steps
 skillops create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
 skillops share --labs-path ~/labs

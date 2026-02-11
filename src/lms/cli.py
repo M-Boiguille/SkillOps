@@ -108,8 +108,11 @@ def save_step_completion(step_number: int):
     mark_step_completed(step_number)
 
 
-def get_step_choices() -> list[str]:
+def get_step_choices(mode: str = "full") -> list[str]:
     """Generate the list of step choices for the menu.
+
+    Args:
+        mode: Workflow mode - 'learning' (1-3), 'engineering' (4-9), or 'full' (all)
 
     Returns:
         List of formatted step strings with visual indicators.
@@ -122,36 +125,74 @@ def get_step_choices() -> list[str]:
         if step.number in completed_steps:
             step.completed = True
 
+    # Filter steps based on mode
+    if mode == "learning":
+        step_numbers = [1, 2, 3]
+    elif mode == "engineering":
+        step_numbers = [4, 5, 6, 7, 8, 9]
+    else:  # full
+        step_numbers = list(range(1, 10))
+
     choices = []
-    choices.append("--- 🧠 INPUT MODE (Acquisition) ---")
-    choices.extend([str(s) for s in STEPS if s.number in [1, 2, 3]])
 
-    choices.append("--- ⚡ OUTPUT MODE (Pratique) ---")
-    choices.extend([str(s) for s in STEPS if s.number in [4, 5, 6]])
+    if 1 in step_numbers or 2 in step_numbers or 3 in step_numbers:
+        choices.append("--- 🧠 INPUT MODE (Acquisition) ---")
+        choices.extend(
+            [
+                str(s)
+                for s in STEPS
+                if s.number in [1, 2, 3] and s.number in step_numbers
+            ]
+        )
 
-    choices.append("--- 🏁 CLOSURE MODE (Intégration) ---")
-    choices.extend([str(s) for s in STEPS if s.number in [7, 8, 9]])
+    if 4 in step_numbers or 5 in step_numbers or 6 in step_numbers:
+        choices.append("--- ⚡ OUTPUT MODE (Pratique) ---")
+        choices.extend(
+            [
+                str(s)
+                for s in STEPS
+                if s.number in [4, 5, 6] and s.number in step_numbers
+            ]
+        )
+
+    if 7 in step_numbers or 8 in step_numbers or 9 in step_numbers:
+        choices.append("--- 🏁 CLOSURE MODE (Intégration) ---")
+        choices.extend(
+            [
+                str(s)
+                for s in STEPS
+                if s.number in [7, 8, 9] and s.number in step_numbers
+            ]
+        )
 
     choices.append("❌ Exit")
     return choices
 
 
-def main_menu() -> Optional[Step]:
+def main_menu(mode: str = "full") -> Optional[Step]:
     """Display the main interactive menu and return the selected step.
+
+    Args:
+        mode: Workflow mode - 'learning' (1-3), 'engineering' (4-9), or 'full' (all)
 
     Uses Inquirer for keyboard navigation with arrow keys or vim keys (j/k).
     Returns None if user selects Exit.
 
     The 9-step Learning Workflow:
         1️⃣ Daily Stand-up - Metrics recap + WakaTime stats
-        2️⃣ Flashcards - Space repetition with flashcards
-        3️⃣ Create - Build projects & write real code
-        4️⃣ Read - Study technical articles & documentation
-        5️⃣ Tutor - Smart note taker with Socratic dialogue
-        6️⃣ Mission Control - Solve tickets & incidents
-        7️⃣ Pull Request - Submit & share your learnings
-        8️⃣ Reflection - Reflect on your daily progress
-        9️⃣ Labs - AI-powered learning missions & challenges
+        2️⃣ Read - Study technical articles & documentation
+        3️⃣ Tutor - Smart note taker with Socratic dialogue
+        4️⃣ Reinforce - Practice exercises
+        5️⃣ Create - Build projects & write real code
+        6️⃣ Flashcards - Space repetition with flashcards
+        7️⃣ Mission Control - Solve tickets & incidents
+        8️⃣ Pull Request - Submit & share your learnings
+        9️⃣ Reflection - Reflect on your daily progress
+
+    Modes:
+        • learning: Steps 1-3 (acquisition, morning)
+        • engineering: Steps 4-9 (production, afternoon)
+        • full: All 9 steps
 
     Navigation:
         • Arrow Up/Down: Move between steps
@@ -164,7 +205,7 @@ def main_menu() -> Optional[Step]:
     """
     display_header()
 
-    choices = get_step_choices()
+    choices = get_step_choices(mode=mode)
 
     questions = [
         inquirer.List(

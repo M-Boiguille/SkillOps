@@ -66,8 +66,14 @@ skillops doctor
 ### Run your first step
 
 ```bash
-# Launch interactive menu
+# Launch interactive menu (all steps)
 skillops start
+
+# Morning mode (learning: steps 1-3)
+skillops start --mode=learning
+
+# Afternoon mode (engineering: steps 4-9)
+skillops start --mode=engineering
 ```
 
 ### Example workflow
