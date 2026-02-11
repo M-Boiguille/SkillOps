@@ -30,6 +30,8 @@ from src.lms.steps.share import share_step  # noqa: E402
 from src.lms.commands.setup_wizard import setup_command  # noqa: E402
 from src.lms.steps.migrate import migrate as migrate_legacy_data  # noqa: E402
 from src.lms.chaos import ChaosConfig, run_chaos  # noqa: E402
+from src.lms.oncall import oncall_step  # noqa: E402
+from src.lms.postmortem import postmortem_step  # noqa: E402
 from src.lms.books import (  # noqa: E402
     check_books_command,
     submit_books_command,
@@ -259,6 +261,46 @@ def chaos(
         f"Chaos run complete: {len(events)} event(s). "
         f"Dry-run: {'yes' if config.dry_run else 'no'}."
     )
+
+
+@app.command()
+def oncall(
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Run on-call incident simulation and management.
+
+    Generate realistic incidents to practice debugging and troubleshooting.
+    View, investigate, and resolve incidents with proper documentation.
+
+    Examples:
+        skillops oncall
+        skillops oncall --storage-path ./storage
+    """
+    success = oncall_step(storage_path=storage_path)
+    if not success:
+        raise typer.Exit(code=1)
+
+
+@app.command(name="post-mortem")
+def post_mortem(
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Create and manage post-mortem documentation for incidents.
+
+    Document incidents following SRE best practices with structured templates.
+    Essential for learning from failures and preventing recurrence.
+
+    Examples:
+        skillops post-mortem
+        skillops post-mortem --storage-path ./storage
+    """
+    success = postmortem_step(storage_path=storage_path)
+    if not success:
+        raise typer.Exit(code=1)
 
 
 @app.command()

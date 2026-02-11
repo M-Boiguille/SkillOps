@@ -30,11 +30,11 @@ Complete documentation of all SkillOps features and commands.
 - GitHub portfolio automation
 - Telegram notifications + health/doctor checks
 - Chaos Monkey (local): `skillops chaos`
+- On-Call simulation: `skillops oncall`
+- Post-Mortem documentation: `skillops post-mortem`
 
 **Planned (not implemented yet):**
-- `skillops oncall` — AI incident simulation + alerting
 - `skillops review` — automated code review/guardrails
-- `skillops post-mortem` — structured incident write-ups
 
 ---
 

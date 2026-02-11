@@ -156,6 +156,44 @@ def init_db(storage_path: Optional[Path] = None):
     """
     )
 
+    # Incidents (On-Call)
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS incidents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        affected_system TEXT NOT NULL,
+        symptoms TEXT NOT NULL,
+        status TEXT NOT NULL,
+        resolution TEXT,
+        postmortem_id INTEGER,
+        FOREIGN KEY (postmortem_id) REFERENCES postmortems(id)
+    );
+    """
+    )
+
+    # Post-Mortems
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS postmortems (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        incident_id INTEGER NOT NULL,
+        timestamp TEXT NOT NULL,
+        what_happened TEXT NOT NULL,
+        when_detected TEXT NOT NULL,
+        impact TEXT NOT NULL,
+        root_cause TEXT NOT NULL,
+        resolution TEXT NOT NULL,
+        prevention TEXT NOT NULL,
+        action_items TEXT NOT NULL,
+        FOREIGN KEY (incident_id) REFERENCES incidents(id)
+    );
+    """
+    )
+
     _apply_migrations(conn)
     conn.commit()
     conn.close()

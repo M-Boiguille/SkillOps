@@ -59,11 +59,11 @@ Un **outil CLI Python** qui :
 - GitHub portfolio automation
 - Telegram notifications + health/doctor checks
 - **Chaos Monkey (local)**: `skillops chaos` with levels 1–3
+- **On-Call simulation**: `skillops oncall` for incident management
+- **Post-Mortem documentation**: `skillops post-mortem` for incident analysis
 
 **Planned (not implemented yet):**
-- `skillops oncall` (incident simulation + Telegram alerting)
 - `skillops review` (AI code review + guardrails)
-- `skillops post-mortem` (mandatory incident write-up)
 
 ---
 
@@ -71,9 +71,9 @@ Un **outil CLI Python** qui :
 
 1. **Adopt the workflow daily** and collect friction points.
 2. **Harden self-healing** around Chaos (alerts, retries, readiness checks).
-3. **Implement On‑Call simulation** with AI-generated tickets + Telegram.
+3. **Practice On-Call workflow** with generated incidents + post-mortems.
 4. **Add Code Review gate** (`skillops review`) for diffs/secrets/quality.
-5. **Add Post‑Mortem templates** to enforce incident documentation.
+5. **Build reference labs** in ~/labs with full observability stacks.
 6. **Expand observability** (metrics dashboards + failure signals).
 7. **Evolve architecture** toward services (API + background workers).
 
