@@ -56,11 +56,8 @@ def test_get_due_incidents_empty(tmp_path):
     assert due == []
 
 
-@patch("src.lms.oncall_ai.genai.configure")
-@patch("src.lms.oncall_ai.genai.GenerativeModel")
-def test_generate_incident_with_mock_api(
-    mock_model, mock_configure, tmp_path, monkeypatch
-):
+@patch("src.lms.oncall_ai.genai.Client")
+def test_generate_incident_with_mock_api(mock_client_class, tmp_path, monkeypatch):
     """Test AI incident generation with mocked Gemini API."""
     from src.lms.oncall_ai import generate_incident_with_ai
 
@@ -80,9 +77,9 @@ def test_generate_incident_with_mock_api(
 }
 ```"""
 
-    mock_model_instance = MagicMock()
-    mock_model_instance.generate_content.return_value = mock_response
-    mock_model.return_value = mock_model_instance
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
+    mock_client_class.return_value = mock_client
 
     # Generate incident
     incident_data = generate_incident_with_ai(storage_path=tmp_path)
@@ -95,11 +92,8 @@ def test_generate_incident_with_mock_api(
     assert len(incident_data["hints"]) == 3
 
 
-@patch("src.lms.oncall_ai.genai.configure")
-@patch("src.lms.oncall_ai.genai.GenerativeModel")
-def test_generate_hints_with_mock_api(
-    mock_model, mock_configure, tmp_path, monkeypatch
-):
+@patch("src.lms.oncall_ai.genai.Client")
+def test_generate_hints_with_mock_api(mock_client_class, tmp_path, monkeypatch):
     """Test progressive hints generation."""
     from src.lms.oncall_ai import generate_hints_for_incident
     from src.lms.oncall import create_incident
@@ -123,9 +117,9 @@ def test_generate_hints_with_mock_api(
     mock_response = MagicMock()
     mock_response.text = "What component manages container orchestration?"
 
-    mock_model_instance = MagicMock()
-    mock_model_instance.generate_content.return_value = mock_response
-    mock_model.return_value = mock_model_instance
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
+    mock_client_class.return_value = mock_client
 
     # Generate hint
     hint = generate_hints_for_incident(incident.id, 1, storage_path=tmp_path)
