@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-from google import genai
+import google.generativeai as genai
 
 from src.lms.database import get_connection, init_db
 
@@ -124,7 +124,8 @@ def generate_incident_with_ai(
     if not api_key:
         raise ValueError("GEMINI_API_KEY required for AI incident generation")
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     context = get_incident_context(storage_path)
 
@@ -166,9 +167,7 @@ Return a JSON object with:
 Make it challenging but solvable for a {context.skill_level} DevOps engineer.
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-exp", contents=prompt
-    )
+    response = model.generate_content(prompt)
     text = response.text.strip()
 
     # Extract JSON from markdown code blocks if present
@@ -227,7 +226,8 @@ def generate_hints_for_incident(
 
     title, description, symptoms, system = row
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     hint_instructions = {
         1: "Ask a Socratic question to guide thinking (don't give the answer)",
@@ -248,9 +248,7 @@ Provide a hint (level {current_hint_level}/3):
 Keep it concise (1-2 sentences).
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-exp", contents=prompt
-    )
+    response = model.generate_content(prompt)
     return response.text.strip()
 
 
@@ -295,7 +293,8 @@ def generate_validation_questions(
 
     title, description, system = row
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     prompt = f"""You are evaluating a DevOps engineer's understanding after resolving an incident.
 
@@ -312,9 +311,7 @@ Generate 2-3 validation questions to test their understanding of:
 Return as JSON array: ["question1", "question2", "question3"]
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-exp", contents=prompt
-    )
+    response = model.generate_content(prompt)
     text = response.text.strip()
 
     if "```json" in text:
