@@ -15,6 +15,8 @@
    - `skillops doctor`
    - `pytest -v tests/smoke`
 
+**Note:** Chaos is **local-only**. Do not enable `skillops chaos --execute` in production.
+
 ## Rollback Procedure
 
 1. Stop automation:

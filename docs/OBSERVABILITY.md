@@ -16,6 +16,16 @@ Useful queries:
 - Failures by step:
   - `SELECT step_id, COUNT(*) FROM performance_metrics WHERE success = 0 GROUP BY step_id;`
 
+## Chaos Events
+
+Chaos actions are recorded in SQLite table `chaos_events`.
+
+Useful queries:
+- Recent chaos activity:
+  - `SELECT * FROM chaos_events ORDER BY timestamp DESC LIMIT 50;`
+- Failures by level:
+  - `SELECT level, COUNT(*) FROM chaos_events WHERE status = 'failed' GROUP BY level;`
+
 ## Alerting
 
 Alerting is available via email/webhook.

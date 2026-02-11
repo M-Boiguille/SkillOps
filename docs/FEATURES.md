@@ -21,6 +21,23 @@ Complete documentation of all SkillOps features and commands.
 
 ---
 
+## Status (Implemented vs Planned)
+
+**Implemented:**
+- Core 9-step workflow (menu + individual commands)
+- WakaTime tracking + SQLite storage
+- Obsidian/Anki flashcard automation
+- GitHub portfolio automation
+- Telegram notifications + health/doctor checks
+- Chaos Monkey (local): `skillops chaos`
+
+**Planned (not implemented yet):**
+- `skillops oncall` — AI incident simulation + alerting
+- `skillops review` — automated code review/guardrails
+- `skillops post-mortem` — structured incident write-ups
+
+---
+
 ## Interactive Workflow (9 steps)
 
 1. **Daily Stand-up** — metrics & streak recap

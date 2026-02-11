@@ -1,5 +1,11 @@
 # Runbooks
 
+## Current Scope
+
+**Implemented:** backups/restore, health/doctor, notifications, chaos (local).
+
+**Planned:** oncall simulation, code review gate, post‑mortem templates.
+
 ## Incident: SkillOps job failed
 
 1. Check logs
@@ -29,3 +35,13 @@
 - **RTO target:** 1 hour
 - **RPO target:** 24 hours
 - Owner: project maintainer
+
+## Incident: Chaos caused service instability
+
+1. Verify chaos activity:
+   - `SELECT * FROM chaos_events ORDER BY timestamp DESC LIMIT 20;`
+2. Confirm automatic recovery:
+   - Check container/pod restarts and health probes.
+3. If needed, disable chaos:
+   - Stop the running chaos session and avoid `--execute`.
+4. Record learnings in the session notes.

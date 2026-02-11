@@ -50,6 +50,33 @@ Un **outil CLI Python** qui :
 
 ---
 
+## ✅ Current Status
+
+**Implemented and usable now:**
+- Interactive 9-step workflow
+- WakaTime metrics + SQLite tracking
+- Obsidian/Anki flashcard pipeline
+- GitHub portfolio automation
+- Telegram notifications + health/doctor checks
+- **Chaos Monkey (local)**: `skillops chaos` with levels 1–3
+
+**Planned (not implemented yet):**
+- `skillops oncall` (incident simulation + Telegram alerting)
+- `skillops review` (AI code review + guardrails)
+- `skillops post-mortem` (mandatory incident write-up)
+
+---
+
+## 🧭 Future Action Plan (no dates)
+
+1. **Adopt the workflow daily** and collect friction points.
+2. **Harden self-healing** around Chaos (alerts, retries, readiness checks).
+3. **Implement On‑Call simulation** with AI-generated tickets + Telegram.
+4. **Add Code Review gate** (`skillops review`) for diffs/secrets/quality.
+5. **Add Post‑Mortem templates** to enforce incident documentation.
+6. **Expand observability** (metrics dashboards + failure signals).
+7. **Evolve architecture** toward services (API + background workers).
+
 ## 🚀 Quickstart
 
 1. **Installer les dépendances**

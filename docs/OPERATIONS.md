@@ -1,5 +1,18 @@
 # Operations Guide
 
+## Current Status
+
+**In production use (local/dev):**
+- SQLite state + exports
+- Backups/restore scripts
+- Logging + alerting hooks
+- Chaos Monkey (local) via `skillops chaos`
+
+**Planned (not implemented yet):**
+- `skillops oncall` (incident simulation)
+- `skillops review` (automated code review gate)
+- `skillops post-mortem` (incident write-ups)
+
 ## Backups
 
 SkillOps stores all state in SQLite: storage/skillops.db.
@@ -98,3 +111,17 @@ Recommended monthly procedure:
 2. Restore to a temporary location (copy the backup to a test storage path)
 3. Run `skillops doctor`
 4. Run a read-only command (`skillops version`)
+
+## Chaos Operations (Local Only)
+
+**Purpose:** validate self-healing and observability.
+
+Guidelines:
+- Default is **dry-run**; use `--execute` to apply changes.
+- Level 2/3 require **root** privileges.
+- Level 3 requires `--allow-dangerous`.
+
+Recommended usage:
+- Run during lab sessions, not in production.
+- Pair with monitoring to observe recovery signals.
+- Review `chaos_events` in SQLite for evidence.
