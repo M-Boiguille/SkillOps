@@ -140,6 +140,22 @@ def init_db(storage_path: Optional[Path] = None):
     """
     )
 
+    # Chaos Events
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS chaos_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        level INTEGER NOT NULL,
+        mode TEXT NOT NULL,
+        action TEXT NOT NULL,
+        target TEXT NOT NULL,
+        status TEXT NOT NULL,
+        details TEXT -- JSON
+    );
+    """
+    )
+
     _apply_migrations(conn)
     conn.commit()
     conn.close()

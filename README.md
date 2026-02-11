@@ -113,6 +113,7 @@ python -m pytest -v
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
+- [docs/CHAOS.md](docs/CHAOS.md)
 - [docs/RUNBOOKS.md](docs/RUNBOOKS.md)
 - [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
 

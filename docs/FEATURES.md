@@ -789,6 +789,20 @@ storage/
 
 SQLite is the source of truth. Use `skillops export` for human-readable snapshots.
 
+### Chaos Monkey (Local)
+
+Validate resilience with controlled failure injection.
+
+```bash
+# Dry-run (safe)
+skillops chaos --level 1 --mode docker --once
+
+# Execute level 1 (real)
+skillops chaos --level 1 --mode docker --execute --once
+```
+
+See [docs/CHAOS.md](docs/CHAOS.md) for scenarios and safety notes.
+
 ### CI/CD Integration
 
 Use SkillOps in GitHub Actions:

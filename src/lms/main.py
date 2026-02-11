@@ -29,6 +29,7 @@ from src.lms.steps.missions import missions_step  # noqa: E402
 from src.lms.steps.share import share_step  # noqa: E402
 from src.lms.commands.setup_wizard import setup_command  # noqa: E402
 from src.lms.steps.migrate import migrate as migrate_legacy_data  # noqa: E402
+from src.lms.chaos import ChaosConfig, run_chaos  # noqa: E402
 from src.lms.books import (  # noqa: E402
     check_books_command,
     submit_books_command,
@@ -160,6 +161,92 @@ def doctor():
 def migrate():
     """Migrate legacy JSON files to SQLite."""
     migrate_legacy_data()
+
+
+@app.command()
+def chaos(
+    level: int = typer.Option(
+        1,
+        "--level",
+        "-l",
+        help="Chaos level: 1 (killer), 2 (lagger), 3 (saboteur)",
+    ),
+    mode: str = typer.Option(
+        "docker",
+        "--mode",
+        "-m",
+        help="Target mode: docker or k8s (level 1)",
+    ),
+    interval: int = typer.Option(
+        30,
+        "--interval",
+        "-i",
+        help="Interval in minutes between actions",
+    ),
+    duration: int = typer.Option(
+        60,
+        "--duration",
+        "-d",
+        help="Total duration in minutes",
+    ),
+    interface: str = typer.Option(
+        "docker0",
+        "--interface",
+        help="Network interface for level 2",
+    ),
+    netem_duration: int = typer.Option(
+        5,
+        "--netem-duration",
+        help="Network degradation duration in minutes",
+    ),
+    config_path: Optional[Path] = typer.Option(
+        None,
+        "--config-path",
+        help="Config file path to chmod (level 3)",
+    ),
+    disk_fill_gb: int = typer.Option(
+        10,
+        "--disk-fill-gb",
+        help="Disk fill size in GB (level 3)",
+    ),
+    once: bool = typer.Option(
+        False,
+        "--once",
+        help="Run a single chaos action and exit",
+    ),
+    execute: bool = typer.Option(
+        False,
+        "--execute",
+        help="Execute actions (dangerous). Default is dry-run.",
+    ),
+    allow_dangerous: bool = typer.Option(
+        False,
+        "--allow-dangerous",
+        help="Required for level 3 destructive actions",
+    ),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Run SkillOps Chaos Monkey (local) scenarios."""
+    config = ChaosConfig(
+        level=level,
+        mode=mode,
+        interval_minutes=interval,
+        duration_minutes=duration,
+        interface=interface,
+        netem_duration_minutes=netem_duration,
+        config_path=config_path,
+        disk_fill_gb=disk_fill_gb,
+        only_once=once,
+        execute=execute,
+        allow_dangerous=allow_dangerous,
+    )
+    events = run_chaos(config, storage_path=storage_path)
+    typer.echo(
+        f"Chaos run complete: {len(events)} event(s). "
+        f"Dry-run: {'yes' if config.dry_run else 'no'}."
+    )
 
 
 @app.command()
