@@ -69,4 +69,3 @@ urllib3==2.6.3
 virtualenv==20.36.1
 wcwidth==0.2.14
 xmod==1.8.1
-python-dotenv==1.2.1

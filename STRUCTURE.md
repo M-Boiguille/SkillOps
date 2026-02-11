@@ -2,7 +2,7 @@
 
 ## Overview
 
-SkillOps is a comprehensive Learning Management System for DevOps training with 539 automated tests and 105 exercise modules.
+SkillOps is a Learning Management System for DevOps training with a full automated test suite and YAML exercise/mission catalogs.
 
 ## Directory Organization
 
@@ -12,9 +12,9 @@ SkillOps/
 ├── README.md                      # Main project documentation
 ├── LICENSE                        # MIT License
 ├── pyproject.toml                 # Python project configuration
-├── pytest.ini                     # Pytest configuration
-├── IMPLEMENTATION.md              # Reinforce module technical docs
+├── IMPLEMENTATION.md              # Implementation notes (Mission Control & Reinforce)
 ├── CHANGELOG.md                   # Version history and changes
+├── docs/                          # User-facing guides (Quickstart, Features, Ops)
 └── STRUCTURE.md                   # This file - navigation guide
 ```
 
@@ -25,30 +25,30 @@ src/lms/                          # Main application
 │   └── exercises_catalog.yaml     # 105 exercises in YAML format
 ├── steps/
 │   ├── __init__.py
-│   ├── reinforce.py              # Exercise selection & execution
-│   ├── health.py                 # System health check
-│   ├── obsidian_scanner.py       # Vault integration
-│   ├── books/                    # Book management module
-│   ├── analytics/                # Analytics tracking
+│   ├── anki.py                   # Anki review (AnkiConnect)
+│   ├── create.py                 # Flashcard generation
+│   ├── missions.py               # Mission Control
+│   ├── read.py                   # Reading & notes
+│   ├── reflection.py             # Daily reflection
+│   ├── reinforce.py              # Practice exercises
+│   ├── review.py                 # Daily stand-up metrics
+│   ├── share.py                  # Portfolio automation
+│   ├── tutor.py                  # AI Q&A
 │   └── ...
 ├── classes/
 ├── utils/
 └── cli.py                        # CLI entry point
 ```
 
-### tests/ - Automated Tests (539 total)
+### tests/ - Automated Tests
 ```
-tests/lms/
-├── steps/
-│   ├── test_reinforce.py         # 21 tests, 100% passing
-│   ├── test_health.py
-│   ├── test_obsidian_scanner.py
-│   ├── books/
-│   ├── analytics/
+tests/
+├── lms/
+│   ├── steps/
+│   ├── integrations/
+│   ├── monitoring/
 │   └── ...
-├── classes/
-├── utils/
-└── conftest.py                   # Pytest fixtures
+└── integration/
 ```
 
 ### .skillopsvault/ - Obsidian Vault Content
@@ -171,13 +171,13 @@ pytest --cov=src/lms/steps/reinforce tests/lms/steps/reinforce_test.py
 git add .
 
 # Commit with clear message
-git commit -m "feat: implement interactive reinforce menu
+git commit -m "feat: improve reinforce menu
 
 - Replace hardcoded exercises with catalog system
 - Add inquirer.List() for vim-style navigation
 - Implement tri-level sorting (completion/difficulty/ID)
 - Add visual [✓×N] indicators
-- All 539 tests passing"
+- All tests passing"
 
 # Push to remote
 git push origin main
@@ -190,28 +190,16 @@ git push origin main
 - `fix/*`: Bug fixes
 - `docs/*`: Documentation updates
 
-## Performance Characteristics
-
-### Catalog Loading
-- Load time: ~50ms
-- Parsing: ~30ms
-- Validation: ~20ms
-
-### Menu Rendering
-- Sort calculation: <10ms
-- Menu display: <100ms
-- Selection parsing: <5ms
-- Total time: <150ms
-
-### Storage
-- Progress tracking: JSON (scalable)
+## Storage
+- Progress tracking: SQLite (skillops.db)
+- Optional exports: JSON/CSV via `skillops export`
 - Exercise cache: Versioned per completion level
-- Storage path: `~/.local/share/skillops/`
+- Storage path: `./storage/` (default, configurable via STORAGE_PATH)
 
 ## Testing Strategy
 
 ### Test Categories
-1. **Unit Tests** (539 total)
+1. **Unit Tests** (see `pytest -v` for current totals)
    - Individual function tests
    - Mocked dependencies
    - Fast execution (<5s)
@@ -221,15 +209,7 @@ git push origin main
    - Progress tracking
    - Catalog loading
 
-3. **Performance Tests**
-   - Sort algorithm efficiency
-   - Menu rendering speed
-   - I/O optimization
 
-### Coverage Goals
-- Target: 90%+
-- Current reinforce.py: ~92%
-- Enforcement: CI/CD on push
 
 ## Dependencies
 
@@ -282,17 +262,8 @@ for ex in exercises[:5]:
 | .skillopsvault/*.md | Learning resources | Users |
 | .personal-notes/ | Dev notes (not deployed) | Team |
 
-## Sign-off
-
-✅ **Production Ready**
-- 539/539 tests passing
-- 105 exercises integrated
-- Complete documentation
-- Performance optimized
-- Zero known issues
-
 ---
 
-**Last Updated**: January 12, 2026
-**Maintained By**: GitHub Copilot
-**Next Review**: After v1.1.0 release
+**Last Updated**: 10 février 2026
+**Maintained By**: Project maintainers
+**Next Review**: After next release

@@ -57,32 +57,44 @@ class TestStep:
 class TestStepChoices:
     """Tests for step choice generation."""
 
-    def test_get_step_choices_length(self):
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
+    def test_get_step_choices_length(self, mock_inquirer, mock_init, mock_get_steps):
         """
         Given: The predefined STEPS list
-        When: Getting step choices
-        Then: Returns 9 steps + Exit option = 10 choices
+        When: Getting step choices with separators
+        Then: Returns 9 steps + 3 separators + Exit option = 13 choices
         """
+        mock_get_steps.return_value = []
+        _ = mock_inquirer
+        _ = mock_init
         choices = get_step_choices()
 
-        assert len(choices) == 10
+        assert len(choices) == 13
         assert "❌ Exit" in choices
 
-    def test_get_step_choices_format(self):
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
+    def test_get_step_choices_format(self, mock_inquirer, mock_init, mock_get_steps):
         """
         Given: The predefined STEPS list
         When: Getting step choices
         Then: Each choice contains emoji and step name
         """
+        mock_get_steps.return_value = []
+        _ = mock_inquirer
+        _ = mock_init
         choices = get_step_choices()
 
         # Check first step format
-        assert "📊" in choices[0]
-        assert "Daily Stand-up" in choices[0]
+        # Index 0 is separator, 1 is step 1
+        assert "📊" in choices[1]
+        assert "Daily Stand-up" in choices[1]
 
-        # Check last step format (before Exit)
-        assert "9. Labs" in choices[8]
-        assert "Labs" in choices[8]
+        # Check separators
+        assert any("---" in c for c in choices)
 
 
 class TestDisplayHeader:
@@ -103,29 +115,42 @@ class TestDisplayHeader:
 class TestMainMenu:
     """Tests for the main menu interaction."""
 
-    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
     @patch("src.lms.cli.console.print")
-    def test_main_menu_returns_none_on_exit(self, mock_print, mock_prompt):
+    def test_main_menu_returns_none_on_exit(
+        self, mock_print, mock_inquirer, mock_init, mock_get_steps
+    ):
         """
         Given: User selects Exit option
         When: Displaying main menu
         Then: Returns None
         """
-        mock_prompt.return_value = {"step": "❌ Exit"}
+        mock_get_steps.return_value = []
+        _ = mock_print
+        _ = mock_init
+        mock_inquirer.prompt.return_value = {"step": "❌ Exit"}
 
         result = main_menu()
 
         assert result is None
-        mock_prompt.assert_called_once()
+        mock_inquirer.prompt.assert_called_once()
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_main_menu_returns_step_on_selection(self, mock_prompt):
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
+    def test_main_menu_returns_step_on_selection(
+        self, mock_inquirer, mock_init, mock_get_steps
+    ):
         """
         Given: User selects step 1 (Review)
         When: Displaying main menu
         Then: Returns the corresponding Step object
         """
-        mock_prompt.return_value = {"step": "📊 1. Daily Stand-up ○"}
+        mock_get_steps.return_value = []
+        _ = mock_init
+        mock_inquirer.prompt.return_value = {"step": "📊 1. Daily Stand-up ○"}
 
         result = main_menu()
 
@@ -134,95 +159,124 @@ class TestMainMenu:
         assert result.name == "Daily Stand-up"
         assert result.emoji == "📊"
 
-    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
     @patch("src.lms.cli.console.print")
-    def test_main_menu_handles_keyboard_interrupt(self, mock_print, mock_prompt):
+    def test_main_menu_handles_keyboard_interrupt(
+        self, mock_print, mock_inquirer, mock_init, mock_get_steps
+    ):
         """
         Given: User presses Ctrl+C
         When: Displaying main menu
         Then: Returns None and displays goodbye message
         """
-        mock_prompt.side_effect = KeyboardInterrupt()
+        mock_get_steps.return_value = []
+        _ = mock_print
+        _ = mock_init
+        mock_inquirer.prompt.side_effect = KeyboardInterrupt()
 
         result = main_menu()
 
         assert result is None
 
-    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
     @patch("src.lms.cli.console.print")
-    def test_main_menu_handles_none_answer(self, mock_print, mock_prompt):
+    def test_main_menu_handles_none_answer(
+        self, mock_print, mock_inquirer, mock_init, mock_get_steps
+    ):
         """
         Given: Prompt returns None (Ctrl+D or similar)
         When: Displaying main menu
         Then: Returns None
         """
-        mock_prompt.return_value = None
+        mock_get_steps.return_value = []
+        _ = mock_print
+        _ = mock_init
+        mock_inquirer.prompt.return_value = None
 
         result = main_menu()
 
         assert result is None
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_main_menu_multiple_steps(self, mock_prompt):
+    @patch("src.lms.cli.get_completed_steps_for_today")
+    @patch("src.lms.cli.init_db")
+    @patch("src.lms.cli.inquirer")
+    def test_main_menu_multiple_steps(self, mock_inquirer, mock_init, mock_get_steps):
         """
         Given: User selects different steps
         When: Calling main_menu multiple times
         Then: Returns correct Step for each selection
         """
-        # Test step 2 (Flashcards)
-        mock_prompt.return_value = {"step": "🗂️ 2. Flashcards ○"}
+        mock_get_steps.return_value = []
+        _ = mock_init
+        # Test step 2 (Read)
+        mock_inquirer.prompt.return_value = {"step": "📖 2. Read ○"}
         result = main_menu()
+        assert result is not None
         assert result.number == 2
-        assert result.name == "Flashcards"
+        assert result.name == "Read"
 
-        # Test step 8 (Reflection)
-        mock_prompt.return_value = {"step": "🌅 8. Reflection ○"}
+        # Test step 8 (Pull Request)
+        mock_inquirer.prompt.return_value = {"step": "🌐 8. Pull Request ○"}
         result = main_menu()
+        assert result is not None
         assert result.number == 8
-        assert result.name == "Reflection"
+        assert result.name == "Pull Request"
 
 
 class TestExecuteStep:
     """Tests for step execution."""
 
+    @patch("src.lms.cli.save_step_completion")
     @patch("src.lms.cli.daily_standup_step")
-    def test_execute_step_calls_review(self, mock_standup):
+    def test_execute_step_calls_review(self, mock_standup, mock_save):
         """
         Given: Step 1 (Daily Stand-up)
         When: Executing the step
         Then: Calls daily_standup_step function
         """
+        mock_standup.return_value = True
         step = Step(1, "Daily Stand-up", "📊")
 
         execute_step(step)
 
         mock_standup.assert_called_once()
+        mock_save.assert_called_once_with(1)
 
-    @patch("src.lms.cli.anki_step")
-    def test_execute_step_calls_formation(self, mock_anki):
+    @patch("src.lms.cli.save_step_completion")
+    @patch("src.lms.cli.read_step")
+    def test_execute_step_calls_read(self, mock_read, mock_save):
         """
-        Given: Step 2 (Flashcards)
+        Given: Step 2 (Read)
         When: Executing the step
-        Then: Calls anki_step function
+        Then: Calls read_step function
         """
-        step = Step(2, "Flashcards", "🗂️")
+        mock_read.return_value = True
+        step = Step(2, "Read", "📖")
 
         execute_step(step)
 
-        mock_anki.assert_called_once()
+        mock_read.assert_called_once()
+        mock_save.assert_called_once_with(2)
 
-    @patch("src.lms.cli.missions_step")
-    def test_execute_step_calls_reinforce(self, mock_missions):
+    @patch("src.lms.cli.save_step_completion")
+    @patch("src.lms.cli.reinforce_step")
+    def test_execute_step_calls_reinforce(self, mock_reinforce, mock_save):
         """
-        Given: Step 6 (Mission Control)
+        Given: Step 4 (Reinforce)
         When: Executing the step
-        Then: Calls missions_step function
+        Then: Calls reinforce_step function
         """
-        step = Step(6, "Mission Control", "💪")
+        mock_reinforce.return_value = True
+        step = Step(4, "Reinforce", "💪")
 
         execute_step(step)
 
-        mock_missions.assert_called_once()
+        mock_reinforce.assert_called_once()
+        mock_save.assert_called_once_with(4)
 
 
 class TestStepsConstants:
@@ -263,14 +317,14 @@ class TestStepsConstants:
         """
         expected_names = [
             "Daily Stand-up",
-            "Flashcards",
-            "Create",
             "Read",
             "Tutor",
+            "Reinforce",
+            "Create",
+            "Flashcards",
             "Mission Control",
             "Pull Request",
             "Reflection",
-            "Labs",
         ]
 
         for i, step in enumerate(STEPS):

@@ -51,42 +51,39 @@ cp .env.example .env
 
 ```bash
 # Check version
-skillops --version
+skillops version
 
 # Get help
 skillops --help
 
 # Run health check (verify configuration)
 skillops health
+
+# Run preflight doctor checks
+skillops doctor
 ```
 
 ### Run your first step
 
 ```bash
-# Simple dry-run (no side effects)
-skillops review --storage-path ./storage
+# Launch interactive menu
+skillops start
 ```
 
 ### Example workflow
 
 ```bash
-# 1. Review yesterday's metrics
-skillops review --storage-path ./storage
+# 1. Start the menu and run steps (Review, Read, Tutor, Create, etc.)
+skillops start
 
-# 2. Create flashcards from Obsidian vault
-skillops create \
-  --storage-path ./storage \
-  --vault-path ~/Obsidian \
-  --anki-sync-path ~/Anki/sync
-
-# 3. Share projects to GitHub (creates repos with auto-generated READMEs)
+# 2. Share projects to GitHub (creates repos with auto-generated READMEs)
 skillops share \
   --storage-path ./storage \
   --labs-path ~/labs \
   --github-token your_token_here \
   --github-username your_username
 
-# 4. Send daily notification
+# 3. Send daily notification
 skillops notify \
   --storage-path ./storage \
   --respect-schedule
@@ -103,9 +100,9 @@ pytest tests/unit/         # Run only unit tests
 pytest -k "test_share"     # Run specific tests
 ```
 
-**Expected output:**
+**Expected output (example):**
 ```
-276 passed in 0.95s
+441 passed, 27 skipped in 12.6s
 ```
 
 ## Configuration
@@ -119,6 +116,11 @@ Create a `.env` file in the project root:
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 GITHUB_USERNAME=your_username
 LABS_PATH=~/labs
+# Optional Gemini model override
+GEMINI_MODEL=gemini-2.5-flash
+
+# Optional: logical day start hour for streaks (default 4)
+SKILLOPS_DAY_START_HOUR=4
 
 # Telegram Notifications
 TELEGRAM_BOT_TOKEN=123456789:ABCdEFghIjklmnoPQRstUVwxyz
@@ -138,12 +140,13 @@ SkillOps stores data in your storage directory:
 
 ```
 storage/
-├── .state.yaml        # Current step, timestamp, session ID
-├── .progress.json     # Daily progress history
-└── .metrics.json      # Aggregate metrics (streak, averages)
+├── skillops.db        # SQLite database (all state + metrics)
+└── exports/           # Optional JSON/CSV exports
+  ├── skillops_export.json
+  └── skillops_export.csv
 ```
 
-All files are human-readable JSON/YAML for easy inspection and version control.
+SQLite is the source of truth. Use `skillops export` for human-readable snapshots.
 
 ## Troubleshooting
 

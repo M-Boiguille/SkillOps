@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime, timedelta
 from statistics import mean, stdev
+from pathlib import Path
 from typing import Dict, Optional
+
+from src.lms.database import get_connection, init_db
 
 
 class MetricsCollector:
@@ -16,31 +18,47 @@ class MetricsCollector:
         """Initialize metrics collector.
 
         Args:
-            storage_path: Directory to store metrics.
-                          Defaults to ~/.local/share/skillops
+            storage_path: Directory to store metrics (SQLite DB).
         """
-        if storage_path is None:
-            storage_path = Path.home() / ".local/share/skillops"
+        if isinstance(storage_path, str):
+            storage_path = Path(storage_path)
+        self.storage_path = storage_path
+        init_db(self.storage_path)
 
-        self.storage_path = Path(storage_path)
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-        self.metrics_file = self.storage_path / ".metrics.json"
+    def _load_executions(self) -> list[dict]:
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT timestamp, step_id, duration_seconds, success, api_calls, "
+            "items_processed, metadata FROM performance_metrics"
+        )
+        rows = cursor.fetchall()
+        conn.close()
 
-    def _load_metrics(self) -> Dict:
-        """Load metrics from JSON file."""
-        if not self.metrics_file.exists():
-            return {"executions": []}
+        executions = []
+        for row in rows:
+            metadata = {}
+            if row[6]:
+                try:
+                    metadata = json.loads(row[6])
+                except json.JSONDecodeError:
+                    metadata = {}
+            executions.append(
+                {
+                    "timestamp": row[0],
+                    "step_id": row[1],
+                    "duration_seconds": float(row[2]),
+                    "success": bool(row[3]),
+                    "api_calls": int(row[4] or 0),
+                    "items_processed": int(row[5] or 0),
+                    "metadata": metadata,
+                }
+            )
+        return executions
 
-        try:
-            with open(self.metrics_file, "r") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return {"executions": []}
-
-    def _save_metrics(self, metrics: Dict) -> None:
-        """Save metrics to JSON file."""
-        with open(self.metrics_file, "w") as f:
-            json.dump(metrics, f, indent=2, default=str)
+    def _load_metrics(self) -> Dict[str, list]:
+        """Backward-compatible wrapper for legacy tests."""
+        return {"executions": self._load_executions()}
 
     def record_step_execution(
         self,
@@ -51,67 +69,49 @@ class MetricsCollector:
         items_processed: int = 0,
         metadata: Optional[Dict] = None,
     ) -> None:
-        """Record step execution metrics.
-
-        Args:
-            step_id: Step identifier (e.g., 'create', 'share', 'notify')
-            duration_seconds: Execution time in seconds
-            success: Whether execution succeeded
-            api_calls: Number of API calls made
-            items_processed: Items processed (decks, repos, etc)
-            metadata: Additional context (error type, retry count, etc)
-        """
-        metrics = self._load_metrics()
-
-        execution = {
-            "timestamp": datetime.now().isoformat(),
-            "step_id": step_id,
-            "duration_seconds": duration_seconds,
-            "success": success,
-            "api_calls": api_calls,
-            "items_processed": items_processed,
-            "metadata": metadata or {},
-        }
-
-        metrics["executions"].append(execution)
-        self._save_metrics(metrics)
+        """Record step execution metrics."""
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO performance_metrics
+            (timestamp, step_id, duration_seconds, success, api_calls, items_processed, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                datetime.now().isoformat(),
+                step_id,
+                float(duration_seconds),
+                bool(success),
+                int(api_calls),
+                int(items_processed),
+                json.dumps(metadata or {}),
+            ),
+        )
+        conn.commit()
+        conn.close()
 
     def get_daily_metrics(self, hours: int = 24) -> Dict[str, Dict]:
-        """Get aggregated metrics for past N hours.
-
-        Args:
-            hours: Time window in hours (default 24)
-
-        Returns:
-            Dict with per-step statistics
-        """
-        from datetime import timedelta
-
-        metrics = self._load_metrics()
+        """Get aggregated metrics for past N hours."""
         cutoff = datetime.now() - timedelta(hours=hours)
-        recent_executions = [
+        executions = [
             e
-            for e in metrics["executions"]
+            for e in self._load_executions()
             if datetime.fromisoformat(e["timestamp"]) > cutoff
         ]
 
-        if not recent_executions:
+        if not executions:
             return {}
 
-        # Group by step_id
         by_step: Dict[str, list] = {}
-        for execution in recent_executions:
-            step_id = execution["step_id"]
-            if step_id not in by_step:
-                by_step[step_id] = []
-            by_step[step_id].append(execution)
+        for execution in executions:
+            by_step.setdefault(execution["step_id"], []).append(execution)
 
-        # Compute stats per step
         stats = {}
-        for step_id, executions in by_step.items():
-            durations = [e["duration_seconds"] for e in executions]
-            successful = sum(1 for e in executions if e["success"])
-            total = len(executions)
+        for step_id, step_execs in by_step.items():
+            durations = [e["duration_seconds"] for e in step_execs]
+            successful = sum(1 for e in step_execs if e["success"])
+            total = len(step_execs)
 
             stats[step_id] = {
                 "executions": total,
@@ -122,36 +122,22 @@ class MetricsCollector:
                 "min_duration_seconds": min(durations) if durations else 0,
                 "max_duration_seconds": max(durations) if durations else 0,
                 "std_dev_seconds": stdev(durations) if len(durations) > 1 else 0,
-                "total_api_calls": sum(e.get("api_calls", 0) for e in executions),
+                "total_api_calls": sum(e.get("api_calls", 0) for e in step_execs),
                 "total_items_processed": sum(
-                    e.get("items_processed", 0) for e in executions
+                    e.get("items_processed", 0) for e in step_execs
                 ),
             }
 
         return stats
 
     def get_step_history(self, step_id: str, limit: int = 10) -> list:
-        """Get execution history for specific step.
-
-        Args:
-            step_id: Step to retrieve history for
-            limit: Maximum number of executions to return
-
-        Returns:
-            List of execution records (most recent first)
-        """
-        metrics = self._load_metrics()
-        executions = [e for e in metrics["executions"] if e["step_id"] == step_id]
-        return executions[-limit:][::-1]  # Reverse for most recent first
+        """Get execution history for specific step."""
+        executions = [e for e in self._load_executions() if e["step_id"] == step_id]
+        return executions[-limit:][::-1]
 
     def get_overall_stats(self) -> Dict:
-        """Get overall application statistics.
-
-        Returns:
-            Dict with total executions, success rate, average duration, etc
-        """
-        metrics = self._load_metrics()
-        executions = metrics.get("executions", [])
+        """Get overall application statistics."""
+        executions = self._load_executions()
 
         if not executions:
             return {
@@ -180,5 +166,8 @@ class MetricsCollector:
 
     def clear_metrics(self) -> None:
         """Clear all recorded metrics."""
-        if self.metrics_file.exists():
-            self.metrics_file.unlink()
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM performance_metrics")
+        conn.commit()
+        conn.close()

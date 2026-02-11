@@ -10,18 +10,12 @@ from typing import Optional
 from rich.console import Console
 
 from src.lms.integrations.telegram_client import TelegramClient
-from src.lms.persistence import ProgressManager
+from src.lms.paths import get_storage_path
+from src.lms.database import get_logical_date, init_db
+from src.lms.persistence import get_daily_summary, get_progress_history
 from src.lms.steps.review import calculate_metrics_from_progress
 
 console = Console()
-
-
-def get_storage_path() -> Path:
-    """Return storage path from environment or default location."""
-    storage_path_str = os.getenv(
-        "STORAGE_PATH", str(Path.home() / ".local/share/skillops")
-    )
-    return Path(storage_path_str).expanduser().absolute()
 
 
 def should_send_now(schedule_time: str, now: Optional[datetime] = None) -> bool:
@@ -85,12 +79,11 @@ def notify_step(
 
     storage_dir = storage_path or get_storage_path()
     storage_dir.mkdir(parents=True, exist_ok=True)
-    progress_file = storage_dir / "progress.json"
+    init_db(storage_dir)
     sent_marker = storage_dir / ".notify_sent"
 
-    progress_manager = ProgressManager(progress_file)
-    all_progress = progress_manager.load_progress()
-    today_date = progress_manager.get_today_date()
+    all_progress = get_progress_history(storage_dir)
+    today_date = get_logical_date()
 
     # Avoid sending the same notification multiple times per day
     if sent_marker.exists():
@@ -102,7 +95,7 @@ def notify_step(
                 return True
         except OSError:
             pass
-    today_progress = progress_manager.get_progress_by_date(today_date)
+    today_progress = get_daily_summary(today_date, storage_dir)
 
     if not today_progress:
         console.print(

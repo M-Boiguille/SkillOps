@@ -3,7 +3,16 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
+from src.lms.database import init_db
 from src.lms.steps import tutor as tutor_module
+
+
+@pytest.fixture(autouse=True)
+def _sqlite_setup(tmp_path, monkeypatch):
+    monkeypatch.setenv("STORAGE_PATH", str(tmp_path))
+    init_db()
 
 
 def test_sanitize_filename_basic():

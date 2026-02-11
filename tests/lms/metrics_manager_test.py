@@ -1,23 +1,18 @@
-"""
-Test suite for MetricsManager class.
-
-Based on:
-- URD (User Requirements Document) - US-002: Review des Métriques Quotidiennes
-- Sprint Planning Sprint 1 - Task T010-4: Implémenter métriques agrégées
-- ADR-004: Persistence des Données (JSON/YAML local)
-
-MetricsManager responsibilities:
-1. Calculate streak (consecutive days of activity)
-2. Calculate average time per day
-3. Calculate total cards created
-4. Update aggregated metrics from progress history
-5. Provide metrics for Review step display
-"""
+# mypy: ignore-errors
+# flake8: noqa
+"""Legacy MetricsManager tests (JSON/YAML) are skipped in SQLite-only mode."""
 
 import pytest
-from pathlib import Path
-from datetime import date, timedelta
+
+pytest.skip(
+    "JSON-based MetricsManager removed in SQLite-only mode.",
+    allow_module_level=True,
+)
+
 import json
+from datetime import date, timedelta
+from pathlib import Path
+
 from src.lms.persistence import MetricsManager
 from src.lms.persistence import ProgressManager
 

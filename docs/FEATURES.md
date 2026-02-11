@@ -4,17 +4,34 @@ Complete documentation of all SkillOps features and commands.
 
 ## Table of Contents
 
-1. [Core Commands](#core-commands)
-2. [Review Metrics (Step 1)](#review-metrics)
-3. [Formation Tracking (Step 2)](#formation-tracking)
-4. [AI Analysis (Step 3)](#ai-analysis)
-5. [Reinforcement (Step 4)](#reinforcement)
-6. [Zettelkasten Notes (Step 5)](#zettelkasten-notes)
-7. [Flashcard Generation (Step 6) - Sprint 2](#flashcard-generation)
-8. [Portfolio Automation (Step 7) - Sprint 2](#portfolio-automation)
-9. [Daily Notifications (Step 8) - Sprint 2](#daily-notifications)
-10. [Health Check](#health-check)
-11. [Advanced Usage](#advanced-usage)
+1. [Interactive Workflow (9 steps)](#interactive-workflow-9-steps)
+2. [Core Commands](#core-commands)
+3. [Daily Stand-up (Review Metrics)](#daily-stand-up-review-metrics)
+4. [Formation Tracking (WakaTime)](#formation-tracking-wakatime)
+5. [Tutor (AI Analysis)](#tutor-ai-analysis)
+6. [Reinforce (Practice)](#reinforce-practice)
+7. [Read & Notes (Zettelkasten)](#read--notes-zettelkasten)
+8. [Create (Flashcard Generation)](#create-flashcard-generation)
+9. [Flashcards (Anki Review)](#flashcards-anki-review)
+10. [Mission Control](#mission-control)
+11. [Pull Request (Portfolio Automation)](#pull-request-portfolio-automation)
+12. [Reflection & Notifications](#reflection--notifications)
+13. [Health & Doctor Checks](#health--doctor-checks)
+14. [Advanced Usage](#advanced-usage)
+
+---
+
+## Interactive Workflow (9 steps)
+
+1. **Daily Stand-up** — metrics & streak recap
+2. **Read** — articles and knowledge capture
+3. **Tutor** — AI Q&A and concept reinforcement
+4. **Reinforce** — practice exercises
+5. **Create** — flashcard generation from Obsidian
+6. **Flashcards** — Anki review workflow
+7. **Mission Control** — tickets/incidents with validation
+8. **Pull Request** — portfolio automation (GitHub)
+9. **Reflection** — daily journal & wrap-up
 
 ---
 
@@ -27,42 +44,53 @@ Complete documentation of all SkillOps features and commands.
 skillops --help
 
 # Get help for specific command
-skillops review --help
-skillops create --help
+skillops start --help
 skillops share --help
 skillops notify --help
+skillops export --help
+skillops import-data --help
+skillops doctor --help
+skillops migrate --help
 ```
 
 ### Verbose Output
 
 ```bash
 # Enable detailed logging for troubleshooting
-skillops review --storage-path ./storage --verbose
+skillops share --storage-path ./storage --verbose
+skillops notify --storage-path ./storage --verbose
 ```
 
 ### Version
 
 ```bash
 # Display SkillOps version
-skillops --version
+skillops version
+```
+
+### Doctor (Preflight Checks)
+
+```bash
+skillops doctor
+```
+
+### Migration (Legacy JSON → SQLite)
+
+```bash
+skillops migrate
+```
 ```
 
 ---
 
-## Review Metrics
+## Daily Stand-up (Review Metrics)
 
 **Purpose:** Review yesterday's learning metrics and progress.
 
-**Command:**
+**Command (interactive):**
 ```bash
-skillops review --storage-path <path>
+skillops start
 ```
-
-**Required Arguments:**
-- `--storage-path`: Directory where progress is stored (e.g., `./storage` or `~/.skillops`)
-
-**Options:**
-- `--verbose`: Show detailed logging
 
 **Output:**
 ```
@@ -70,7 +98,7 @@ skillops review --storage-path <path>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Date: 2026-01-11
 Time Coded: 3h 42m
-Steps Completed: 7/8
+Steps Completed: 7/9
 Current Streak: 5 days
 Average Streak: 3.2 days
 Total Learning Hours: 142h
@@ -78,15 +106,8 @@ Weekly Average: 20.3h
 ```
 
 **Data Stored:**
-```json
-{
-  "date": "2026-01-11",
-  "hours_coded": 3.7,
-  "steps_completed": 7,
-  "streak": 5,
-  "notes": "Good progress on DevOps fundamentals"
-}
-```
+- SQLite summary in `storage/skillops.db`
+- Exportable via `skillops export` (JSON/CSV)
 
 **Use Cases:**
 - Morning routine: Review what you achieved yesterday
@@ -95,13 +116,13 @@ Weekly Average: 20.3h
 
 ---
 
-## Formation Tracking
+## Formation Tracking (WakaTime)
 
 **Purpose:** Track time spent on learning and coding.
 
-**Command:**
+**Command (interactive):**
 ```bash
-skillops formation --storage-path <path>
+skillops start
 ```
 
 **Data Source:**
@@ -126,13 +147,13 @@ Daily Goal: 4h ✅ EXCEEDED
 
 ---
 
-## AI Analysis
+## Tutor (AI Analysis)
 
 **Purpose:** Get AI-generated questions and answers on study topics.
 
-**Command:**
+**Command (interactive):**
 ```bash
-skillops analysis --storage-path <path> [--topic <topic>]
+skillops start
 ```
 
 **Requirements:**
@@ -164,7 +185,7 @@ A: Each pod gets a /etc/resolv.conf that points to the cluster DNS server...
 
 ---
 
-## Reinforcement
+## Reinforce (Practice)
 
 **Purpose:** Generate personalized practice exercises.
 
@@ -194,7 +215,7 @@ Exercise 2: Kubernetes Ingress
 
 ---
 
-## Zettelkasten Notes
+## Read & Notes (Zettelkasten)
 
 **Purpose:** Capture learning notes in atomic, interconnected format.
 
@@ -218,7 +239,7 @@ skillops zettel \
 
 ---
 
-## Flashcard Generation
+## Create (Flashcard Generation)
 
 **Purpose:** Automatically generate Anki flashcards from Obsidian vault.
 
@@ -292,15 +313,9 @@ The feature generates:
    What are Docker layers?	Layers are stacked...
    ```
 
-2. **Progress tracking** (`.progress.json`):
-   ```json
-   {
-     "date": "2026-01-11",
-     "flashcards_created": 47,
-     "flashcards_hash": "sha256:abc123...",
-     "vault_scanned": true
-   }
-   ```
+2. **Progress tracking** (SQLite in `storage/skillops.db`):
+  - Records a `card_creations` entry (count, source, timestamp)
+  - Exportable via `skillops export` (JSON/CSV)
 
 ### Features
 
@@ -353,7 +368,43 @@ ANKI_SYNC_PATH=~/Anki/sync
 
 ---
 
-## Portfolio Automation
+## Flashcards (Anki Review)
+
+**Purpose:** Review due cards and optionally sync via AnkiConnect.
+
+**Command (interactive):**
+```bash
+skillops start
+```
+
+Select **Flashcards** in the menu.
+
+**Configuration:**
+```bash
+ANKI_CONNECT_URL=http://localhost:8765
+ANKI_AUTO_SYNC=true
+```
+
+---
+
+## Mission Control
+
+**Purpose:** Work on ticket-like missions with context, objectives, and validation hints.
+
+**Command (interactive):**
+```bash
+skillops start
+```
+
+Select **Mission Control** in the menu.
+
+**Data sources:**
+- `src/lms/data/companies.yaml`
+- `src/lms/data/missions/`
+
+---
+
+## Pull Request (Portfolio Automation)
 
 **Purpose:** Automatically create GitHub repositories for your projects with generated READMEs.
 
@@ -482,21 +533,8 @@ For each project:
 
 #### Step 5: Progress Tracking
 
-Stores in `.progress.json`:
-```json
-{
-  "date": "2026-01-11",
-  "repositories_created": 3,
-  "repositories": [
-    {
-      "name": "k8s-playground",
-      "url": "https://github.com/user/k8s-playground",
-      "tech_stack": ["Kubernetes", "Docker"],
-      "commit": "a322f7a1b2c3d4e5f6g7h8i9j0k1l2m3"
-    }
-  ]
-}
-```
+- Execution is recorded in the daily session summary (SQLite `storage/skillops.db`).
+- Detailed portfolio metadata is available in the command output and can be included in exports as needed.
 
 ### Example Workflow
 
@@ -569,7 +607,7 @@ The tool automatically:
 
 ---
 
-## Daily Notifications
+## Reflection & Notifications
 
 **Purpose:** Send daily learning summaries and reminders via Telegram.
 
@@ -582,6 +620,9 @@ Automatically send formatted Telegram messages with your daily learning metrics 
 ### Command
 
 ```bash
+skillops start
+
+# or send a notification directly
 skillops notify \
   --storage-path <path> \
   [--respect-schedule]
@@ -625,7 +666,7 @@ Messages are formatted with Markdown:
 
 Date: 2026-01-11
 Time Coded: 3h 42m
-Steps Completed: 7/8 ✅
+Steps Completed: 7/9 ✅
 Streak: 5 days 🔥
 
 Top Achievement:
@@ -660,7 +701,7 @@ In cron, you'd run it multiple times:
 - **Schedule-Aware**: Respects configured notification time
 - **Batch Sends**: Multiple recipients support (future)
 - **Error Resilient**: Continues on API failures with detailed logging
-- **Dry-Run Mode**: Test without sending (use `--verbose`)
+- **Verbose diagnostics**: Use `--verbose` to see detailed logs
 
 ### Example Workflow
 
@@ -696,15 +737,16 @@ skillops notify --storage-path ./storage
 
 ---
 
-## Health Check
+## Health & Doctor Checks
 
 **Purpose:** Verify all API tokens and configurations are working.
 
-**Status:** ✅ Sprint 3 - Planned (Coming Soon)
+**Status:** ✅ Available
 
-**Command:**
+**Commands:**
 ```bash
 skillops health
+skillops doctor
 ```
 
 **Output:**
@@ -726,40 +768,12 @@ Overall Status: ✅ ALL SYSTEMS GO
 
 ### Verbose Logging
 
-Enable detailed logging for all commands:
+Enable detailed logging for troubleshooting:
 
 ```bash
-skillops review --storage-path ./storage --verbose
-# Output: DEBUG logs for troubleshooting
+skillops share --storage-path ./storage --verbose
+skillops notify --storage-path ./storage --verbose
 ```
-
-### Dry-Run Mode
-
-Test commands without side effects:
-
-```bash
-skillops share --storage-path ./storage --dry-run
-# Shows what would happen without actual git/GitHub operations
-```
-
-### Exit Codes
-
-Scripts can check success/failure:
-
-```bash
-skillops notify --storage-path ./storage
-if [ $? -eq 0 ]; then
-  echo "✅ Notification sent"
-else
-  echo "❌ Notification failed"
-fi
-```
-
-Possible codes:
-- `0`: Success
-- `1`: Configuration error
-- `2`: API error
-- `3`: File system error
 
 ### Storage Directory
 
@@ -767,13 +781,13 @@ SkillOps stores all data in a single directory (default: `./storage`):
 
 ```
 storage/
-├── .state.yaml          # Current step, timestamp
-├── .progress.json       # Daily progress history
-├── .metrics.json        # Streak, averages, totals
-└── .session.log         # Detailed operation log
+├── skillops.db          # SQLite database (all state + metrics)
+└── exports/             # Optional JSON/CSV exports
+  ├── skillops_export.json
+  └── skillops_export.csv
 ```
 
-All files are human-readable (JSON/YAML) for easy inspection and version control.
+SQLite is the source of truth. Use `skillops export` for human-readable snapshots.
 
 ### CI/CD Integration
 
@@ -795,32 +809,11 @@ jobs:
       - uses: actions/setup-python@v4
       - run: pip install -r requirements.txt
       - run: |
-          skillops review --storage-path ./storage
+          skillops doctor
           skillops create --storage-path ./storage \
             --vault-path ${{ secrets.OBSIDIAN_PATH }} \
             --anki-sync-path ${{ secrets.ANKI_PATH }}
-          skillops notify --storage-path ./storage
+          skillops notify --storage-path ./storage --respect-schedule
 ```
 
 ---
-
-## Feature Comparison Matrix
-
-| Feature | Status | Sprint | Tests | Coverage |
-|---------|--------|--------|-------|----------|
-| Review Metrics | ✅ Implemented | 1 | 3 | 100% |
-| Formation Tracking | ✅ Implemented | 1 | 3 | 100% |
-| AI Analysis | ✅ Implemented | 1 | 3 | 100% |
-| Reinforcement | ✅ Implemented | 1 | 3 | 100% |
-| Zettelkasten | ✅ Implemented | 1 | 3 | 100% |
-| Flashcards | ✅ Implemented | 2 | 17 | 95% |
-| Portfolio | ✅ Implemented | 2 | 36 | 90% |
-| Notifications | ✅ Implemented | 2 | 7 | 100% |
-| Health Check | 🔄 Planned | 3 | TBD | TBD |
-| Progress Bars | 🔄 Planned | 3 | TBD | TBD |
-| Systemd/Cron | 🔄 Planned | 3 | TBD | TBD |
-
----
-
-**Last Updated**: Sprint 2 Complete (11 janvier 2026)
-**Next Update**: Sprint 3 Complete (18 janvier 2026)

@@ -39,7 +39,7 @@ If you prefer manual configuration, follow the steps below.
 ### 1. Install SkillOps
 
 ```bash
-pip install skillops==0.2.0
+pip install skillops
 ```
 
 ### 2. Create Configuration Directory
@@ -91,6 +91,11 @@ Add one of these lines (choose based on your preference):
 #### With environment file (recommended)
 ```
 0 8 * * * source ~/.config/skillops/skillops.env && /home/username/.local/bin/skillops start >> ~/.local/share/skillops/cron.log 2>&1
+```
+
+#### Daily backup (recommended)
+```
+30 1 * * * source ~/.config/skillops/skillops.env && /home/username/SkillOps/setup/backup/backup.sh >> ~/.local/share/skillops/backup.log 2>&1
 ```
 
 #### With error email notifications
@@ -172,6 +177,13 @@ source ~/.config/skillops/skillops.env && skillops start
 # Or with verbose logging
 source ~/.config/skillops/skillops.env && skillops start --verbose
 ```
+
+## Rollback Procedure
+
+1. Restore a backup:
+   - `bash setup/backup/restore.sh ~/.local/share/skillops/backups/skillops_YYYYmmdd_HHMMSS.db`
+2. Run a quick check:
+   - `skillops doctor`
 
 ## Troubleshooting
 
@@ -263,7 +275,7 @@ Run SkillOps at different times:
 
 ```bash
 # Morning check
-0 8 * * * source ~/.config/skillops/skillops.env && skillops review >> ~/.local/share/skillops/cron.log 2>&1
+0 8 * * * source ~/.config/skillops/skillops.env && skillops start >> ~/.local/share/skillops/cron.log 2>&1
 
 # Evening reflection
 0 20 * * * source ~/.config/skillops/skillops.env && skillops reflect >> ~/.local/share/skillops/cron.log 2>&1

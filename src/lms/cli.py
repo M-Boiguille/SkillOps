@@ -19,28 +19,38 @@ from src.lms.steps import (
     read_step,
     reflection_step,
     tutor_step,
+    reinforce_step,
 )
+from src.lms.database import init_db
+from src.lms.persistence import get_completed_steps_for_today, mark_step_completed
 from src.lms.steps.create import create_step
-from src.lms.steps.labs import labs_step
 from src.lms.steps.share import share_step
 
 console = Console()
 
 
-# Patch inquirer to support vim keybindings (j/k)
-original_process_input = ListRender.process_input
+def _enable_vim_keybindings() -> None:
+    """Patch inquirer render to support vim keybindings (j/k)."""
+    if not hasattr(ListRender, "process_input"):
+        return
+
+    original_process_input = ListRender.process_input
+    if getattr(original_process_input, "vim_patched", False):
+        return
+
+    def vim_aware_process_input(self, pressed):
+        """Process input with vim keybindings support (j=down, k=up)."""
+        if pressed == "j":
+            pressed = readchar.key.DOWN
+        elif pressed == "k":
+            pressed = readchar.key.UP
+        return original_process_input(self, pressed)
+
+    vim_aware_process_input.vim_patched = True  # type: ignore[attr-defined]
+    ListRender.process_input = vim_aware_process_input
 
 
-def vim_aware_process_input(self, pressed):
-    """Process input with vim keybindings support (j=down, k=up)."""
-    if pressed == "j":
-        pressed = readchar.key.DOWN
-    elif pressed == "k":
-        pressed = readchar.key.UP
-    return original_process_input(self, pressed)
-
-
-ListRender.process_input = vim_aware_process_input
+_enable_vim_keybindings()
 
 
 class Step:
@@ -59,15 +69,18 @@ class Step:
 
 # Define the 9 steps of the LMS workflow (+ optional Labs)
 STEPS = [
-    Step(1, "Daily Stand-up", "📊"),
-    Step(2, "Flashcards", "🗂️"),
-    Step(3, "Create", "📝"),
-    Step(4, "Read", "📖"),
-    Step(5, "Tutor", "🧑‍🏫"),
-    Step(6, "Mission Control", "💪"),
-    Step(7, "Pull Request", "🌐"),
-    Step(8, "Reflection", "🌅"),
-    Step(9, "Labs", "🎯"),
+    # Input Mode (Matin)
+    Step(1, "Daily Stand-up", "📊"),  # Review
+    Step(2, "Read", "📖"),  # Acquisition
+    Step(3, "Tutor", "🧠"),  # Analysis (Feynman)
+    # Output Mode (Après-midi)
+    Step(4, "Reinforce", "💪"),  # Pratique (Interleaving)
+    Step(5, "Create", "📝"),  # Zettelkasten/Flashcards gen
+    Step(6, "Flashcards", "🗂️"),  # Anki Review
+    # Closure Mode (Soir)
+    Step(7, "Mission Control", "🚀"),  # Labs/Projets
+    Step(8, "Pull Request", "🌐"),  # Portfolio
+    Step(9, "Reflection", "🌅"),  # Journaling
 ]
 
 
@@ -88,13 +101,37 @@ def display_header() -> None:
     console.print()
 
 
+def save_step_completion(step_number: int):
+    """Mark a step as completed for today."""
+    # Initialize DB if needed (idempotent)
+    init_db()
+    mark_step_completed(step_number)
+
+
 def get_step_choices() -> list[str]:
     """Generate the list of step choices for the menu.
 
     Returns:
         List of formatted step strings with visual indicators.
     """
-    choices = [str(step) for step in STEPS]
+    init_db()
+    completed_steps = get_completed_steps_for_today()
+
+    # Update steps completion status based on persistence
+    for step in STEPS:
+        if step.number in completed_steps:
+            step.completed = True
+
+    choices = []
+    choices.append("--- 🧠 INPUT MODE (Acquisition) ---")
+    choices.extend([str(s) for s in STEPS if s.number in [1, 2, 3]])
+
+    choices.append("--- ⚡ OUTPUT MODE (Pratique) ---")
+    choices.extend([str(s) for s in STEPS if s.number in [4, 5, 6]])
+
+    choices.append("--- 🏁 CLOSURE MODE (Intégration) ---")
+    choices.extend([str(s) for s in STEPS if s.number in [7, 8, 9]])
+
     choices.append("❌ Exit")
     return choices
 
@@ -170,19 +207,25 @@ def execute_step(step: Step) -> None:
     # Map step numbers to their implementations
     step_map = {
         1: daily_standup_step,  # Daily Stand-up
-        2: anki_step,  # Flashcards
-        3: create_step,  # Create
-        4: read_step,  # Read
-        5: tutor_step,  # Tutor
-        6: missions_step,  # Mission Control
-        7: share_step,  # Pull Request
-        8: reflection_step,  # Reflection
-        9: labs_step,  # Labs - AI Missions
+        2: read_step,  # Read
+        3: tutor_step,  # Tutor
+        4: reinforce_step,  # Reinforce (NEW)
+        5: create_step,  # Create
+        6: anki_step,  # Flashcards
+        7: missions_step,  # Mission Control
+        8: share_step,  # Pull Request
+        9: reflection_step,  # Reflection
     }
 
     # Execute the corresponding step
     step_func = step_map.get(step.number)
     if step_func:
-        step_func()  # type: ignore[operator]
+        # Execute step and check for success (True)
+        result = step_func()  # type: ignore[operator]
+
+        # If step returns True (success) or None (legacy steps assumed success if no error)
+        if result is True or result is None:
+            save_step_completion(step.number)
+            step.completed = True
     else:
         console.print(f"\n[red]Error: Step {step.number} not implemented[/red]\n")

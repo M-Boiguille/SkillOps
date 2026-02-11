@@ -16,16 +16,19 @@ from src.lms.cli import main_menu, execute_step  # noqa: E402
 from src.lms.commands.health import health_check  # noqa: E402
 from src.lms.commands.export import DataExporter  # noqa: E402
 from src.lms.commands.data_import import DataImporter  # noqa: E402
+from src.lms.doctor import run_doctor  # noqa: E402
 from src.lms.monitoring import (  # noqa: E402
     ErrorAggregator,
     MetricsCollector,
     send_alert_from_aggregator,
 )
 from src.lms.steps.notify import notify_step  # noqa: E402
+from src.lms.display import display_error_message  # noqa: E402
 from src.lms.steps.pagerduty import pagerduty_check  # noqa: E402
 from src.lms.steps.missions import missions_step  # noqa: E402
 from src.lms.steps.share import share_step  # noqa: E402
 from src.lms.commands.setup_wizard import setup_command  # noqa: E402
+from src.lms.steps.migrate import migrate as migrate_legacy_data  # noqa: E402
 from src.lms.books import (  # noqa: E402
     check_books_command,
     submit_books_command,
@@ -104,13 +107,17 @@ def start(
         success = True
         try:
             execute_step(step)
-        except Exception as exc:  # pragma: no cover - passthrough to Typer
+        except (RuntimeError, ValueError, OSError) as exc:  # pragma: no cover
             success = False
             if aggregator:
                 is_new = aggregator.record_error(exc, f"step_{step.number}")
                 if is_new:
                     send_alert_from_aggregator(aggregator, alert_type)
-            raise
+            logger.error("Step %s failed: %s", step.number, exc)
+            display_error_message(
+                f"Step {step.number} failed. Returning to menu.\n\n{exc}",
+                title="Step Error",
+            )
         finally:
             if metrics:
                 metrics.record_step_execution(
@@ -139,6 +146,20 @@ def health():
         • Required dependencies
     """
     health_check()
+
+
+@app.command()
+def doctor():
+    """Run preflight checks for configuration and environment."""
+    success = run_doctor()
+    if not success:
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def migrate():
+    """Migrate legacy JSON files to SQLite."""
+    migrate_legacy_data()
 
 
 @app.command()
@@ -319,7 +340,7 @@ def setup(
 
 @app.command()
 def export(
-    format: str = typer.Option(
+    export_format: str = typer.Option(
         "json",
         "--format",
         "-f",
@@ -357,12 +378,12 @@ def export(
     try:
         exporter = DataExporter()
 
-        if format.lower() == "json":
+        if export_format.lower() == "json":
             result = exporter.export_to_json(output_path=output)
             console.print(f"\n[green]✓ Exported to {result}[/green]\n")
-        elif format.lower() == "csv":
+        elif export_format.lower() == "csv":
             results = exporter.export_to_csv(output_dir=output)
-            console.print(f"\n[green]✓ Exported {len(results)} " "CSV files[/green]\n")
+            console.print(f"\n[green]✓ Exported {len(results)} CSV files[/green]\n")
         else:
             console.print("[red]✗ Invalid format. Use 'json' or 'csv'[/red]\n")
             raise typer.Exit(code=1)
@@ -380,7 +401,7 @@ def export(
         )
         console.print(error_panel)
         raise typer.Exit(code=1)
-    except PermissionError:
+    except PermissionError as exc:
         error_panel = Panel(
             "[red]Permission denied:[/red] Cannot write to output "
             "location\n\n"
@@ -391,7 +412,7 @@ def export(
             border_style="red",
         )
         console.print(error_panel)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
     except Exception as exc:
         error_panel = Panel(
             f"[red]Export failed:[/red] {str(exc)}\n\n"
@@ -403,7 +424,7 @@ def export(
             border_style="red",
         )
         console.print(error_panel)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
 
 @app.command()
@@ -412,7 +433,7 @@ def import_data(
         ...,
         help="File or directory to import from",
     ),
-    format: Optional[str] = typer.Option(
+    import_format: Optional[str] = typer.Option(
         None,
         "--format",
         "-f",
@@ -431,9 +452,9 @@ def import_data(
     Creates a backup before importing (unless --no-backup).
 
     Examples:
-        skillops import-data progress.json
+        skillops import-data skillops_export.json
         skillops import-data ./exports/ --format csv
-        skillops import-data progress.json --merge
+        skillops import-data skillops_export.json --merge
     """
     from rich.console import Console
     from rich.prompt import Confirm
@@ -447,7 +468,7 @@ def import_data(
             f"[yellow]Suggestions:[/yellow]\n"
             f"  • Double-check the file path\n"
             f"  • Try: skillops export -f json -o backup.json\n"
-            f"  • Use absolute path: /home/user/backups/progress.json",
+            f"  • Use absolute path: /home/user/backups/skillops_export.json",
             title="[red]❌ Import Failed[/red]",
             border_style="red",
         )
@@ -458,13 +479,13 @@ def import_data(
         importer = DataImporter()
 
         # Auto-detect format if not specified
-        if format is None:
+        if import_format is None:
             if file.is_file() and file.suffix == ".json":
-                format = "json"
+                import_format = "json"
             elif file.is_file() and file.suffix == ".csv":
-                format = "csv"
+                import_format = "csv"
             elif file.is_dir():
-                format = "csv"
+                import_format = "csv"
             else:
                 error_panel = Panel(
                     f"[red]Could not auto-detect format[/red]\n\n"
@@ -493,9 +514,9 @@ def import_data(
 
         # Show confirmation
         merge_note = " (merging)" if merge else " (replacing existing data)"
-        console.print(f"\n[yellow]⚠️  Importing from {file}{merge_note}" "[/yellow]")
+        console.print(f"\n[yellow]⚠️  Importing from {file}{merge_note}[/yellow]")
         console.print(
-            "[dim]A backup of current data will be created before " "import[/dim]"
+            "[dim]A backup of current data will be created before import[/dim]"
         )
 
         if not Confirm.ask("Continue with import?"):
@@ -503,9 +524,9 @@ def import_data(
             raise typer.Exit(code=0)
 
         # Perform import
-        if format.lower() == "json":
+        if import_format.lower() == "json":
             success = importer.import_from_json(file, merge=merge, backup=True)
-        elif format.lower() == "csv":
+        elif import_format.lower() == "csv":
             success = importer.import_from_csv(file, merge=merge, backup=True)
         else:
             console.print("[red]✗ Invalid format. Use 'json' or 'csv'[/red]\n")
@@ -529,7 +550,7 @@ def import_data(
 
     except typer.Exit:
         raise
-    except FileNotFoundError:
+    except FileNotFoundError as exc:
         error_panel = Panel(
             "[red]File access error: Unable to read file[/red]\n\n"
             "[yellow]Ensure:[/yellow]\n"
@@ -539,7 +560,7 @@ def import_data(
             border_style="red",
         )
         console.print(error_panel)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
     except Exception as exc:
         error_panel = Panel(
             f"[red]Import failed:[/red] {str(exc)}\n\n"
@@ -551,7 +572,7 @@ def import_data(
             border_style="red",
         )
         console.print(error_panel)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
 
 @app.command(name="check-books")

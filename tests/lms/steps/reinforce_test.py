@@ -1,6 +1,5 @@
 """Tests pour l'étape Reinforce."""
 
-import json
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -14,6 +13,7 @@ from src.lms.steps.reinforce import (
     record_exercise_session,
     reinforce_step,
     save_exercise_progress,
+    calculate_next_review,
 )
 
 
@@ -24,11 +24,11 @@ class TestGetStoragePath:
         """
         Given: Variable STORAGE_PATH non définie
         When: Appel de get_storage_path()
-        Then: Retourne le chemin par défaut ~/.local/share/skillops
+        Then: Retourne le chemin par défaut ./storage
         """
         monkeypatch.delenv("STORAGE_PATH", raising=False)
         result = get_storage_path()
-        expected = Path.home() / ".local/share/skillops"
+        expected = Path("storage").expanduser().absolute()
         assert result == expected
 
     def test_returns_custom_path_when_env_var_set(self, monkeypatch):
@@ -63,7 +63,14 @@ class TestGetAvailableDomains:
         Then: Retourne au minimum Linux, Docker, Terraform, Kubernetes, AWS, GitLab CI
         """
         domains = get_available_domains()
-        expected_domains = ["Linux", "Docker", "Terraform", "Kubernetes", "AWS", "GitLab CI"]
+        expected_domains = [
+            "Linux",
+            "Docker",
+            "Terraform",
+            "Kubernetes",
+            "AWS",
+            "GitLab CI",
+        ]
         assert domains == expected_domains
 
 
@@ -74,7 +81,8 @@ class TestGetAvailableExercises:
         """
         Given: Aucun paramètre
         When: Appel de get_available_exercises()
-        Then: Retourne une liste d'exercices (vide si catalogue non disponible, sinon avec exercices)
+          Then: Retourne une liste d'exercices (vide si catalogue non disponible,
+              sinon avec exercices)
         """
         exercises = get_available_exercises()
         assert isinstance(exercises, list)
@@ -148,86 +156,72 @@ class TestDisplayExercisesTable:
 class TestSaveExerciseProgress:
     """Tests pour save_exercise_progress()."""
 
-    def test_saves_new_exercise(self, tmp_path):
+    @patch("src.lms.steps.reinforce.save_reinforce_progress")
+    @patch("src.lms.steps.reinforce.get_latest_reinforce_progress")
+    def test_saves_new_exercise(self, mock_get_latest, mock_save, tmp_path):
         """
         Given: Nouvel exercice à sauvegarder
         When: Appel de save_exercise_progress()
-        Then: Sauvegarde l'exercice dans un fichier JSON
+        Then: Appelle la fonction de persistance avec les bonnes données
         """
+        mock_get_latest.return_value = None
+
         # Execute
         save_exercise_progress("test-id", "Test Exercise", 600, True, tmp_path)
 
-        # Verify - check JSON file was created
-        progress_file = tmp_path / "reinforce_progress.json"
-        assert progress_file.exists()
+        # Verify
+        mock_save.assert_called_once()
+        args = mock_save.call_args[0]
+        assert args[0] == "test-id"
+        assert args[3] is True  # completed
 
-        # Read and verify content
-        with progress_file.open("r") as f:
-            data = json.load(f)
-
-        today = datetime.now().strftime("%Y-%m-%d")
-        assert today in data
-        assert len(data[today]["exercises"]) == 1
-        assert data[today]["exercises"][0]["id"] == "test-id"
-        assert data[today]["exercises"][0]["title"] == "Test Exercise"
-        assert data[today]["exercises"][0]["duration_seconds"] == 600
-        assert data[today]["exercises"][0]["completed"] is True
-        assert data[today]["total_time"] == 600
-
-    def test_updates_existing_exercise(self, tmp_path):
+    @patch("src.lms.steps.reinforce.save_reinforce_progress")
+    @patch("src.lms.steps.reinforce.get_latest_reinforce_progress")
+    def test_updates_existing_exercise(self, mock_get_latest, mock_save, tmp_path):
         """
         Given: Exercice existant à mettre à jour
         When: Appel de save_exercise_progress() avec le même ID
-        Then: Met à jour l'exercice existant au lieu d'en créer un nouveau
+        Then: Appelle la persistance
         """
-        # Setup - create initial exercise
-        save_exercise_progress("test-id", "Old Title", 300, False, tmp_path)
+        mock_get_latest.return_value = {"srs_data": {"reps": 1}}
 
         # Execute - update same exercise
         save_exercise_progress("test-id", "New Title", 600, True, tmp_path)
 
         # Verify
-        progress_file = tmp_path / "reinforce_progress.json"
-        with progress_file.open("r") as f:
-            data = json.load(f)
-
-        today = datetime.now().strftime("%Y-%m-%d")
-        # Should still have only 1 exercise (updated, not added)
-        assert len(data[today]["exercises"]) == 1
-        assert data[today]["exercises"][0]["title"] == "New Title"
-        assert data[today]["exercises"][0]["duration_seconds"] == 600
-        assert data[today]["exercises"][0]["completed"] is True
-        assert data[today]["total_time"] == 600
+        mock_save.assert_called_once()
+        args = mock_save.call_args[0]
+        assert args[1] == "New Title"
 
 
 class TestGetExerciseProgress:
     """Tests pour get_exercise_progress()."""
 
-    def test_returns_progress_when_found(self, tmp_path):
+    @patch("src.lms.steps.reinforce.get_latest_reinforce_progress")
+    def test_returns_progress_when_found(self, mock_get_latest, tmp_path):
         """
         Given: Exercice avec progression sauvegardée
         When: Appel de get_exercise_progress()
         Then: Retourne les données de progression
         """
-        # Setup - save an exercise
-        save_exercise_progress("test-id", "Test Exercise", 600, True, tmp_path)
+        expected = {"id": "test-id", "completed": True}
+        mock_get_latest.return_value = expected
 
         # Execute
         result = get_exercise_progress("test-id", tmp_path)
 
         # Verify
-        assert result is not None
-        assert result["id"] == "test-id"
-        assert result["title"] == "Test Exercise"
-        assert result["duration_seconds"] == 600
-        assert result["completed"] is True
+        assert result == expected
 
-    def test_returns_none_when_not_found(self, tmp_path):
+    @patch("src.lms.steps.reinforce.get_latest_reinforce_progress")
+    def test_returns_none_when_not_found(self, mock_get_latest, tmp_path):
         """
         Given: Exercice sans progression
         When: Appel de get_exercise_progress()
         Then: Retourne None
         """
+        mock_get_latest.return_value = None
+
         # Execute - no file exists yet
         result = get_exercise_progress("nonexistent", tmp_path)
 
@@ -241,9 +235,10 @@ class TestRecordExerciseSession:
     @patch("src.lms.steps.reinforce.save_exercise_progress")
     @patch("src.lms.steps.reinforce.Confirm")
     @patch("src.lms.steps.reinforce.datetime")
+    @patch("src.lms.steps.reinforce.Prompt")
     @patch("builtins.input", return_value="")
     def test_records_completed_exercise(
-        self, mock_input, mock_datetime, mock_confirm, mock_save, tmp_path
+        self, mock_input, mock_prompt, mock_datetime, mock_confirm, mock_save, tmp_path
     ):
         """
         Given: Utilisateur complète un exercice
@@ -256,6 +251,7 @@ class TestRecordExerciseSession:
 
         mock_datetime.now.side_effect = [start_time, end_time]
         mock_confirm.ask.return_value = True
+        mock_prompt.ask.return_value = "4"  # Quality rating
 
         exercise = {
             "id": "test-id",
@@ -281,6 +277,7 @@ class TestRecordExerciseSession:
         assert call_args[2] == 600  # 10 minutes = 600 seconds
         assert call_args[3] is True  # completed
         assert call_args[4] == tmp_path
+        assert mock_save.call_args.kwargs["quality"] == 4  # quality
 
     @patch("src.lms.steps.reinforce.save_exercise_progress")
     @patch("src.lms.steps.reinforce.Confirm")
@@ -326,13 +323,19 @@ class TestRecordExerciseSession:
 class TestReinforceStep:
     """Tests pour reinforce_step()."""
 
-    @patch("src.lms.steps.reinforce.get_exercise_completion_count")
+    @patch("src.lms.steps.reinforce.get_reinforce_history")
     @patch("src.lms.steps.reinforce.ExerciseGenerator")
     @patch("src.lms.steps.reinforce.record_exercise_session")
     @patch("src.lms.steps.reinforce.inquirer")
     @patch("src.lms.steps.reinforce.get_available_exercises")
     def test_selects_and_records_exercise(
-        self, mock_exercises, mock_inquirer, mock_record, mock_generator_class, mock_completion_count, tmp_path
+        self,
+        mock_exercises,
+        mock_inquirer,
+        mock_record,
+        mock_generator_class,
+        mock_completion_count,
+        tmp_path,
     ):
         """
         Given: Utilisateur choisit un exercice valide
@@ -352,9 +355,13 @@ class TestReinforceStep:
         ]
         # Mock inquirer prompt response
         mock_inquirer.prompt.return_value = {
-            "exercise": "  1. [Test           ] Test Exercise                                          (Easy - 10min)"
+            "exercise": (
+                "  1. [Test           ] Test Exercise                                          "
+                "(Easy - 10min)"
+            )
         }
-        mock_completion_count.return_value = 0
+        mock_inquirer.list_input.return_value = "📂 Catalogue complet"
+        mock_completion_count.return_value = []  # Empty history
 
         # Mock exercise generator
         mock_generator = mock_generator_class.return_value
@@ -362,7 +369,7 @@ class TestReinforceStep:
             "title": "Test Exercise",
             "objectives": "Learn testing",
             "requirements": "Complete the test",
-            "success_criteria": "All tests pass"
+            "success_criteria": "All tests pass",
         }
 
         # Execute
@@ -386,7 +393,8 @@ class TestReinforceStep:
         """
         # Setup
         mock_exercises.return_value = []
-        mock_prompt.ask.return_value = "q"
+        # Mock inquirer returning None (cancel/exit)
+        mock_prompt.prompt.return_value = None
 
         # Execute
         reinforce_step(tmp_path)
@@ -415,14 +423,20 @@ class TestReinforceStep:
         mock_inquirer.prompt.assert_not_called()
         mock_record.assert_not_called()
 
-    @patch("src.lms.steps.reinforce.get_exercise_completion_count")
+    @patch("src.lms.steps.reinforce.get_reinforce_history")
     @patch("src.lms.steps.reinforce.ExerciseGenerator")
     @patch("src.lms.steps.reinforce.get_storage_path")
     @patch("src.lms.steps.reinforce.record_exercise_session")
     @patch("src.lms.steps.reinforce.inquirer")
     @patch("src.lms.steps.reinforce.get_available_exercises")
     def test_uses_default_storage_path_when_none(
-        self, mock_exercises, mock_inquirer, mock_record, mock_storage, mock_generator_class, mock_completion_count
+        self,
+        mock_exercises,
+        mock_inquirer,
+        mock_record,
+        mock_storage,
+        mock_generator_class,
+        mock_completion_count,
     ):
         """
         Given: Aucun storage_path fourni
@@ -442,10 +456,14 @@ class TestReinforceStep:
         ]
         # Mock inquirer
         mock_inquirer.prompt.return_value = {
-            "exercise": "  1. [Test           ] Test                                               (Easy - 10min)"
+            "exercise": (
+                "  1. [Test           ] Test                                               "
+                "(Easy - 10min)"
+            )
         }
+        mock_inquirer.list_input.return_value = "📂 Catalogue complet"
         mock_storage.return_value = Path("/default/path")
-        mock_completion_count.return_value = 0
+        mock_completion_count.return_value = []
 
         # Mock exercise generator
         mock_generator = MagicMock()
@@ -468,48 +486,56 @@ class TestReinforceStep:
 class TestExerciseProgression:
     """Tests for exercise progression tracking."""
 
-    def test_completion_count_returns_zero_for_new_exercise(self, tmp_path):
+    @patch("src.lms.steps.reinforce.get_reinforce_history")
+    def test_completion_count_returns_zero_for_new_exercise(
+        self, mock_history, tmp_path
+    ):
         """Test that completion count is 0 for a new exercise."""
         from src.lms.steps.reinforce import get_exercise_completion_count
+
+        mock_history.return_value = []
 
         count = get_exercise_completion_count("new-exercise", tmp_path)
         assert count == 0
 
-    def test_completion_count_tracks_across_days(self, tmp_path):
+    @patch("src.lms.steps.reinforce.get_reinforce_history")
+    def test_completion_count_tracks_across_days(self, mock_history, tmp_path):
         """Test that completion count sums all successful completions across all days."""
-        from src.lms.steps.reinforce import save_exercise_progress, get_exercise_completion_count
+        from src.lms.steps.reinforce import get_exercise_completion_count
 
-        # Save progress on day 1
-        save_exercise_progress("docker-basics", "Docker", 600, True, tmp_path)
+        mock_history.return_value = [{"completed": True}, {"completed": True}]
 
-        # Manually add another day's data
-        progress_file = tmp_path / "reinforce_progress.json"
-        with progress_file.open("r") as f:
-            import json
-            data = json.load(f)
-
-        # Add data for another day
-        data["2026-01-11"] = {
-            "exercises": [
-                {"id": "docker-basics", "title": "Docker", "duration_seconds": 900, "completed": True, "timestamp": "2026-01-11T10:00:00"}
-            ],
-            "total_time": 900
-        }
-
-        with progress_file.open("w") as f:
-            json.dump(data, f)
-
-        # Should count both completions
         count = get_exercise_completion_count("docker-basics", tmp_path)
         assert count == 2
 
-    def test_completion_count_ignores_incomplete_exercises(self, tmp_path):
+    @patch("src.lms.steps.reinforce.get_reinforce_history")
+    def test_completion_count_ignores_incomplete_exercises(
+        self, mock_history, tmp_path
+    ):
         """Test that incomplete exercises don't increase the count."""
-        from src.lms.steps.reinforce import save_exercise_progress, get_exercise_completion_count
+        from src.lms.steps.reinforce import get_exercise_completion_count
 
-        # Save incomplete progress
-        save_exercise_progress("docker-basics", "Docker", 300, False, tmp_path)
-        save_exercise_progress("docker-basics", "Docker", 400, False, tmp_path)
+        mock_history.return_value = [{"completed": False}, {"completed": False}]
 
         count = get_exercise_completion_count("docker-basics", tmp_path)
         assert count == 0
+
+
+class TestSRSAlgorithm:
+    """Tests pour l'algorithme SuperMemo-2."""
+
+    def test_calculate_next_review_success(self):
+        """Test interval increase on success."""
+        prev_data = {"reps": 1, "interval": 1, "ease_factor": 2.5}
+        result = calculate_next_review(4, prev_data)
+
+        assert result["reps"] == 2
+        assert result["interval"] == 6
+
+    def test_calculate_next_review_failure(self):
+        """Test reset on failure."""
+        prev_data = {"reps": 5, "interval": 20, "ease_factor": 2.5}
+        result = calculate_next_review(1, prev_data)
+
+        assert result["reps"] == 0
+        assert result["interval"] == 1

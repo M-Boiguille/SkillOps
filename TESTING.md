@@ -1,24 +1,19 @@
 # Guide de Test - SkillOps LMS
 
-Date: 11 janvier 2026
-Sprint: 1 (Complet - 11/11 issues)
+Date: 11 février 2026
+Sprint: 3 (en cours)
 
 ## 📊 État des Tests
 
 ### Tests Automatisés
 ```bash
 # Résultats actuels
-Total: 216 tests
-✅ Passing: 205 (95%)
-❌ Failing: 11 (5%)
+✅ Passing: suite verte (voir `pytest -v`)
+❌ Failing: 0
 
 # Couverture
-Coverage: 98-100% sur les nouveaux modules
+Coverage: dépend des modules ciblés (voir `pytest --cov`)
 ```
-
-### Échecs Connus
-- **reinforce_test.py** (8 tests) : Refactoring ProgressManager → JSON storage
-- **review_test.py** (3 tests) : Type hints list vs dict
 
 ## 🧪 Tests Manuels - Comment Tester l'Application
 
@@ -28,38 +23,39 @@ Coverage: 98-100% sur les nouveaux modules
 cd /home/mb/Documents/code/SkillOps
 
 # Afficher l'aide
-python skillops.py --help
+skillops --help
 
 # Afficher la version
-python skillops.py version
+skillops version
 
 # Démarrer le menu interactif
-python skillops.py start
+skillops start
 ```
 
 **Comportement attendu :**
-- Help : Affiche 2 commandes (start, version)
-- Version : "SkillOps LMS v0.1.0 (Sprint 1 MVP)"
-- Start : Menu interactif avec 8 étapes + Quit
+- Help : Affiche les commandes principales
+- Version : affiche la version SkillOps
+- Start : Menu interactif avec 9 étapes + Quit
 
 ### 2. Tester le Menu Principal
 
 ```bash
-python skillops.py start
+skillops start
 ```
 
 **Vérifications :**
 1. ✅ Header avec titre et date affichés
 2. ✅ 9 options affichées :
-   - 📊 Review (Yesterday's Metrics)
-   - ⏱️ Formation (WakaTime Tracking)
-   - 🧠 Analysis (AI Q&A)
-   - 💪 Reinforce (Practice Exercises)
-   - 📝 Zettelkasten (Note Taking)
-   - 🎴 Learn Flashcards (Anki)
-   - 🔄 Share (GitHub Portfolio)
-   - 📱 Notify (Telegram Summary)
-   - ❌ Quit
+   - 📊 Daily Stand-up
+   - 📖 Read
+   - 🧠 Tutor
+   - 💪 Reinforce
+   - 📝 Create
+   - 🗂️ Flashcards
+   - 🚀 Mission Control
+   - 🌐 Pull Request
+   - 🌅 Reflection
+   - ❌ Exit
 3. ✅ **Navigation avec :**
    - Flèches haut/bas (↑↓)
    - **Touches Vim : `j` (bas) / `k` (haut)**
@@ -69,7 +65,7 @@ python skillops.py start
 ### 3. Tester l'Étape Review (sans données)
 
 ```bash
-python skillops.py start
+skillops start
 # Sélectionner "Review Metrics"
 ```
 
@@ -88,7 +84,7 @@ Complete some steps today to see them tomorrow!
 ### 4. Tester l'Étape Formation (sans WakaTime API key)
 
 ```bash
-python skillops.py start
+skillops start
 # Sélectionner "Formation Tracking"
 ```
 
@@ -113,7 +109,7 @@ cat > .env << EOF
 WAKATIME_API_KEY=waka_votre_clé_ici
 EOF
 
-python skillops.py start
+skillops start
 # Sélectionner "Formation Tracking"
 ```
 
@@ -128,7 +124,7 @@ python skillops.py start
 ### 6. Tester l'Étape Reinforce
 
 ```bash
-python skillops.py start
+skillops start
 # Sélectionner "Reinforce Practice"
 ```
 
@@ -155,26 +151,11 @@ Have you completed this exercise? [y/N]: y
 ✅ Progress saved!
 ```
 
-### 7. Tester les Étapes Placeholder
+### 7. Tester Quit
 
 ```bash
-python skillops.py start
-# Tester : Analysis, Zettelkasten, Learn, Share, Notify
-```
-
-**Comportement attendu pour chaque :**
-```
-[Icon] [Step Name]
-
-This step is not yet implemented.
-Coming soon in Sprint 2!
-```
-
-### 8. Tester Quit
-
-```bash
-python skillops.py start
-# Sélectionner "Quit"
+skillops start
+# Sélectionner "Exit"
 ```
 
 **Comportement attendu :**
@@ -198,7 +179,12 @@ python -m pytest tests/lms/steps/ -v
 
 # Tests e2e seulement
 python -m pytest tests/lms/cli_e2e_test.py -v
-python -m pytest tests/lms/integration/ -v
+
+# Smoke tests
+python -m pytest tests/smoke -v
+
+# Tests d'intégration réels (nécessitent tokens)
+# GITHUB_TOKEN, TELEGRAM_BOT_TOKEN, etc.
 ```
 
 ### Lancer les Pre-commit Hooks

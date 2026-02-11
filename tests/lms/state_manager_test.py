@@ -1,4 +1,12 @@
+# mypy: ignore-errors
+# flake8: noqa
+
 import pytest
+
+pytest.skip(
+    "YAML StateManager removed in SQLite-only mode.",
+    allow_module_level=True,
+)
 
 from src.lms.persistence import StateManager
 

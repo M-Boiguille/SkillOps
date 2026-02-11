@@ -8,7 +8,8 @@ from typing import Optional
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from src.lms.persistence import ProgressManager
+from src.lms.database import get_connection, init_db
+from src.lms.persistence import calculate_streak, get_progress_history
 
 console = Console()
 
@@ -27,7 +28,7 @@ class DataImporter:
             if storage_path
             else Path.home() / ".local/share/skillops"
         )
-        self.progress_manager = ProgressManager(self.storage_path)
+        init_db(self.storage_path)
 
     def import_from_json(
         self,
@@ -64,38 +65,14 @@ class DataImporter:
                 if backup:
                     self._create_backup()
 
-                # Import progress data
                 if merge:
-                    # Load existing progress
-                    current = self.progress_manager.load_progress()
-                    # Merge: add new entries, replace existing ones by date
-                    import_dates = {e["date"] for e in progress_list}
-
-                    # Keep existing entries not in import
-                    merged = [e for e in current if e["date"] not in import_dates]
-                    # Add all import entries
-                    merged.extend(progress_list)
-                    # Sort by date
-                    merged.sort(key=lambda e: e["date"])
-
-                    # Save merged data
-                    for entry in merged:
-                        self.progress_manager.save_daily_progress(
-                            entry, merge_strategy="replace"
-                        )
-                else:
-                    # Replace: clear and import fresh
                     for entry in progress_list:
-                        self.progress_manager.save_daily_progress(
-                            entry, merge_strategy="replace"
-                        )
-
-                # Import metrics if available
-                metrics = import_data.get("data", {}).get("metrics", {})
-                if metrics:
-                    metrics_file = self.storage_path / "metrics.json"
-                    metrics_file.parent.mkdir(parents=True, exist_ok=True)
-                    metrics_file.write_text(json.dumps(metrics, indent=2))
+                        self._clear_progress_for_date(entry.get("date"))
+                        self._insert_progress_entry(entry)
+                else:
+                    self._clear_all_progress()
+                    for entry in progress_list:
+                        self._insert_progress_entry(entry)
 
                 progress.update(task, completed=True)
 
@@ -181,31 +158,15 @@ class DataImporter:
                     )
 
         if merge:
-            # Load existing progress
-            current = self.progress_manager.load_progress()
-
-            # Keep existing entries not in import
-            merged = [
-                e
-                for e in current
-                if e["date"] not in {e["date"] for e in progress_list}
-            ]
-            # Add all import entries
-            merged.extend(progress_list)
-            # Sort by date
-            merged.sort(key=lambda e: e["date"])
-
-            # Save merged data
-            for entry in merged:
-                self.progress_manager.save_daily_progress(
-                    entry, merge_strategy="replace"
-                )
-        else:
-            # Replace: save each entry
             for entry in progress_list:
-                self.progress_manager.save_daily_progress(
-                    entry, merge_strategy="replace"
-                )
+                date_value = entry.get("date")
+                if isinstance(date_value, str) and date_value:
+                    self._clear_progress_for_date(date_value)
+                self._insert_progress_entry(entry)
+        else:
+            self._clear_all_progress()
+            for entry in progress_list:
+                self._insert_progress_entry(entry)
 
     def _create_backup(self) -> Path:
         """Create backup of current progress data.
@@ -219,11 +180,104 @@ class DataImporter:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_file = backup_dir / f"progress_backup_{timestamp}.json"
 
-        progress_data = self.progress_manager.load_progress()
-        backup_file.write_text(json.dumps(progress_data, indent=2))
+        history = get_progress_history(self.storage_path)
+        total_cards = sum(e.get("cards", 0) for e in history)
+        total_time = sum(e.get("time", 0) for e in history)
+        avg_time = (total_time / len(history)) if history else 0.0
+
+        export_data = {
+            "exported_at": datetime.now().isoformat(),
+            "export_format": "json",
+            "version": "1.0",
+            "data": {
+                "progress": history,
+                "metrics": {
+                    "streak": calculate_streak(self.storage_path),
+                    "avg_time": avg_time,
+                    "total_cards": total_cards,
+                },
+            },
+        }
+
+        backup_file.write_text(json.dumps(export_data, indent=2, ensure_ascii=False))
 
         console.print(f"[dim]Created backup: {backup_file}[/dim]")
         return backup_file
+
+    def _clear_progress_for_date(self, date_str: Optional[str]) -> None:
+        if not date_str:
+            return
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM sessions WHERE date = ?", (date_str,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return
+        session_id = row[0]
+        cursor.execute(
+            "DELETE FROM step_completions WHERE session_id = ?", (session_id,)
+        )
+        cursor.execute("DELETE FROM formation_logs WHERE session_id = ?", (session_id,))
+        cursor.execute("DELETE FROM card_creations WHERE session_id = ?", (session_id,))
+        conn.commit()
+        conn.close()
+
+    def _clear_all_progress(self) -> None:
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM step_completions")
+        cursor.execute("DELETE FROM formation_logs")
+        cursor.execute("DELETE FROM card_creations")
+        cursor.execute("DELETE FROM read_sessions")
+        cursor.execute("DELETE FROM sessions")
+        conn.commit()
+        conn.close()
+
+    def _insert_progress_entry(self, entry: dict) -> None:
+        if not isinstance(entry, dict):
+            return
+        date_str = entry.get("date")
+        if not date_str:
+            return
+
+        def _safe_int(value) -> int:
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return 0
+
+        steps = _safe_int(entry.get("steps", 0))
+        time_minutes = _safe_int(entry.get("time", 0))
+        cards = _safe_int(entry.get("cards", 0))
+
+        conn = get_connection(self.storage_path)
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR IGNORE INTO sessions (date) VALUES (?)", (date_str,))
+        cursor.execute("SELECT id FROM sessions WHERE date = ?", (date_str,))
+        session_id = cursor.fetchone()[0]
+
+        for step_num in range(1, min(max(steps, 0), 9) + 1):
+            cursor.execute(
+                "INSERT OR IGNORE INTO step_completions (session_id, step_number) VALUES (?, ?)",
+                (session_id, step_num),
+            )
+
+        if time_minutes > 0:
+            cursor.execute(
+                "INSERT INTO formation_logs (session_id, goals, recall, "
+                "duration_minutes) VALUES (?, ?, ?, ?)",
+                (session_id, json.dumps([]), "", time_minutes),
+            )
+
+        if cards > 0:
+            cursor.execute(
+                "INSERT INTO card_creations (session_id, count, source) VALUES (?, ?, ?)",
+                (session_id, cards, "import"),
+            )
+
+        conn.commit()
+        conn.close()
 
     def validate_import(self, file_path: Path) -> bool:
         """Validate import file before importing.

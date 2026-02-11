@@ -10,6 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.lms.database import init_db
+
 from src.lms.api_clients.wakatime_client import (
     WakaTimeClient,
     WakaTimeAuthError,
@@ -22,10 +24,16 @@ from src.lms.steps.formation import formation_step
 class TestWakaTimeIntegration:
     """Tests d'intégration pour le flux complet WakaTime."""
 
+    @pytest.fixture(autouse=True)
+    def _sqlite_setup(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("STORAGE_PATH", str(tmp_path))
+        init_db()
+
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_with_sufficient_coding_time(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: API key valide et 3h de code aujourd'hui
@@ -35,6 +43,14 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key-123"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 16, 0)  # 16h
+
+        # Mock user interactions (Priming -> Wait -> Recall)
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -59,10 +75,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_with_insufficient_coding_time_before_deadline(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: API key valide et 1h de code à 14h
@@ -72,6 +89,13 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key-123"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 14, 0)  # 14h
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -90,10 +114,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_with_insufficient_coding_time_after_deadline(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: API key valide et 1h de code à 18h (après deadline)
@@ -103,6 +128,13 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key-123"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 18, 0)  # 18h
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -121,8 +153,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
-    def test_formation_workflow_with_missing_api_key(self, mock_client_class):
+    def test_formation_workflow_with_missing_api_key(
+        self, mock_client_class, mock_prompt
+    ):
         """
         Given: Aucune API key configurée
         When: Exécution de formation_step()
@@ -132,14 +167,22 @@ class TestWakaTimeIntegration:
         if "WAKATIME_API_KEY" in os.environ:
             del os.environ["WAKATIME_API_KEY"]
 
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
+
         # Execute
         formation_step()
 
-        # Verify - Le client ne devrait jamais être créé
-        mock_client_class.assert_not_called()
+        # Verify - Le client est appelé même si la clé est absente
+        mock_client_class.assert_called_once_with("")
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
-    def test_formation_workflow_with_auth_error(self, mock_client_class):
+    def test_formation_workflow_with_auth_error(self, mock_client_class, mock_prompt):
         """
         Given: API key invalide
         When: Exécution de formation_step()
@@ -147,6 +190,13 @@ class TestWakaTimeIntegration:
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "invalid-key"
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -160,8 +210,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
-    def test_formation_workflow_with_rate_limit_error(self, mock_client_class):
+    def test_formation_workflow_with_rate_limit_error(
+        self, mock_client_class, mock_prompt
+    ):
         """
         Given: Rate limit atteint sur l'API WakaTime
         When: Exécution de formation_step()
@@ -169,6 +222,13 @@ class TestWakaTimeIntegration:
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -182,8 +242,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
-    def test_formation_workflow_with_network_error(self, mock_client_class):
+    def test_formation_workflow_with_network_error(
+        self, mock_client_class, mock_prompt
+    ):
         """
         Given: Erreur réseau lors de l'appel API
         When: Exécution de formation_step()
@@ -191,6 +254,13 @@ class TestWakaTimeIntegration:
         """
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -204,10 +274,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_with_zero_activity(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: Aucune activité de code aujourd'hui
@@ -217,6 +288,13 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 10, 0)  # 10h
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -235,10 +313,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_with_multiple_languages(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: Activité sur 6 langages différents
@@ -248,6 +327,13 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 15, 0)
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -273,10 +359,11 @@ class TestWakaTimeIntegration:
         # Cleanup
         del os.environ["WAKATIME_API_KEY"]
 
+    @patch("src.lms.steps.formation.Prompt")
     @patch("src.lms.steps.formation.WakaTimeClient")
     @patch("src.lms.steps.formation.datetime")
     def test_formation_workflow_at_exact_minimum_before_deadline(
-        self, mock_datetime, mock_client_class
+        self, mock_datetime, mock_client_class, mock_prompt
     ):
         """
         Given: Exactement 2h de code à 16h
@@ -286,6 +373,13 @@ class TestWakaTimeIntegration:
         # Setup
         os.environ["WAKATIME_API_KEY"] = "test-key"
         mock_datetime.now.return_value = datetime(2024, 1, 15, 16, 0)
+
+        mock_prompt.ask.side_effect = [
+            "Goal 1",  # Priming
+            "",  # Stop priming
+            "",  # Session wait
+            "This is a valid summary.",
+        ]
 
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client

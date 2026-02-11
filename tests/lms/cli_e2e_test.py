@@ -96,15 +96,15 @@ class TestCliCommands:
 class TestMainMenuIntegration:
     """Tests d'intégration pour main_menu()."""
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_returns_selected_step(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_returns_selected_step(self, mock_inquirer):
         """
         Given: Utilisateur sélectionne une étape valide
         When: Appel de main_menu()
         Then: Retourne l'objet Step correspondant
         """
         # Simuler la sélection de la première étape
-        mock_prompt.return_value = {"step": "1. 📊 Daily Stand-up"}
+        mock_inquirer.prompt.return_value = {"step": "1. 📊 Daily Stand-up"}
 
         result = main_menu()
 
@@ -113,34 +113,34 @@ class TestMainMenuIntegration:
         assert result.number == 1
         assert result.name == "Daily Stand-up"
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_returns_none_on_quit(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_returns_none_on_quit(self, mock_inquirer):
         """
         Given: Utilisateur sélectionne 'Exit'
         When: Appel de main_menu()
         Then: Retourne None
         """
-        mock_prompt.return_value = {"step": "❌ Exit"}
+        mock_inquirer.prompt.return_value = {"step": "❌ Exit"}
 
         result = main_menu()
 
         assert result is None
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_handles_keyboard_interrupt(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_handles_keyboard_interrupt(self, mock_inquirer):
         """
         Given: Utilisateur interrompt avec Ctrl+C
         When: Appel de main_menu()
         Then: Retourne None gracieusement
         """
-        mock_prompt.side_effect = KeyboardInterrupt()
+        mock_inquirer.prompt.side_effect = KeyboardInterrupt()
 
         result = main_menu()
 
         assert result is None
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_returns_correct_step_for_each_option(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_returns_correct_step_for_each_option(self, mock_inquirer):
         """
         Given: Chaque option du menu sélectionnée
         When: Appel de main_menu()
@@ -149,7 +149,7 @@ class TestMainMenuIntegration:
         # Tester chaque étape
         for i, step in enumerate(STEPS, start=1):
             choice = f"{i}. {step.emoji} {step.name}"
-            mock_prompt.return_value = {"step": choice}
+            mock_inquirer.prompt.return_value = {"step": choice}
 
             result = main_menu()
 
@@ -178,20 +178,24 @@ class TestExecuteStepIntegration:
 
     @patch("src.lms.cli.daily_standup_step")
     @patch("src.lms.cli.anki_step")
+    @patch("src.lms.cli.read_step")
     @patch("src.lms.cli.tutor_step")
+    @patch("src.lms.cli.reinforce_step")
     @patch("src.lms.cli.missions_step")
     @patch("src.lms.cli.create_step")
     @patch("src.lms.cli.share_step")
-    @patch("src.lms.cli.labs_step")
+    @patch("src.lms.cli.reflection_step")
     @patch("src.lms.cli.console.print")
     def test_execute_step_with_all_steps(
         self,
         mock_print,
-        mock_labs,
-        mock_share,
-        mock_create,
-        mock_missions,
+        _mock_reflection,
+        _mock_share,
+        _mock_create,
+        _mock_missions,
+        _mock_reinforce,
         mock_tutor,
+        _mock_read,
         mock_anki,
         mock_review,
     ):
@@ -215,9 +219,12 @@ class TestExecuteStepIntegration:
 class TestEndToEndWorkflow:
     """Tests de workflow complet end-to-end."""
 
-    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.inquirer")
     @patch("src.lms.cli.console.print")
-    def test_complete_workflow_review_then_quit(self, mock_print, mock_prompt):
+    @patch("src.lms.cli.daily_standup_step")
+    def test_complete_workflow_review_then_quit(
+        self, mock_standup, _mock_print, mock_inquirer
+    ):
         """
         Given: Workflow complet (Daily Stand-up → Quit)
         When: Navigation dans le menu
@@ -225,7 +232,7 @@ class TestEndToEndWorkflow:
         """
         # Premier appel : sélectionner Daily Stand-up
         # Deuxième appel : quitter
-        mock_prompt.side_effect = [
+        mock_inquirer.prompt.side_effect = [
             {"step": "1. 📊 Daily Stand-up"},
             {"step": "❌ Exit"},
         ]
@@ -235,26 +242,27 @@ class TestEndToEndWorkflow:
         assert step1 is not None
         assert step1.name == "Daily Stand-up"
         execute_step(step1)
+        mock_standup.assert_called_once()
 
         step2 = main_menu()
         assert step2 is None
 
-    @patch("src.lms.cli.inquirer.prompt")
+    @patch("src.lms.cli.inquirer")
     @patch("src.lms.cli.daily_standup_step")
     @patch("src.lms.cli.anki_step")
     @patch("src.lms.cli.missions_step")
     def test_complete_workflow_multiple_steps(
-        self, mock_missions, mock_anki, mock_review, mock_prompt
+        self, mock_missions, mock_anki, mock_review, mock_inquirer
     ):
         """
         Given: Workflow avec 3 étapes (Daily Stand-up → Flashcards → Mission Control → Quit)
         When: Navigation dans le menu
         Then: Exécute chaque étape dans l'ordre
         """
-        mock_prompt.side_effect = [
+        mock_inquirer.prompt.side_effect = [
             {"step": "1. 📊 Daily Stand-up"},
-            {"step": "2. 🗂️ Flashcards"},
-            {"step": "6. 💪 Mission Control"},
+            {"step": "6. 🗂️ Flashcards"},
+            {"step": "7. 🚀 Mission Control"},
             {"step": "❌ Exit"},
         ]
 
@@ -297,27 +305,27 @@ class TestEndToEndWorkflow:
 class TestCliErrorHandling:
     """Tests de gestion d'erreurs du CLI."""
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_handles_empty_response(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_handles_empty_response(self, mock_inquirer):
         """
         Given: Réponse vide (inquirer.prompt retourne None)
         When: Appel de main_menu()
         Then: Retourne None gracieusement
         """
-        mock_prompt.return_value = None
+        mock_inquirer.prompt.return_value = None
 
         # Should not crash
         result = main_menu()
         assert result is None
 
-    @patch("src.lms.cli.inquirer.prompt")
-    def test_menu_handles_invalid_response(self, mock_prompt):
+    @patch("src.lms.cli.inquirer")
+    def test_menu_handles_invalid_response(self, mock_inquirer):
         """
         Given: Réponse invalide (pas de numéro de step)
         When: Appel de main_menu()
         Then: Lève une exception ou retourne None
         """
-        mock_prompt.return_value = {"step": "Invalid Option"}
+        mock_inquirer.prompt.return_value = {"step": "Invalid Option"}
 
         # Le code actuel va lever ValueError lors du int()
         # C'est acceptable pour un cas invalide qui ne devrait pas arriver
@@ -333,7 +341,7 @@ class TestCliErrorHandling:
         """
         Given: execute_step() lève une exception
         When: Exécution de l'app
-        Then: L'exception est propagée (pour débogage)
+        Then: L'app gère l'erreur et continue
         """
         step = Step(1, "Test", "🧪", False)
         mock_pagerduty.return_value = True
@@ -342,8 +350,8 @@ class TestCliErrorHandling:
 
         result = runner.invoke(app, ["start"])
 
-        # L'exception devrait être propagée
-        assert result.exit_code != 0
+        # L'app continue et sort proprement
+        assert result.exit_code == 0
 
 
 class TestStepDataIntegrity:

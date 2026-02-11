@@ -14,7 +14,7 @@
 
 ## 📖 Overview
 
-**SkillOps** is an automated learning management system designed to optimize daily DevOps training routines. Rather than manually managing tracking, notes, and revisions across 10 different tools, I built a CLI tool that intelligently orchestrates 9 learning steps (8 core + Labs) using a state machine.
+**SkillOps** is an automated learning management system designed to optimize daily DevOps training routines. Rather than manually managing tracking, notes, and revisions across 10 different tools, I built a CLI tool that intelligently orchestrates 9 learning steps using a state machine.
 
 ### 🎯 Le Problème Résolu
 
@@ -36,28 +36,17 @@ Un **outil CLI Python** qui :
 
 ---
 
-## 📊 Project Status
+## ✅ Current Workflow (9 steps)
 
-### Sprint Progress
-
-| Sprint | Duration | Status | Features | Tests |
-|--------|----------|--------|----------|-------|
-| **Sprint 1** | 11 jan 2026 | ✅ COMPLETED | 5 core steps + state machine | 216/216 ✓ |
-| **Sprint 2** | 11 jan 2026 | ✅ COMPLETED | Telegram + Flashcards + GitHub | 276/276 ✓ |
-| **Sprint 3** | 12-18 jan 2026 | 🔄 IN PLANNING | UX Polish + Integration Tests | - |
-
-### Features Status
-
-- ✅ Daily Stand-up (Sprint 1)
-- ✅ Formation Tracking (Sprint 1)
-- ✅ Analysis with AI (Sprint 1)
-- ✅ Mission Control (Sprint 1)
-- ✅ Zettelkasten Notes (Sprint 1)
-- ✅ **Flashcard Generation** (Sprint 2 - NEW!)
-- ✅ **Portfolio Automation** (Sprint 2 - NEW!)
-- ✅ **Daily Notifications** (Sprint 2 - NEW!)
-- 🔄 UX Polish (Sprint 3 - Coming Soon)
-- 🔄 DevOps Automation (Sprint 3 - Coming Soon)
+1. **Daily Stand-up** — metrics & streak recap
+2. **Read** — articles and knowledge capture
+3. **Tutor** — AI Q&A and concept reinforcement
+4. **Reinforce** — practice exercises
+5. **Create** — flashcard generation from Obsidian
+6. **Flashcards** — Anki review workflow
+7. **Mission Control** — tickets/incidents with validation
+8. **Pull Request** — portfolio automation (GitHub)
+9. **Reflection** — daily journal & wrap-up
 
 ---
 
@@ -77,7 +66,8 @@ Un **outil CLI Python** qui :
 3. **Vérifier l'installation**
   ```bash
   skillops version
-  skillops health
+  skillops doctor
+  pytest -v tests/smoke
   ```
 4. **Lancer le menu interactif**
   ```bash
@@ -94,146 +84,42 @@ Répertoire attendu :
 - `books/completed/` → résultats JSONL téléchargés
 - `books/books-manifest.yaml` → état global
 
-Commandes principales (via Typer) :
+Commandes principales :
 
 ```bash
-# Visualiser la file d'attente
 skillops check-books
-
-# Soumettre les PDFs en attente (GEMINI_API_KEY requis)
 skillops submit-books --api-key "$GEMINI_API_KEY"
-
-# Récupérer les résultats terminés
 skillops fetch-books --book networking-fundamentals
-
-# Importer dans votre vault Obsidian
 skillops import-books --vault ~/Obsidian --book networking-fundamentals
-
-# Pipeline complet : soumettre → attendre → fetch → import
 skillops process-pipeline --watch --interval 15
 ```
-
-👉 Les commandes ci-dessus appellent directement les fonctions de [src/lms/books/manager.py](src/lms/books/manager.py) et sont exposées dans l'interface Typer ([src/lms/main.py](src/lms/main.py)).
 
 ---
 
 ## 🧪 Tests
 
 ```bash
-# Activer l'environnement
 source .venv/bin/activate
-
-# Exécuter les tests du module books
-python -m pytest tests/lms/books -v
-
-# Exécuter toute la suite
 python -m pytest -v
 ```
 
 ---
 
----
+## 📚 Documentation
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    SkillOps CLI Engine                       │
-│                   State Machine (9 Steps)                    │
-└────────────┬─────────────────────────────────┬───────────────┘
-             │                                 │
-    ┌────────▼─────────┐              ┌───────▼────────┐
-    │  User Interface  │              │ Data Tracking  │
-    │  ├─ Typer (CLI)  │              │ ├─ .state.yaml │
-    │  ├─ Rich (UI)    │              │ ├─ .progress   │
-    │  └─ Inquirer     │              │ └─ .metrics    │
-    └──────────────────┘              └────────────────┘
-             │
-    ┌────────┴────────────────────────────────────────┐
-    │                                                  │
-┌───▼──────────┐  ┌──────────┐  ┌─────────┐  ┌──────▼──────┐
-│ API Clients  │  │ Workflows│  │ Storage │  │ Integration │
-│              │  │          │  │         │  │             │
-│ ├─ Gemini AI│  │ ├─ Steps │  │ ├─ JSON │  │ ├─ Obsidian │
-│ ├─ WakaTime │  │ ├─ State │  │ ├─ YAML │  │ ├─ GitHub   │
-│ ├─ GitHub   │  │ └─ Events│  │ └─ CSV  │  │ └─ Telegram │
-│ └─ Telegram │  │          │  │         │  │             │
-└──────────────┘  └──────────┘  └─────────┘  └─────────────┘
-```
+- [docs/QUICKSTART.md](docs/QUICKSTART.md)
+- [docs/FEATURES.md](docs/FEATURES.md)
+- [docs/OPERATIONS.md](docs/OPERATIONS.md)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)
+- [docs/SECURITY.md](docs/SECURITY.md)
+- [docs/RUNBOOKS.md](docs/RUNBOOKS.md)
+- [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
 
 ---
 
-## 📚 Documentation du Cycle de Vie Projet
+## 🔔 Daily Telegram Notifications
 
-**⭐ Pour les recruteurs** : Ce projet suit une méthodologie professionnelle complète, documentée dans [project-lifecycle/](project-lifecycle/).
-
-Ce dossier démontre ma compréhension du cycle de développement logiciel en entreprise :
-- 📋 [Product Discovery](project-lifecycle/01-product-discovery-session.md) - Clarification des besoins entre PM et PO
-- 📝 [User Requirements Document (URD)](project-lifecycle/02-urd-user-requirements-document.md) - User stories, NFRs, KPIs
-- 🏗️ [Architecture Decision Records (ADR)](project-lifecycle/03-adr-architecture-decision-records.md) - Décisions techniques justifiées
-
-**Pourquoi c'est important** : Je ne code pas "au feeling", je suis un processus structuré (Discovery → Specs → Architecture → Dev) comme dans une vraie entreprise tech.
-
----
-
-## 🎨 Fonctionnalités Principales
-
-### 1️⃣ **Daily Stand-up** 📊
-- Affiche les métriques de la veille (temps codé, étapes complétées)
-- Compare avec les objectifs quotidiens
-- Calcule le "streak" de jours consécutifs
-
-### 2️⃣ **Formation Tracking** ⏱️
-- Intégration WakaTime pour tracking automatique du code
-- Suivi des sessions KodeKloud
-- Alertes si quota quotidien non atteint
-
-### 3️⃣ **Analysis with AI** 🧠
-- Pose des questions sur les concepts étudiés
-- Gemini génère des réponses contextuelles
-- Stocke les Q&A pour révisions futures
-
-### 4️⃣ **Mission Control** 💪
-- Backlog de tickets & incidents contextualisés
-- Exécution guidée avec critères d’acceptation
-- Validation locale (checks) + revue AI (placeholder)
-
-### 5️⃣ **Zettelkasten Notes** 📝
-- Prise de notes atomiques (méthode Zettelkasten)
-- Synchronisation avec Obsidian
-- Liens entre concepts
-
-### 6️⃣ **Flashcards Generation** 🃏
-- ✅ **[SPRINT 2]** Création automatique de cartes Anki depuis notes Obsidian
-- ✅ **[SPRINT 2]** Export compatible avec Anki (format TSV)
-- ✅ **[SPRINT 2]** Déduplication par hash SHA256
-- Support 3 formats: `Q:/A:`, `Q::/A::`, inline `::`
-- Filtrage par tag `#flashcard`
-
-**Usage:**
-```bash
-skillops create --storage-path storage --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
-```
-
-### 7️⃣ **Pull Request (Portfolio Automation)** 🔧
-- ✅ **[SPRINT 2]** Détection automatique des projets dans ~/labs/ sans remote
-- ✅ **[SPRINT 2]** Génération de README avec badges tech (Python, Node.js, Docker, etc.)
-- ✅ **[SPRINT 2]** Création de repo GitHub via API
-- ✅ **[SPRINT 2]** Git init, commit, push automatiques
-- Tech stack detection (package.json, requirements.txt, Dockerfile, etc.)
-
-**Usage:**
-```bash
-export GITHUB_TOKEN=ghp_xxxxx
-export GITHUB_USERNAME=your_username
-skillops share --labs-path ~/labs
-```
-
-### 8️⃣ **Daily Reflection & Notifications** 🌅
-- ✅ **[SPRINT 2]** Notifications quotidiennes Telegram avec bilans
-- ✅ **[SPRINT 2]** Format Markdown avec métriques (steps complétés, temps, streak)
-- ✅ **[SPRINT 2]** Respect du planning (envoie à l'heure prévue)
-- ✅ **[SPRINT 2]** Alertes si objectifs non atteints
-
-**Usage:**
 ```bash
 export TELEGRAM_BOT_TOKEN=123456:ABC
 export TELEGRAM_CHAT_ID=987654321
@@ -243,161 +129,28 @@ skillops notify --storage-path storage --respect-schedule
 
 ---
 
-## � Feature Documentation
-
-### 🃏 Flashcard Generation (Sprint 2)
-
-Automatically create flashcards from your Obsidian vault:
-
-```bash
-# Setup
-export OBSIDIAN_VAULT_PATH=~/Obsidian
-export ANKI_SYNC_PATH=~/Anki/sync
-
-# Generate flashcards from vault
-skillops create --vault-path $OBSIDIAN_VAULT_PATH --anki-sync-path $ANKI_SYNC_PATH
-```
-
-**Features:**
-- Scans Obsidian vault for notes with `#flashcard` tag
-- Supports 3 markdown formats:
-  - `Q: question` / `A: answer`
-  - `Q:: question` / `A:: answer`
-  - Inline `question :: answer`
-- Deduplicates by SHA256 hash (no duplicate cards!)
-- Exports TSV format compatible with Anki
-
-**Example Obsidian note:**
-```markdown
-# Learning - Docker Basics
-
-#flashcard
-
-Q: What is a Docker image?
-A: A lightweight, standalone, executable package containing code, runtime, and dependencies.
-
-Q: Difference between image and container?
-A: Image = blueprint (immutable), Container = running instance (mutable)
-```
-
-Result: `skillops-YYYY-MM-DD.txt` in `ANKI_SYNC_PATH` ready for Anki import!
-
----
-
-### 🚀 Pull Request - GitHub Portfolio Automation (Sprint 2)
-
-Automatically push lab projects to GitHub:
-
-```bash
-# Setup
-export GITHUB_TOKEN=ghp_xxxxxxxxx         # From https://github.com/settings/tokens
-export GITHUB_USERNAME=your_username
-export LABS_PATH=~/labs
-
-# Pull Request: share projects to GitHub
-skillops share --labs-path $LABS_PATH
-```
-
-**What it does:**
-1. Scans `~/labs/` for project directories
-2. Detects projects without Git remote
-3. Generates professional `README.md` with:
-   - Auto-detected tech stack (Python, Node.js, Docker, Go, etc.)
-   - Tech badges (shields.io)
-   - Installation & usage sections
-4. Creates GitHub repository via API
-5. Initializes git, commits, and pushes
-
-**Example output:**
-```
-Found 3 projects
-Processing: my-python-cli
-  ✓ Generated README.md
-  ✓ Initialized git repository
-  ✓ Created commit: "Initial commit"
-  ✓ Created GitHub repository
-  ✓ Pushed to origin
-✓ my-python-cli: https://github.com/user/my-python-cli
-
-Processing: node-api-server
-✓ node-api-server: https://github.com/user/node-api-server
-```
-
-**Auto-detected tech stacks:**
-- Python (requirements.txt, setup.py)
-- Node.js (package.json)
-- Docker (Dockerfile, docker-compose.yml)
-- Go (go.mod)
-- Terraform (terraform/)
-- And more!
-
----
-
-### 📱 Daily Telegram Notifications (Sprint 2)
-
-Get daily progress summaries via Telegram:
-
-```bash
-# Setup
-export TELEGRAM_BOT_TOKEN=123456:ABCdef    # From BotFather
-export TELEGRAM_CHAT_ID=987654321          # Your chat ID
-export TELEGRAM_SCHEDULE_TIME=20:00        # Optional: Send at specific time
-
-# Send notification
-skillops notify --storage-path storage --respect-schedule
-```
-
-**What you receive:**
-```
-📊 SkillOps Daily Summary
-
-✓ Steps Completed: 6/8
-  ├─ Daily Stand-up ✓
-  ├─ Metrics ✓
-  ├─ Flashcards ✓
-  ├─ Mission Control ✓
-  └─ Read ✓
-
-⏱️ Time Spent: 3h 45m
-🔥 Current Streak: 12 days
-📈 Total Cards Reviewed: 342
-
-🎯 Goals for Tomorrow:
-  • Complete all 8 core steps
-  • Code for 4+ hours
-  • Review 15+ flashcards
-```
-
-**Features:**
-- Respects schedule (send only at specified time via --respect-schedule)
-- Beautiful Markdown formatting
-- Includes metrics and streaks
-- Can be run via cron/systemd
-
----
-
-## 🧭 9-Step Workflow (Core + Labs)
+## 🧭 9-Step Workflow
 
 ### Overview
 - **1. Daily Stand-up:** View yesterday’s coding metrics and streak.
-- **2. Formation:** Plan today’s study focus using tracked time.
-- **3. Flashcards:** Review flashcards in the desktop app (placeholder in CLI).
-- **4. Create:** Generate flashcards from Obsidian notes and export for Anki.
-- **5. Read:** Review notes (placeholder guidance in CLI).
-- **6. Mission Control:** Solve tickets and incidents with acceptance criteria.
-- **7. Pull Request:** Detect local labs, create GitHub repos, generate README, push.
-- **8. Reflection:** Journal your day (placeholder guidance in CLI).
-- **9. Labs:** AI-powered learning missions.
+- **2. Read:** Capture articles and notes.
+- **3. Tutor:** AI Q&A and concept reinforcement.
+- **4. Reinforce:** Practice exercises.
+- **5. Create:** Generate flashcards from Obsidian notes and export for Anki.
+- **6. Flashcards:** Review due cards via AnkiConnect.
+- **7. Mission Control:** Solve tickets and incidents with acceptance criteria.
+- **8. Pull Request:** Detect local labs, create GitHub repos, generate README, push.
+- **9. Reflection:** Journal your day and wrap up.
 
 ### Commands
 ```bash
 # Interactive menu (all 9 steps)
-python -m src.lms.main start
+skillops start
 
 # Run specific steps
-python -m src.lms.main create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
-python -m src.lms.main share --labs-path ~/labs
-python -m src.lms.main notify --respect-schedule
+skillops create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
+skillops share --labs-path ~/labs
+skillops notify --respect-schedule
 ```
 
 ### GitHub Token Scopes (for Pull Request step)
@@ -445,15 +198,15 @@ To get these tokens:
 | **Langage** | Python 3.11+ |
 | **CLI Framework** | Typer, Rich, Inquirer |
 | **APIs** | Google Gemini, WakaTime, GitHub REST API, Telegram Bot API |
-| **Persistence** | JSON, YAML, CSV |
+| **Persistence** | SQLite (primary) + JSON/CSV export |
 | **Testing** | Pytest, Coverage, Mock |
 | **CI/CD** | GitHub Actions |
-| **Containerisation** | Docker (prévu) |
+| **Containerisation** | Docker (optionnel) |
 | **Documentation** | Markdown, Mermaid diagrams |
 
 ---
 
-## 🚀 Installation (Prévu)
+## 🚀 Installation
 
 ### Prérequis
 
@@ -478,23 +231,22 @@ source .venv/bin/activate
 .venv\Scripts\activate
 
 # 4. Installer les dépendances
-pip install -r requirements.txt
+pip install -e .[dev]
 
-# 5. Configuration des API keys (REQUIS)
+# 5. Configuration des API keys (optionnel)
 cp .env.example .env
-# Éditer .env et configurer au minimum :
-#   - WAKATIME_API_KEY (https://wakatime.com/settings/account)
+# Éditer .env selon les intégrations utilisées
 
 # 6. Vérifier l'installation
-python -m pytest tests/ -v
+pytest -v
 
 # 7. Lancer le CLI
-python src/lms/main.py start
+skillops start
 ```
 
 ### 🔑 Configuration des API Keys
 
-**WakaTime (Obligatoire pour l'étape Formation)**
+**WakaTime (Optionnel, pour les métriques de code)**
 
 1. Créer un compte sur [WakaTime](https://wakatime.com)
 2. Aller dans [Settings → Account](https://wakatime.com/settings/account)
@@ -504,7 +256,7 @@ python src/lms/main.py start
    WAKATIME_API_KEY=waka_XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
    ```
 
-**Autres APIs (Optionnelles - Prévues Sprint 2+)**
+**Autres APIs (Optionnelles)**
 - **Gemini AI** : Pour génération de questions/réponses contextuelles
 - **GitHub Token** : Pour automatisation du portfolio
 - **Telegram Bot** : Pour notifications quotidiennes
@@ -513,30 +265,7 @@ Voir `.env.example` pour la liste complète.
 
 ### Structure du Projet
 
-```
-SkillOps/
-├── src/
-│   └── lms/                  # Package principal
-│       ├── __init__.py
-│       ├── main.py           # Point d'entrée CLI
-│       └── persistence.py    # Gestion état & métriques
-├── tests/
-│   └── lms/                  # Tests unitaires
-│       ├── metrics_manager_test.py
-│       └── ...
-├── storage/                  # Données locales (gitignored)
-│   ├── .state.yaml          # État actuel
-│   ├── .progress.json       # Daily Stand-up data
-│   └── .metrics.json        # Métriques agrégées
-├── project-lifecycle/        # Documentation projet
-│   ├── 01-product-discovery.md
-│   ├── 02-urd-user-requirements.md
-│   ├── 03-adr-architecture-decisions.md
-│   └── 04-sprint-planning-sprint-1.md
-├── requirements.txt          # Dépendances Python
-├── pyproject.toml           # Configuration projet
-└── README.md                # Documentation principale
-```
+Voir [STRUCTURE.md](STRUCTURE.md) pour le détail de l’arborescence.
 
 ### Dépendances Principales
 
@@ -547,7 +276,7 @@ SkillOps/
 | **inquirer** | 3.4.0 | Menus interactifs |
 | **pytest** | 9.0.2 | Framework de tests |
 | **pytest-cov** | 7.0.0 | Coverage des tests |
-| **PyYAML** | 6.0.3 | Parsing YAML (état) |
+| **PyYAML** | 6.0.3 | Parsing YAML (catalogs/configs) |
 
 Voir [requirements.txt](requirements.txt) pour la liste complète.
 
@@ -667,9 +396,12 @@ skillops setup --profile profile-name
 - Notification preferences
 - Learning goals
 
-#### `skillops health` - System Diagnostics
+#### `skillops doctor` - Preflight Diagnostics
 ```bash
-# Check all integrations and configuration
+# Check environment and configuration
+skillops doctor
+
+# Optional legacy health check
 skillops health
 ```
 
@@ -715,6 +447,25 @@ skillops import-data backup.json --no-backup
 - Merge mode combines with existing data
 - Replace mode overwrites existing
 
+#### Legacy JSON/YAML Migration (Optional)
+If you have old JSON/YAML files from previous versions, use the CLI migration command:
+
+```bash
+skillops migrate
+```
+
+It migrates legacy files like `.progress.json`, `formation_log.json`, and `reinforce_progress.json` into `storage/skillops.db`.
+
+#### `skillops doctor` - Preflight Checks
+```bash
+skillops doctor
+```
+
+**Doctor checks:**
+- Environment variables (API keys, vault paths)
+- SQLite connectivity and storage write access
+- Optional Gemini dependency availability
+
 #### `skillops notify` - Send Telegram Summary
 ```bash
 # Send daily summary notification
@@ -741,103 +492,19 @@ skillops version
 
 ### Step-by-Step Workflow Descriptions
 
-#### 1️⃣ Daily Stand-up `📊`
-```bash
-# Select from menu and press Enter
-> Displays yesterday's metrics:
-  • Coding time from WakaTime
-  • Steps completed
-  • Streak counter
-  • Progress towards daily goals
-```
-
-#### 2️⃣ Formation `⏱️`
-```bash
-# Work through training modules
-> Tracks time spent in:
-  • Online courses (KodeKloud, Linux Academy)
-  • Structured learning platforms
-  • Shows time remaining for daily quota
-```
-
-#### 3️⃣ Flashcards `🗂️`
-```bash
-# Review existing flashcards
-> Syncs with:
-  • Anki desktop
-  • Tracks cards reviewed
-  • Updates metrics
-```
-
-#### 4️⃣ Create `📝`
-```bash
-# Generate flashcards from notes
-> Creates cards from:
-  • Obsidian vault
-  • Formats: Q:/A:, Q::/A::, inline ::
-  • Auto-deduplicates by hash
-  • Exports to Anki TSV
-  • Creates GitHub repos from ~/labs projects
-```
-
-#### 5️⃣ Read `📖`
-```bash
-# Learn from articles
-> Parse and store:
-  • Technical articles
-  • Documentation
-  • Research papers
-  • Saved for Zettelkasten notes
-```
-
-#### 6️⃣ Mission Control `💪`
-```bash
-# Tickets & incidents
-> Work on:
-  • Mission backlog (tickets/incidents)
-  • Acceptance criteria checks
-  • Post-mission validation summary
-```
-
-#### 7️⃣ Pull Request `🌐`
-```bash
-# Publish your learnings
-> Actions:
-  • Create GitHub repos
-  • Auto-generate READMEs
-  • Share insights on social
-  • Portfolio updates
-```
-
-#### 8️⃣ Reflection `🌅`
-```bash
-# Daily journal entry
-> Journal about:
-  • What you learned
-  • Challenges faced
-  • Insights gained
-  • Tomorrow's goals
-```
-
-#### 9️⃣ Labs `🎯`
-```bash
-# AI-powered learning missions
-> Get:
-  • Personalized learning paths
-  • Challenge projects
-  • Real-world scenarios
-  • Based on your skill level
-```
+See the full step documentation in [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Configuration & Environment Variables
 
-**Minimal Setup (.env file):**
+**Configuration (.env file):**
 ```bash
-# Must have - Core functionality
+# Optional - Metrics
 WAKATIME_API_KEY=waka_xxxxxxxxxxxxx
 
-# Optional - Full features
+# Optional - AI
 GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxx
+
+# Optional - Portfolio
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxx
 GITHUB_USERNAME=your_username
 
@@ -878,17 +545,27 @@ LABS_PATH=~/labs
 skillops start
 ```
 
+**Minimal local preflight (recommended):**
+```bash
+skillops doctor
+pytest -v tests/smoke
+bash setup/backup/backup.sh
+bash setup/backup/restore.sh ~/.local/share/skillops/backups/skillops_YYYYmmdd_HHMMSS.db
+```
+
 **Weekly backup:**
 ```bash
-# Export progress as JSON backup
-skillops export -f json -o ~/.backups/progress-$(date +%Y%m%d).json
+# Create a SQLite backup
+bash setup/backup/backup.sh
 ```
 
 **Monday recovery (restore from backup):**
 ```bash
 # Restore if something went wrong
-skillops import-data ~/.backups/progress-20260112.json --merge
+bash setup/backup/restore.sh ~/.local/share/skillops/backups/skillops_YYYYmmdd_HHMMSS.db
 ```
+
+See the operations guide: [docs/OPERATIONS.md](docs/OPERATIONS.md)
 
 **Automate daily notifications (cron):**
 ```bash
@@ -898,47 +575,12 @@ skillops import-data ~/.backups/progress-20260112.json --merge
 
 **Check system health before starting:**
 ```bash
-# Verify all integrations work
-skillops health && skillops start
+skillops doctor && skillops start
 ```
 
 ---
 
-## �📋 Workflow Quotidien
 
-```bash
-# Démarrer la routine du matin (7h00)
-skillops start
-
-# Commande affiche :
-┌─────────────────────────────────────────┐
-│  SkillOps - Routine du 9 janvier 2026  │
-├─────────────────────────────────────────┤
-│ 📊 Métriques d'hier :                   │
-│   ✅ 8/8 étapes complétées              │
-│   ⏱️  3h42 codé (WakaTime)              │
-│   🔥 Streak : 18 jours                  │
-├─────────────────────────────────────────┤
-│ 🎯 Programme aujourd'hui :              │
-│   1. [●○○○○○○○] Daily Stand-up          │
-│   2. [○○○○○○○○] Formation               │
-│   ...                                   │
-└─────────────────────────────────────────┘
-
-# Navigation interactive (flèches ↑↓ ou touches vim j/k)
-> Appuyez sur Entrée pour Step 1: Daily Stand-up
-
-# Notification Telegram automatique en fin de journée
-📱 "✅ Bilan : 8/8 étapes | 4h12 codé | 15 cartes créées"
-
-### Envoyer manuellement depuis le CLI
-
-```bash
-python -m src.lms.main notify --storage-path storage --respect-schedule
-```
-
-Pour un envoi immédiat sans vérifier l'heure planifiée, supprimez `--respect-schedule`.
-```
 
 ---
 
@@ -962,8 +604,8 @@ Ce projet illustre ma maîtrise des concepts DevOps suivants :
 - ✅ Configuration as Code (YAML)
 - ✅ Secrets Management (environment variables)
 - ✅ Logging structuré (JSON)
-- ✅ CI/CD Pipeline (GitHub Actions - prévu)
-- ✅ Containerisation (Docker - prévu)
+- ✅ CI/CD Pipeline (GitHub Actions)
+- ✅ Containerisation (Docker, optionnel)
 
 ### 🔹 Observabilité
 - ✅ Logs structurés
@@ -979,34 +621,9 @@ Ce projet illustre ma maîtrise des concepts DevOps suivants :
 
 ---
 
-## 📊 Roadmap
+---
 
-### ✅ Phase 1 : Conception (En cours)
-- [ ] Product Discovery Session
-- [ ] Documentation technique
-- [ ] Définition des besoins et priorisation
-
-### 🚧 Phase 2 : MVP Core (En attente)
-- [ ] Machine à états pour orchestration
-- [ ] Interface CLI interactive
-- [ ] Système de persistence des données
-- [ ] Tests de base
-
-### 📅 Phase 3 : Intégrations Externes (En attente)
-- [ ] API de tracking de code
-- [ ] Intelligence artificielle pour Q&A
-- [ ] Automatisation portfolio
-- [ ] Notifications temps réel
-- [ ] Tests d'intégration
-
-### 📅 Phase 4 : DevOps Pipeline (En attente)
-- [ ] Automatisation CI/CD
-- [ ] Containerisation
-- [ ] Observabilité (logs, métriques, alertes)
-- [ ] Documentation complète
-
-### 🔮 Phase 5 : Optimisations (En attente)
-- [ ] Interface web de visualisation
+Voir la roadmap détaillée dans [project-lifecycle/](project-lifecycle/).
 - [ ] Synchronisation multi-device
 - [ ] Extensions et plugins
 - [ ] Ouverture communautaire

@@ -17,7 +17,7 @@ Systemd timers are the modern replacement for cron jobs on Linux systems. They p
 ### 1. Install SkillOps
 
 ```bash
-pip install skillops==0.2.0
+pip install skillops
 ```
 
 Verify installation:
@@ -71,6 +71,10 @@ mkdir -p ~/.config/systemd/user/
 cp setup/systemd/skillops.service ~/.config/systemd/user/
 cp setup/systemd/skillops.timer ~/.config/systemd/user/
 
+# Optional: backup timer
+cp setup/systemd/skillops-backup.service ~/.config/systemd/user/
+cp setup/systemd/skillops-backup.timer ~/.config/systemd/user/
+
 # If using per-user username (recommended for security):
 cp setup/systemd/skillops.service ~/.config/systemd/user/skillops@.service
 cp setup/systemd/skillops.timer ~/.config/systemd/user/skillops@.timer
@@ -86,14 +90,17 @@ Edit `~/.config/systemd/user/skillops.service` to:
 Common customizations:
 
 ```ini
-# Run only 'review' step
-ExecStart=/usr/bin/skillops review
+# Run the interactive workflow
+ExecStart=/usr/bin/skillops start
 
 # Run with verbose output
 ExecStart=/usr/bin/skillops start --verbose
 
 # Run at specific time (e.g., 9:30 PM)
 OnCalendar=*-*-* 21:30:00
+
+# Update backup script path if repo is not ~/SkillOps
+ExecStart=/usr/bin/env bash /path/to/SkillOps/setup/backup/backup.sh
 ```
 
 ### 6. Enable and Start the Timer
@@ -105,8 +112,14 @@ systemctl --user daemon-reload
 # Enable timer to run on boot
 systemctl --user enable skillops.timer
 
+# Optional: enable daily backups
+systemctl --user enable skillops-backup.timer
+
 # Start the timer immediately
 systemctl --user start skillops.timer
+
+# Optional: start backup timer
+systemctl --user start skillops-backup.timer
 
 # Verify it's running
 systemctl --user status skillops.timer
@@ -159,6 +172,16 @@ systemctl --user disable skillops.timer
 
 # Stop current execution
 systemctl --user stop skillops.service
+
+## Rollback Procedure
+
+1. Stop timers and service:
+   - `systemctl --user stop skillops.timer`
+   - `systemctl --user stop skillops.service`
+2. Restore latest backup:
+   - `bash setup/backup/restore.sh ~/.local/share/skillops/backups/skillops_YYYYmmdd_HHMMSS.db`
+3. Start timers again:
+   - `systemctl --user start skillops.timer`
 ```
 
 ## Troubleshooting
@@ -256,7 +279,7 @@ systemctl --user enable skillops-evening.timer
 
 ```bash
 # Service for morning review only
-ExecStart=/usr/bin/skillops review
+ExecStart=/usr/bin/skillops start
 
 # Service for evening reflection only
 ExecStart=/usr/bin/skillops reflect

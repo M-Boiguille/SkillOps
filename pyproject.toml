@@ -29,6 +29,10 @@ dependencies = [
     "requests>=2.32.0",
     "inquirer>=3.4.0",
     "blessed>=1.25.0",
+    "python-dotenv>=1.2.1",
+    "readchar>=4.2.1",
+    "google-generativeai>=0.8.6",
+    "pydantic>=2.12.5",
 ]
 
 [project.optional-dependencies]
@@ -38,6 +42,9 @@ dev = [
     "black>=25.0.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
+    "flake8>=7.3.0",
+    "isort>=7.0.0",
+    "coverage>=7.13.1",
 ]
 
 [project.scripts]

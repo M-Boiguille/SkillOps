@@ -20,7 +20,7 @@
 - ✅ Les 8 étapes sont navigables avec les flèches du clavier
 - ✅ L'intégration WakaTime fonctionne (affichage temps codé)
 - ✅ Les métriques d'hier sont affichées dans Review
-- ✅ L'état est sauvegardé entre les sessions (`.state.yaml`, `.progress.json`)
+- ✅ L'état est sauvegardé entre les sessions (SQLite `skillops.db`)
 - ✅ Au moins 70% de couverture de tests
 - ✅ Le pipeline CI/CD fonctionne (tests + linting)
 
@@ -54,28 +54,24 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
   - Créer dossiers `storage/`
   - Ajouter `storage/*` dans `.gitignore` (sauf `.gitkeep`)
 
-- [ ] **T010-2:** Implémenter `persistence.py` - Gestion YAML (2h)
+- [ ] **T010-2:** Implémenter `database.py` - Schéma SQLite (2h)
   ```python
-  # lms/persistence.py
-  class StateManager:
-      def load_state() -> dict
-      def save_state(state: dict)
+  # lms/database.py
+  def init_db() -> None
+  def get_connection() -> sqlite3.Connection
   ```
-  - Lecture/écriture `.state.yaml`
-  - Gestion cas fichier inexistant (création auto)
+  - Tables: sessions, step_completions, formation_logs, reinforce_progress, card_creations
+  - Gestion création auto du fichier `skillops.db`
   - Tests unitaires
 
-- [ ] **T010-3:** Implémenter gestion JSON (2h)
+- [ ] **T010-3:** Implémenter `persistence.py` - Accès SQLite (2h)
   ```python
-  class ProgressManager:
-      def load_progress() -> list
-      def save_daily_progress(data)  # data contains {date, steps, time, cards}
-      def get_yesterday_progress() -> dict
-      def get_progress_by_date(date) -> dict
+  def save_formation_log(...)
+  def save_reinforce_progress(...)
+  def get_progress_history(...) -> list[dict]
   ```
-  - Lecture/écriture `.progress.json`
-  - Format : `[{date, steps, time, cards}, ...]` (streak calculé par MetricsManager)
-  - Date incluse dans l'objet data pour cohérence (voir SCR-001)
+  - Lecture/écriture via SQLite
+  - Agrégations quotidiennes pour Review/Notify
   - Tests unitaires
 
 - [ ] **T010-4:** Implémenter métriques agrégées (1h)
@@ -231,7 +227,7 @@ D'après l'[URD](02-urd-user-requirements-document.md), les stories Must Have po
 
 - [ ] **T003-2:** Sauvegarde progression (1h)
   - Persister exercices complétés
-  - Historique dans `.progress.json`
+  - Historique dans SQLite (`skillops.db`)
 
 - [ ] **T003-3:** Tests (1h)
 

@@ -109,10 +109,9 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 **Afin de** permettre la continuité entre les sessions
 
 **Acceptance Criteria:**
-- [ ] Fichier `.state.yaml` pour l'état actuel (étape en cours, timestamp)
-- [ ] Fichier `.progress.json` pour l'historique quotidien
-- [ ] Fichier `.metrics.json` pour les statistiques agrégées
-- [ ] Création automatique des fichiers s'ils n'existent pas
+- [ ] Fichier SQLite `skillops.db` pour l'état et les métriques
+- [ ] Tables pour sessions, étapes complétées, contexte, journaux et métriques
+- [ ] Création automatique de la base si elle n'existe pas
 - [ ] Lecture au démarrage
 - [ ] Écriture après chaque étape complétée
 
@@ -201,13 +200,14 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 
 #### US-007: Q&A Assistée par IA
 **En tant qu'** apprenant DevOps
-**Je veux** poser des questions sur mes cours via CLI
-**Afin de** approfondir ma compréhension avec l'IA
+**Je veux** expliquer un concept à l'IA et recevoir un feedback
+**Afin de** valider ma compréhension profonde (Technique Feynman)
 
 **Acceptance Criteria:**
-- [ ] Interface conversationnelle (prompt utilisateur)
-- [ ] Appel à Gemini API avec contexte (notes récentes / choix / cours actuel)
-- [ ] Affichage réponse formatée (Markdown)
+ - [ ] Gemini pose une question ou demande une explication sur le sujet
+ - [ ] Utilisateur saisit son explication (vulgarisation)
+ - [ ] Gemini analyse l'explication (Clarté, Exactitude, Analogies)
+ - [ ] Feedback immédiat avec correction des idées fausses
 - [ ] Sauvegarde Q&A dans fichier dédié
 - [ ] Historique des questions posées
 
@@ -287,7 +287,7 @@ SkillOps est un système d'apprentissage automatisé conçu pour optimiser la ro
 ### Fiabilité
 - **NFR-007:** Les erreurs API doivent être gérées gracieusement (retry 3× avec backoff exponentiel)
 - **NFR-008:** Backup automatique quotidien des données vers cloud storage
-- **NFR-009:** Les données critiques (.progress.json) doivent être sauvegardées après chaque modification
+- **NFR-009:** Les données critiques (SQLite `skillops.db`) doivent être sauvegardées après chaque modification
 
 ### Maintenabilité
 - **NFR-010:** Le code doit avoir une couverture de tests > 80%

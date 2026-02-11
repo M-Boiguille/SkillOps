@@ -313,36 +313,37 @@ Volume : ~30 entrées/mois × 12 mois = 360 entrées/an (très faible)
 
 ### Décision
 
-**Choix : JSON/YAML local**
+**Choix : SQLite local (skillops.db)**
 
 **Structure :**
 ```
 storage/
-├── .state.yaml          # État actuel (step_id, timestamp, session_id)
-├── .progress.json       # Historique [{date, steps, time, cards}, ...]
-└── .metrics.json        # Agrégats {streak, avg_time, total_cards}
+├── skillops.db          # SQLite (état + historique + métriques)
+└── exports/             # Snapshots JSON/CSV (optionnels)
 ```
 
 **Justification :**
-- Volume très faible (pas de problème de performance)
-- Simplicité maximale (pas de serveur, pas de migrations)
-- Debuggable (cat .progress.json)
-- Versionnable (Git pour backup)
+- Données centralisées (une seule source de vérité)
+- Transactions atomiques et cohérence inter-steps
+- Requêtes simples pour agrégations (streak, temps, cartes)
+- Toujours local, sans serveur
+
+**Amendement (2026-02-10) :** migration JSON/YAML → SQLite pour fiabiliser la persistance et simplifier les exports.
 
 ### Conséquences
 
 **Positives :**
-- Zero configuration
-- Portable (copier dossier = migration)
-- Backup = Git commit
+- Zero configuration (fichier local)
+- Requêtes et agrégations faciles
+- Transactions ACID pour éviter les incohérences
 
 **Négatives :**
-- Pas de requêtes complexes (acceptable : queries simples en Python)
-- Concurrent writes possibles (mitigé : usage mono-utilisateur)
+- Moins lisible à la main (binaire)
+- Dépendance à des exports pour versionning lisible
 
 **Évolution future :**
 - Si multi-users (v2.0) : migration vers PostgreSQL
-- Migration facile (JSON → SQL INSERT via script)
+- Migrations SQLite gérées via scripts dédiés
 
 ---
 
@@ -470,7 +471,7 @@ Contraintes :
 - ✅ États explicites (8 steps)
 - ✅ Transitions bien définies (next, previous, skip)
 - ✅ Facile à visualiser (diagramme)
-- ✅ État persistant simple (.state.yaml)
+- ✅ État persistant simple (SQLite `skillops.db`)
 
 **Contre :**
 - ❌ Rigidité si workflow complexe

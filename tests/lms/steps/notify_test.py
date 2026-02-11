@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from src.lms.database import get_connection, init_db
 from src.lms.steps.notify import (
     format_daily_report,
     notify_step,
@@ -15,27 +16,31 @@ def test_should_send_now_matches(monkeypatch):
 
 
 @patch("src.lms.steps.notify.TelegramClient")
-@patch("src.lms.steps.notify.calculate_metrics_from_progress")
-@patch("src.lms.steps.notify.ProgressManager")
-def test_notify_step_sends_message(mock_pm, mock_calc, mock_client, tmp_path):
+def test_notify_step_sends_message(mock_client, tmp_path, monkeypatch):
     storage_dir = tmp_path
-    progress = {
-        "steps": {"step1": {"completed": True, "time_spent": 600}},
-        "cards_created": 3,
-    }
+    monkeypatch.setattr("src.lms.steps.notify.get_logical_date", lambda: "2026-01-11")
 
-    mock_pm_instance = MagicMock()
-    mock_pm_instance.load_progress.return_value = [progress]
-    mock_pm_instance.get_today_date.return_value = "2026-01-11"
-    mock_pm_instance.get_progress_by_date.return_value = progress
-    mock_pm.return_value = mock_pm_instance
-
-    mock_calc.return_value = {
-        "steps_completed": 1,
-        "total_time": 600,
-        "cards_created": 3,
-        "streak": 2,
-    }
+    init_db(storage_dir)
+    conn = get_connection(storage_dir)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO sessions (date) VALUES (?)", ("2026-01-11",))
+    cursor.execute("SELECT id FROM sessions WHERE date = ?", ("2026-01-11",))
+    session_id = cursor.fetchone()[0]
+    cursor.execute(
+        "INSERT INTO step_completions (session_id, step_number) VALUES (?, ?)",
+        (session_id, 1),
+    )
+    cursor.execute(
+        "INSERT INTO formation_logs (session_id, goals, recall, "
+        "duration_minutes) VALUES (?, ?, ?, ?)",
+        (session_id, "[]", "", 10),
+    )
+    cursor.execute(
+        "INSERT INTO card_creations (session_id, count, source) VALUES (?, ?, ?)",
+        (session_id, 3, "test"),
+    )
+    conn.commit()
+    conn.close()
 
     mock_client_instance = MagicMock()
     mock_client_instance.send_message.return_value = True
@@ -48,30 +53,12 @@ def test_notify_step_sends_message(mock_pm, mock_calc, mock_client, tmp_path):
 
 
 @patch("src.lms.steps.notify.TelegramClient")
-@patch("src.lms.steps.notify.calculate_metrics_from_progress")
-@patch("src.lms.steps.notify.ProgressManager")
-def test_notify_step_skips_if_already_sent(mock_pm, mock_calc, mock_client, tmp_path):
+def test_notify_step_skips_if_already_sent(mock_client, tmp_path, monkeypatch):
     storage_dir = tmp_path
     marker = storage_dir / ".notify_sent"
     marker.write_text("2026-01-11")
 
-    progress = {
-        "steps": {"step1": {"completed": True, "time_spent": 600}},
-        "cards_created": 3,
-    }
-
-    mock_pm_instance = MagicMock()
-    mock_pm_instance.load_progress.return_value = [progress]
-    mock_pm_instance.get_today_date.return_value = "2026-01-11"
-    mock_pm_instance.get_progress_by_date.return_value = progress
-    mock_pm.return_value = mock_pm_instance
-
-    mock_calc.return_value = {
-        "steps_completed": 1,
-        "total_time": 600,
-        "cards_created": 3,
-        "streak": 2,
-    }
+    monkeypatch.setattr("src.lms.steps.notify.get_logical_date", lambda: "2026-01-11")
 
     sent = notify_step(storage_path=storage_dir, respect_schedule=False)
 
@@ -80,13 +67,8 @@ def test_notify_step_skips_if_already_sent(mock_pm, mock_calc, mock_client, tmp_
 
 
 @patch("src.lms.steps.notify.TelegramClient")
-@patch("src.lms.steps.notify.ProgressManager")
-def test_notify_step_no_progress(mock_pm, mock_client, tmp_path, capsys):
-    mock_pm_instance = MagicMock()
-    mock_pm_instance.load_progress.return_value = []
-    mock_pm_instance.get_today_date.return_value = "2026-01-11"
-    mock_pm_instance.get_progress_by_date.return_value = None
-    mock_pm.return_value = mock_pm_instance
+def test_notify_step_no_progress(mock_client, tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr("src.lms.steps.notify.get_logical_date", lambda: "2026-01-11")
 
     sent = notify_step(storage_path=tmp_path, respect_schedule=False)
 
@@ -109,28 +91,32 @@ def test_format_daily_report_includes_alerts():
 
 
 @patch("src.lms.steps.notify.TelegramClient")
-@patch("src.lms.steps.notify.calculate_metrics_from_progress")
-@patch("src.lms.steps.notify.ProgressManager")
-def test_notify_step_idempotent_within_day(mock_pm, mock_calc, mock_client, tmp_path):
+def test_notify_step_idempotent_within_day(mock_client, tmp_path, monkeypatch):
     """Notification should only send once per calendar day."""
     storage_dir = tmp_path
-    progress = {
-        "steps": {"step1": {"completed": True, "time_spent": 600}},
-        "cards_created": 3,
-    }
+    monkeypatch.setattr("src.lms.steps.notify.get_logical_date", lambda: "2026-01-11")
 
-    mock_pm_instance = MagicMock()
-    mock_pm_instance.load_progress.return_value = [progress]
-    mock_pm_instance.get_today_date.return_value = "2026-01-11"
-    mock_pm_instance.get_progress_by_date.return_value = progress
-    mock_pm.return_value = mock_pm_instance
-
-    mock_calc.return_value = {
-        "steps_completed": 1,
-        "total_time": 600,
-        "cards_created": 3,
-        "streak": 2,
-    }
+    init_db(storage_dir)
+    conn = get_connection(storage_dir)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO sessions (date) VALUES (?)", ("2026-01-11",))
+    cursor.execute("SELECT id FROM sessions WHERE date = ?", ("2026-01-11",))
+    session_id = cursor.fetchone()[0]
+    cursor.execute(
+        "INSERT INTO step_completions (session_id, step_number) VALUES (?, ?)",
+        (session_id, 1),
+    )
+    cursor.execute(
+        "INSERT INTO formation_logs (session_id, goals, recall, "
+        "duration_minutes) VALUES (?, ?, ?, ?)",
+        (session_id, "[]", "", 10),
+    )
+    cursor.execute(
+        "INSERT INTO card_creations (session_id, count, source) VALUES (?, ?, ?)",
+        (session_id, 3, "test"),
+    )
+    conn.commit()
+    conn.close()
 
     mock_client_instance = MagicMock()
     mock_client_instance.send_message.return_value = True

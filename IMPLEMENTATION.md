@@ -2,11 +2,11 @@
 
 **Date** : February 08, 2026
 **Version** : 2.0.0
-**Status** : ✅ Mission Control added (Reinforce deprecated but retained)
+**Status** : ✅ Mission Control and Reinforce active
 
 ## Overview
 
-Introduces **Mission Control** to shift the LMS into a DevOps Career Simulator. Missions replace exercises by adding business context, acceptance criteria, and validation hooks while keeping the legacy `reinforce` module available (deprecated).
+Introduces **Mission Control** to shift the LMS into a DevOps Career Simulator. Missions add business context, acceptance criteria, and validation hooks while keeping **Reinforce** available for practice exercises.
 
 ## Mission Control (NEW)
 
@@ -58,9 +58,9 @@ Introduces **Mission Control** to shift the LMS into a DevOps Career Simulator. 
 
 ---
 
-## Reinforce Module (DEPRECATED)
+## Reinforce Module (Practice)
 
-The legacy `reinforce` module remains intact for backwards compatibility. Details below are retained for reference.
+The `reinforce` module remains available for structured practice. Details below describe the current behavior.
 
 ### Changes Summary (Reinforce)
 
@@ -203,9 +203,9 @@ mock_inquirer.prompt.return_value = {
 - All 95 katas properly integrated with metadata
 
 #### Progress Tracking
-- Uses existing progress storage: `~/.local/share/skillops/reinforce_progress.json`
+- Uses SQLite storage: `storage/skillops.db` (table `reinforce_progress`)
 - Completion counts pre-calculated for display
-- Cache system unchanged
+- Legacy JSON imports available via `skillops migrate`
 
 #### Dependencies
 ```python

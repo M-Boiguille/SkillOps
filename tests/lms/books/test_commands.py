@@ -1,7 +1,6 @@
 """Tests for book processing CLI commands."""
 
 from unittest.mock import MagicMock, patch
-import pytest
 
 
 class TestProcessPipelineCommand:
@@ -72,12 +71,12 @@ class TestCLIIntegration:
         assert callable(import_books_command)
         assert callable(process_pipeline_command)
 
-    @patch("src.lms.main.typer.Typer")
-    def test_commands_registered_in_app(self, mock_typer):
+    def test_commands_registered_in_app(self):
         """Test that all book commands are registered in the app."""
         # This would be an integration test with the actual Typer app
         # For now, just verify the module loads
-        import src.lms.main
+        with patch("src.lms.main.typer.Typer"):
+            import src.lms.main
 
         assert hasattr(src.lms.main, "app")
 
@@ -110,7 +109,7 @@ class TestErrorHandling:
         fetch_books_command(api_key="test-key", book_name="nonexistent")
 
         # Should handle gracefully
-        captured = capsys.readouterr()
+        capsys.readouterr()
         # No errors should be raised
 
 

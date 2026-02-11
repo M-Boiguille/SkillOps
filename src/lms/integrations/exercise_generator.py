@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from google import genai
+from src.lms.ai_config import get_gemini_model
 
 
 class ExerciseGenerator:
@@ -41,7 +42,8 @@ class ExerciseGenerator:
             topic: Exercise topic (e.g., "Docker Basics", "Kubernetes Pods")
             difficulty: Difficulty level (Débutant, Intermédiaire, Avancé)
             duration: Expected duration (e.g., "15min", "30min")
-            completion_count: Number of times this exercise was completed (for progressive difficulty)
+            completion_count: Number of times this exercise was completed
+                (for progressive difficulty)
 
         Returns:
             Dict with exercise content (instructions, objectives, validation, hints, solution)
@@ -52,7 +54,7 @@ class ExerciseGenerator:
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt
+                model=get_gemini_model(), contents=prompt
             )
             if not response or not response.text:
                 raise ValueError("Failed to generate exercise from Gemini")
@@ -62,7 +64,7 @@ class ExerciseGenerator:
             return exercise_content
 
         except Exception as e:
-            raise ValueError(f"Exercise generation failed: {e}")
+            raise ValueError(f"Exercise generation failed: {e}") from e
 
     def _build_exercise_prompt(
         self, topic: str, difficulty: str, duration: str, completion_count: int = 0
@@ -102,7 +104,23 @@ class ExerciseGenerator:
             else "en conditions réelles"
         )
 
-        return f"""Tu es un expert DevOps qui crée des exercices pratiques type "défi" pour l'apprentissage.
+        variation_note = (
+            ""
+            if completion_count == 0
+            else "Ajoute de nouvelles contraintes/challenges différents des versions précédentes. "
+            f"Variation #{completion_count + 1}."
+        )
+        progression_note = (
+            "Premier essai - version de base"
+            if completion_count == 0
+            else (
+                "Ajoute des contraintes supplémentaires (ex: volumes persistants, "
+                "réseaux customs, healthchecks, etc.)"
+            )
+        )
+
+        return f"""Tu es un expert DevOps qui crée des exercices pratiques type "défi" pour
+    l'apprentissage.
 
 Génère un exercice pratique de DevOps avec les caractéristiques suivantes:
 - Sujet: {topic}
@@ -111,17 +129,17 @@ Génère un exercice pratique de DevOps avec les caractéristiques suivantes:
 - Contexte: {context_variation}
 
 IMPORTANT: C'est la {completion_count + 1}ème fois que l'apprenant fait cet exercice.
-{"" if completion_count == 0 else f"Ajoute de nouvelles contraintes/challenges différents des versions précédentes. Variation #{completion_count + 1}."}
+{variation_note}
 
 L'exercice doit être structuré en JSON avec les champs suivants:
 {{
     "title": "Titre complet de l'exercice",
     "objectives": "Liste des objectifs d'apprentissage (3-4 points)",
     "prerequisites": "Prérequis nécessaires (outils, connaissances)",
-    "scenario": "Contexte réaliste ou mission à accomplir (2-3 phrases) - Varie le scénario si completion_count > 0",
-    "requirements": "Liste des résultats attendus SANS donner les commandes (ex: 'Déployer un conteneur qui répond sur le port 8080' au lieu de 'docker run -p 8080:80 nginx')",
-    "success_criteria": "Critères mesurables pour auto-évaluation (chaque critère doit être vérifiable par l'apprenant: ex: 'Le service répond avec un HTTP 200 sur localhost:8080')",
-    "hints": "2-3 indices CONCEPTUELS si bloqué (ex: 'Pense à la directive EXPOSE dans le Dockerfile' plutôt que donner la commande exacte)",
+    "scenario": "Contexte réaliste ou mission à accomplir (2-3 phrases) - Varie le scénario",
+    "requirements": "Résultats attendus SANS commandes (ex: déployer un conteneur qui répond",
+    "success_criteria": "Critères mesurables et vérifiables par l'apprenant (ex: HTTP 200)",
+    "hints": "Indices conceptuels si bloqué (ex: directive EXPOSE plutôt que commande exacte)",
     "solution": "Solution complète avec explications pédagogiques",
     "resources": "Liens vers documentation officielle (2-3 liens)"
 }}
@@ -133,10 +151,11 @@ RÈGLES CRITIQUES pour les requirements:
 - L'apprenant doit chercher COMMENT faire
 
 PROGRESSION AUTOMATIQUE:
-- Niveau {completion_count + 1}: {"Premier essai - version de base" if completion_count == 0 else f"Ajoute des contraintes supplémentaires (ex: volumes persistants, réseaux customs, healthchecks, etc.)"}
+- Niveau {completion_count + 1}: {progression_note}
 
 Exemple CORRECT:
-"requirements": "Créer une application web conteneurisée accessible sur le port 3000 qui affiche 'Hello DevOps'"
+"requirements": "Créer une application web conteneurisée accessible sur le port 3000 "
+"qui affiche 'Hello DevOps'"
 
 Exemple INCORRECT:
 "requirements": "1. Exécuter: docker run -p 3000:3000 myapp\\n2. Vérifier avec curl localhost:3000"
@@ -178,7 +197,7 @@ Réponds UNIQUEMENT avec le JSON, sans markdown ni texte additionnel."""
 
             return exercise
         except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to parse exercise JSON: {e}")
+            raise ValueError(f"Failed to parse exercise JSON: {e}") from e
 
     def get_hints(self, exercise_content: Dict[str, str]) -> str:
         """Extract hints from exercise content.

@@ -1,4 +1,13 @@
+# mypy: ignore-errors
+# flake8: noqa
+
 import pytest
+
+pytest.skip(
+    "JSON-based ProgressManager removed in SQLite-only mode.",
+    allow_module_level=True,
+)
+
 from datetime import datetime, timedelta
 
 from src.lms.persistence import ProgressManager

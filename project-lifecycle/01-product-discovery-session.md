@@ -264,7 +264,7 @@ Je vais utiliser **GitHub Secrets** pour stocker mes clés API (WakaTime, Gemini
 | **Production** | HashiCorp Vault / AWS Secrets Manager | Rotation automatique, audit trail |
 
 **Questions de sécurité additionnelles :**
-> Besoin d'encryption des données locales (.progress.json) ?
+> Besoin d'encryption des données locales (SQLite `skillops.db`) ?
 > Authentification pour l'API Telegram (éviter les MITM) ?
 > Principe du moindre privilège pour les tokens GitHub (read-only vs write) ?
 
@@ -317,7 +317,7 @@ L'idée c'est d'avoir des logs propres pour savoir ce qui se passe, et peut-êtr
 ### **BLOC 4 : Persistence & Résilience**
 
 #### **Q11. Stratégie de Backup**
-> *Les données (.progress.json, .state.yaml) doivent être sauvegardées où ?*
+> *Les données (SQLite `skillops.db`) doivent être sauvegardées où ?*
 
 **Ma réponse :**
 Je vais utiliser du **cloud storage** classique (Google Drive ou équivalent). L'idée c'est de faire simple et fiable. Mes données d'apprentissage c'est précieux, je veux pas les perdre si mon disque dur lâche.

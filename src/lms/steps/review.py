@@ -6,8 +6,7 @@ including completed steps, time coded, cards created, and current streak.
 
 from pathlib import Path
 from datetime import datetime, timedelta
-from src.lms.persistence import MetricsManager, ProgressManager
-from src.lms.steps.formation import formation_step
+from src.lms.persistence import get_daily_summary, calculate_streak
 from src.lms.display import (
     create_metrics_table,
     create_step_summary_table,
@@ -27,86 +26,65 @@ def get_yesterday_date() -> str:
     return yesterday.strftime("%Y-%m-%d")
 
 
-def format_step_data_for_display(progress_data: dict) -> list[dict]:
+def format_step_data_for_display(summary_data: dict) -> list[dict]:
     """Convert progress data to format expected by display components.
 
     Args:
-        progress_data: Progress data for a specific date.
+        summary_data: Summary data from DB.
 
     Returns:
         List of step dictionaries for create_step_summary_table().
     """
     step_names = [
         "Daily Stand-up",
-        "Flashcards",
-        "Create",
         "Read",
         "Tutor",
+        "Reinforce",
+        "Create",
+        "Flashcards",
         "Mission Control",
         "Pull Request",
         "Reflection",
     ]
-    step_emojis = ["📊", "🗂️", "📝", "📖", "🧑‍🏫", "💪", "🌐", "🌅"]
+    step_emojis = ["📊", "📖", "🧠", "💪", "📝", "🗂️", "🚀", "🌐", "🌅"]
 
-    steps = progress_data.get("steps", {})
-
+    completed_steps = summary_data.get("steps_list", [])
+    step_durations = summary_data.get("step_durations", {})
     step_data = []
-    for i in range(1, 9):
-        step_key = f"step{i}"
-        step_info = steps.get(step_key, {})
 
+    for i in range(1, 10):
         step_data.append(
             {
                 "number": i,
                 "name": step_names[i - 1],
                 "emoji": step_emojis[i - 1],
-                "completed": step_info.get("completed", False),
-                "time_spent": step_info.get("time_spent", 0),
+                "completed": i in completed_steps,
+                "time_spent": int(step_durations.get(i, 0)),
             }
         )
 
     return step_data
 
 
-def calculate_metrics_from_progress(
-    progress_data: dict, all_progress_data: list
-) -> dict:
-    """Calculate metrics for display from progress data.
-
-    Args:
-        progress_data: Progress data for a specific date.
-        all_progress_data: All progress data (list of progress entries).
-
-    Returns:
-        Dictionary with keys: steps_completed, total_time, cards_created, streak.
-    """
-    # Count completed steps
-    steps = progress_data.get("steps", {})
-    steps_completed = sum(
-        1 for step_data in steps.values() if step_data.get("completed", False)
-    )
-
-    # Calculate total time
-    total_time = sum(step_data.get("time_spent", 0) for step_data in steps.values())
-
-    # Get cards created
-    cards_created = progress_data.get("cards_created", 0)
-
-    # Calculate streak using MetricsManager
-    # all_progress_data is already a list, so we can use it directly
-    temp_metrics_path = Path("storage/metrics_temp.json")
-    metrics_manager = MetricsManager(temp_metrics_path)
-    streak = metrics_manager.calculate_streak(all_progress_data)
-
+def calculate_metrics_from_progress(progress: dict, history: list[dict]) -> dict:
+    """Calculate metrics from SQLite summary data."""
+    steps_completed = int(progress.get("steps_completed", 0))
+    total_minutes = int(progress.get("total_time_minutes", 0))
+    cards_created = int(progress.get("cards_created", 0))
     return {
         "steps_completed": steps_completed,
-        "total_time": total_time,
+        "total_time": total_minutes * 60,
         "cards_created": cards_created,
-        "streak": streak,
+        "streak": calculate_streak(),
     }
 
 
-def review_step(storage_path: Path = Path("storage")) -> None:
+def daily_standup_step() -> bool:
+    """Legacy alias for the daily stand-up workflow."""
+    return review_step()
+
+
+def review_step(storage_path: Path = Path("storage")) -> bool:
     """Execute the Review step - display yesterday's metrics.
 
     Args:
@@ -114,29 +92,28 @@ def review_step(storage_path: Path = Path("storage")) -> None:
     """
     display_section_header("Daily Stand-up", emoji="📊")
 
-    # Initialize managers
-    progress_file = storage_path / "progress.json"
-    progress_manager = ProgressManager(progress_file)
-
-    # Load progress data
-    all_progress = progress_manager.load_progress()
-
     # Get yesterday's date
     yesterday_date = get_yesterday_date()
     yesterday_datetime = datetime.strptime(yesterday_date, "%Y-%m-%d")
 
     # Get yesterday's progress
-    yesterday_progress = progress_manager.get_progress_by_date(yesterday_date)
+    summary = get_daily_summary(yesterday_date, storage_path)
 
-    if not yesterday_progress or not yesterday_progress.get("steps"):
+    if not summary:
         console.print(
             f"[yellow]No data found for {format_date(yesterday_datetime)}[/yellow]"
         )
         console.print("[dim]Complete some steps today to see them tomorrow![/dim]\n")
-        return
+        return True
 
-    # Calculate metrics
-    metrics = calculate_metrics_from_progress(yesterday_progress, all_progress)
+    # Prepare metrics
+    metrics = {
+        "steps_completed": summary.get("steps_completed", 0),
+        "total_time": summary.get("total_time_minutes", 0)
+        * 60,  # Convert back to seconds for display util if needed
+        "cards_created": summary.get("cards_created", 0),
+        "streak": calculate_streak(storage_path),
+    }
 
     # Display date header
     console.print(f"[bold cyan]Date:[/bold cyan] {format_date(yesterday_datetime)}\n")
@@ -147,13 +124,13 @@ def review_step(storage_path: Path = Path("storage")) -> None:
     console.print()
 
     # Display steps summary
-    step_data = format_step_data_for_display(yesterday_progress)
+    step_data = format_step_data_for_display(summary)
     steps_table = create_step_summary_table(step_data)
     console.print(steps_table)
     console.print()
 
-    # Display motivational message based on performance
-    if metrics["steps_completed"] >= 7:
+    # Encouragement
+    if metrics["steps_completed"] >= 8:
         console.print(
             "[bold green]🎉 Excellent work! You completed almost all steps![/bold green]\n"
         )
@@ -163,9 +140,4 @@ def review_step(storage_path: Path = Path("storage")) -> None:
         console.print(
             "[yellow]There's room for improvement. Try to complete more steps today![/yellow]\n"
         )
-
-
-def daily_standup_step(storage_path: Path = Path("storage")) -> None:
-    """Execute the Daily Stand-up step (metrics recap + WakaTime stats)."""
-    review_step(storage_path)
-    formation_step(storage_path)
+    return True

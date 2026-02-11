@@ -10,7 +10,8 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from src.lms.persistence import ProgressManager
+from src.lms.database import init_db
+from src.lms.persistence import calculate_streak, get_progress_history
 
 console = Console()
 
@@ -29,7 +30,7 @@ class DataExporter:
             if storage_path
             else Path.home() / ".local/share/skillops"
         )
-        self.progress_manager = ProgressManager(self.storage_path)
+        init_db(self.storage_path)
 
     def export_to_json(
         self,
@@ -55,7 +56,7 @@ class DataExporter:
             task = progress.add_task("[cyan]Exporting to JSON...", total=None)
 
             # Collect all progress data (list of daily entries)
-            all_progress = self.progress_manager.load_progress()
+            all_progress = get_progress_history(self.storage_path)
 
             export_data: Dict[str, Any] = {
                 "exported_at": datetime.now().isoformat(),
@@ -68,14 +69,14 @@ class DataExporter:
 
             # Add metrics if available
             if include_metrics:
-                metrics_file = self.storage_path / "metrics.json"
-                if metrics_file.exists():
-                    try:
-                        export_data["data"]["metrics"] = json.loads(
-                            metrics_file.read_text()
-                        )
-                    except (json.JSONDecodeError, OSError):
-                        pass
+                total_cards = sum(e.get("cards", 0) for e in all_progress)
+                total_time = sum(e.get("time", 0) for e in all_progress)
+                avg_time = (total_time / len(all_progress)) if all_progress else 0.0
+                export_data["data"]["metrics"] = {
+                    "streak": calculate_streak(self.storage_path),
+                    "avg_time": avg_time,
+                    "total_cards": total_cards,
+                }
 
             progress.update(task, completed=True)
 
@@ -113,7 +114,7 @@ class DataExporter:
             task = progress.add_task("[cyan]Exporting to CSV...", total=None)
 
             # Load all progress data
-            all_progress = self.progress_manager.load_progress()
+            all_progress = get_progress_history(self.storage_path)
 
             # Export progress CSV
             csv_path = output_dir / "progress_data.csv"
@@ -144,7 +145,7 @@ class DataExporter:
 
     def display_export_summary(self) -> None:
         """Display a summary table of exported data."""
-        all_progress = self.progress_manager.load_progress()
+        all_progress = get_progress_history(self.storage_path)
 
         if not all_progress:
             console.print("[yellow]No progress data to display[/yellow]")

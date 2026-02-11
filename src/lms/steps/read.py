@@ -11,6 +11,9 @@ from typing import List, Optional
 from rich.console import Console
 from rich.table import Table
 
+from src.lms.database import get_connection, get_current_session_id, init_db
+from src.lms.paths import get_storage_path
+
 console = Console()
 
 
@@ -21,11 +24,6 @@ def get_vault_path() -> Optional[Path]:
     return Path(vault).expanduser().absolute()
 
 
-def get_storage_path() -> Path:
-    storage = os.getenv("STORAGE_PATH", str(Path.home() / ".local/share/skillops"))
-    return Path(storage).expanduser().absolute()
-
-
 def list_recent_notes(vault_path: Path, limit: int = 5) -> List[Path]:
     files = list(vault_path.rglob("*.md"))
     files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
@@ -33,12 +31,17 @@ def list_recent_notes(vault_path: Path, limit: int = 5) -> List[Path]:
 
 
 def save_read_progress(storage_path: Path, notes: List[Path]) -> None:
+    init_db(storage_path)
     storage_path.mkdir(parents=True, exist_ok=True)
-    progress_file = storage_path / "read_progress.json"
-    today = datetime.now().strftime("%Y-%m-%d")
-    data = {"date": today, "notes": [str(n) for n in notes]}
-    with progress_file.open("w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    session_id = get_current_session_id(storage_path)
+    conn = get_connection(storage_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO read_sessions (session_id, notes) VALUES (?, ?)",
+        (session_id, json.dumps([str(n) for n in notes])),
+    )
+    conn.commit()
+    conn.close()
 
 
 def read_step(

@@ -598,7 +598,27 @@ After Sprint 3, we'll review:
 
 ## Next Sprint Planning (Sprint 4)
 
-Potential features for future consideration:
+### Production Readiness Plan (priorisé)
+
+1. **Déploiement & rollback**
+    - Valider systemd/cron en prod, scripts d’install, rollback documenté.
+2. **CI/CD obligatoire**
+    - Pipeline: lint → tests → build → release, avec statut bloquant.
+3. **Observabilité complète**
+    - Logs structurés, métriques, alerting, dashboards.
+4. **Sauvegarde & restauration**
+    - Backups planifiés + tests de restore réguliers.
+5. **Sécurité & secrets**
+    - Gestion des secrets, rotation, permissions minimales.
+6. **Tests e2e & smoke tests**
+    - Scénarios réalistes + vérifs post‑déploiement.
+7. **Runbooks & on-call**
+    - Procédures incidents, escalade, RTO/RPO.
+8. **Gouvernance d’usage**
+    - Quotas/rate limiting + SLA/limites documentées.
+
+### Optional product expansion
+
 - **Web Dashboard** (FastAPI + React for metrics visualization)
 - **Multi-user Support** (PostgreSQL migration)
 - **Advanced Analytics** (ML-based learning patterns)

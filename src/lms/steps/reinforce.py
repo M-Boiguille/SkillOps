@@ -1,15 +1,13 @@
 """Étape Reinforce - Pratique d'exercices avec suivi de progression."""
 
-import json
-import os
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import inquirer
 import yaml
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
@@ -22,6 +20,12 @@ from ..display import (
     format_time_duration,
 )
 from ..integrations.exercise_generator import ExerciseGenerator
+from ..paths import get_storage_path as resolve_storage_path
+from ..persistence import (
+    save_reinforce_progress,
+    get_latest_reinforce_progress,
+    get_reinforce_history,
+)
 
 console = Console()
 
@@ -36,7 +40,7 @@ def _load_exercises_catalog() -> List[Dict]:
     catalog_path = Path(__file__).parent.parent / "data" / "exercises_catalog.yaml"
 
     try:
-        with open(catalog_path, 'r', encoding='utf-8') as f:
+        with open(catalog_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
             return data.get("exercises", [])
     except (FileNotFoundError, yaml.YAMLError):
@@ -73,16 +77,8 @@ def get_available_exercises() -> List[Dict]:
 
 
 def get_storage_path() -> Path:
-    """
-    Récupère le chemin de stockage depuis l'environnement ou utilise le défaut.
-
-    Returns:
-        Path: Chemin absolu vers le répertoire de stockage
-    """
-    storage_path_str = os.getenv(
-        "STORAGE_PATH", str(Path.home() / ".local/share/skillops")
-    )
-    return Path(storage_path_str).expanduser().absolute()
+    """Récupère le chemin de stockage depuis l'environnement ou utilise le défaut."""
+    return resolve_storage_path()
 
 
 def display_exercises_table(exercises: List[Dict[str, str]]) -> None:
@@ -126,25 +122,8 @@ def get_exercise_completion_count(exercise_id: str, storage_path: Path) -> int:
     Returns:
         int: Nombre de complétions réussies (historique complet)
     """
-    progress_file = storage_path / "reinforce_progress.json"
-    if not progress_file.exists():
-        return 0
-
-    try:
-        with progress_file.open("r") as f:
-            data = json.load(f)
-
-        # Compter sur TOUS les jours (pas juste aujourd'hui)
-        count = 0
-        for date, day_data in data.items():
-            exercises = day_data.get("exercises", [])
-            for exercise in exercises:
-                if exercise.get("id") == exercise_id and exercise.get("completed", False):
-                    count += 1
-
-        return count
-    except (json.JSONDecodeError, OSError):
-        return 0
+    history = get_reinforce_history(exercise_id)
+    return sum(1 for entry in history if entry.get("completed"))
 
 
 def get_exercise_progress(exercise_id: str, storage_path: Path) -> Optional[Dict]:
@@ -158,23 +137,45 @@ def get_exercise_progress(exercise_id: str, storage_path: Path) -> Optional[Dict
     Returns:
         Optional[Dict]: Données de progression ou None si non trouvé
     """
-    progress_file = storage_path / "reinforce_progress.json"
-    if not progress_file.exists():
-        return None
+    return get_latest_reinforce_progress(exercise_id)
 
-    try:
-        with progress_file.open("r") as f:
-            data = json.load(f)
-        today = datetime.now().strftime("%Y-%m-%d")
-        today_data = data.get(today, {})
-        exercises = today_data.get("exercises", [])
-        for exercise in exercises:
-            if exercise.get("id") == exercise_id:
-                return exercise
-    except (json.JSONDecodeError, OSError):
-        return None
 
-    return None
+def calculate_next_review(quality: int, previous_data: Dict) -> Dict:
+    """
+    Calcule la prochaine date de révision via l'algorithme SuperMemo-2 (SM-2).
+
+    Args:
+        quality: Note de 0 à 5 (0-2: échec, 3-5: succès)
+        previous_data: Données de la dernière révision (interval, reps, ef)
+    """
+    reps = previous_data.get("reps", 0)
+    interval = previous_data.get("interval", 0)
+    ease_factor = previous_data.get("ease_factor", 2.5)
+
+    if quality >= 3:
+        if reps == 0:
+            interval = 1
+        elif reps == 1:
+            interval = 6
+        else:
+            interval = int(interval * ease_factor)
+        reps += 1
+    else:
+        reps = 0
+        interval = 1
+
+    # Mise à jour de l'Ease Factor
+    ease_factor = ease_factor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    ease_factor = max(1.3, ease_factor)
+
+    next_date = (datetime.now() + timedelta(days=interval)).strftime("%Y-%m-%d")
+
+    return {
+        "reps": reps,
+        "interval": interval,
+        "ease_factor": ease_factor,
+        "next_review": next_date,
+    }
 
 
 def save_exercise_progress(
@@ -183,6 +184,7 @@ def save_exercise_progress(
     duration_seconds: int,
     completed: bool,
     storage_path: Path,
+    quality: int = 4,  # Par défaut "Bon" si complété
 ) -> None:
     """
     Sauvegarde la progression d'un exercice.
@@ -194,52 +196,16 @@ def save_exercise_progress(
         completed: Si l'exercice est terminé
         storage_path: Chemin vers le répertoire de stockage
     """
-    storage_path.mkdir(parents=True, exist_ok=True)
-    progress_file = storage_path / "reinforce_progress.json"
+    # Get previous SRS data
+    latest = get_latest_reinforce_progress(exercise_id)
+    # Récupérer les données SRS précédentes
+    prev_srs = latest.get("srs_data", {}) if latest else {}
 
-    # Charger les données existantes
-    if progress_file.exists():
-        try:
-            with progress_file.open("r") as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            data = {}
-    else:
-        data = {}
+    srs_data = calculate_next_review(quality if completed else 1, prev_srs)
 
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    # Initialiser les données du jour
-    if today not in data:
-        data[today] = {"exercises": [], "total_time": 0}
-
-    # Vérifier si l'exercice existe déjà
-    exercises = data[today]["exercises"]
-    existing_exercise = None
-    for i, ex in enumerate(exercises):
-        if ex.get("id") == exercise_id:
-            existing_exercise = i
-            break
-
-    exercise_data = {
-        "id": exercise_id,
-        "title": title,
-        "duration_seconds": duration_seconds,
-        "completed": completed,
-        "timestamp": datetime.now().isoformat(),
-    }
-
-    if existing_exercise is not None:
-        exercises[existing_exercise] = exercise_data
-    else:
-        exercises.append(exercise_data)
-
-    # Mettre à jour le temps total
-    data[today]["total_time"] = sum(ex["duration_seconds"] for ex in exercises)
-
-    # Sauvegarder
-    with progress_file.open("w") as f:
-        json.dump(data, f, indent=2)
+    save_reinforce_progress(
+        exercise_id, title, duration_seconds, completed, quality, srs_data
+    )
 
 
 def display_exercise_content(exercise_content: Dict[str, str]) -> None:
@@ -275,7 +241,9 @@ def display_exercise_content(exercise_content: Dict[str, str]) -> None:
     console.print(exercise_content.get("requirements", "N/A"))
 
     # Success criteria for self-evaluation
-    console.print("\n[bold yellow]✅ Critères de réussite (auto-évaluation):[/bold yellow]")
+    console.print(
+        "\n[bold yellow]✅ Critères de réussite (auto-évaluation):[/bold yellow]"
+    )
     console.print(exercise_content.get("success_criteria", "N/A"))
 
     # Resources
@@ -326,8 +294,10 @@ def record_exercise_session(
         console.print("\n[cyan]Appuyez sur Entrée pour continuer...[/cyan]")
         input()
 
-    console.print("\n[cyan]⏱️  Chronomètre démarré ! Appuyez sur Entrée quand "
-                  "vous avez terminé...[/cyan]")
+    console.print(
+        "\n[cyan]⏱️  Chronomètre démarré ! Appuyez sur Entrée quand "
+        "vous avez terminé...[/cyan]"
+    )
     start_time = datetime.now()
     input()  # Attendre que l'utilisateur appuie sur Entrée
 
@@ -339,9 +309,17 @@ def record_exercise_session(
     console.print("\nRevisez les critères de réussite ci-dessus.")
     console.print("Avez-vous validé TOUS les critères ?\n")
 
-    completed = Confirm.ask(
-        "✅ J'ai vérifié et validé tous les critères de succès", default=False
-    )
+    completed = Confirm.ask("✅ Succès ?", default=False)
+
+    quality = 1
+    if completed:
+        # Demander la difficulté pour le SRS
+        quality_str = Prompt.ask(
+            "Difficulté (1=Impossible, 3=Dur, 4=Bon, 5=Facile)",
+            choices=["1", "3", "4", "5"],
+            default="4",
+        )
+        quality = int(quality_str)
 
     # Sauvegarder la progression
     save_exercise_progress(
@@ -350,6 +328,7 @@ def record_exercise_session(
         duration,
         completed,
         storage_path,
+        quality=quality,
     )
 
     if completed:
@@ -368,7 +347,50 @@ def record_exercise_session(
         )
 
 
-def reinforce_step(storage_path: Optional[Path] = None) -> None:
+def get_daily_mix(exercises: List[Dict], storage_path: Path) -> List[Dict]:
+    """Génère une liste d'exercices 'Daily Mix' (SRS + Interleaving)."""
+    due_exercises = []
+    other_exercises = []
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # 1. Récupérer les exercices dus (SRS)
+    for ex in exercises:
+        prog = get_exercise_progress(ex.get("id"), storage_path)
+        if prog and prog.get("srs_data", {}).get("next_review", "2999-01-01") <= today:
+            due_exercises.append(ex)
+        else:
+            other_exercises.append(ex)
+
+    # 2. Interleaving : Ajouter des exercices aléatoires non maîtrisés
+    # On vise 3 exercices minimum : Priorité aux DUS, puis Random
+    selection = due_exercises[:]
+
+    # Identifier les domaines déjà présents pour maximiser l'Interleaving (Context Switching)
+    used_domains = {ex.get("primary_domain") for ex in selection}
+
+    if len(selection) < 3:
+        needed = 3 - len(selection)
+
+        # Prioriser les exercices dont le domaine n'est PAS encore dans la sélection
+        priority_others = [
+            ex for ex in other_exercises if ex.get("primary_domain") not in used_domains
+        ]
+        remaining_others = [
+            ex for ex in other_exercises if ex.get("primary_domain") in used_domains
+        ]
+
+        random.shuffle(priority_others)
+        random.shuffle(remaining_others)
+
+        # Remplir avec la priorité d'abord, puis le reste si nécessaire
+        candidates = priority_others + remaining_others
+        selection.extend(candidates[:needed])
+
+    # Limiter à 5 max pour ne pas surcharger
+    return selection[:5]
+
+
+def reinforce_step(storage_path: Optional[Path] = None) -> bool:
     """
     Exécute l'étape Reinforce : pratique d'exercices avec suivi de progression.
 
@@ -396,24 +418,32 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
             "Aucun exercice disponible",
             "Le catalogue d'exercices est vide. Vérifiez exercises_catalog.yaml",
         )
-        return
+        return False
+
+    # Mode Daily Mix vs Catalogue
+    console.print("\n[bold yellow]🧠 Mode d'entraînement[/bold yellow]")
+    mode = inquirer.list_input(
+        "Choisir le mode",
+        choices=[
+            "🎲 Daily Mix (Recommandé - SRS + Interleaving)",
+            "📂 Catalogue complet",
+        ],
+    )
+
+    if "Daily Mix" in mode:
+        exercises = get_daily_mix(exercises, storage_path)
 
     # Calculer les completion counts pour tous les exercices
     exercises_with_progress = []
     for exercise in exercises:
         exercise_key = exercise.get("key") or str(exercise.get("id"))
         completion_count = get_exercise_completion_count(exercise_key, storage_path)
-        exercises_with_progress.append({
-            **exercise,
-            '_completion_count': completion_count
-        })
+        exercises_with_progress.append(
+            {**exercise, "_completion_count": completion_count}
+        )
 
     # Définir l'ordre de difficulté
-    difficulty_order = {
-        'Débutant': 1,
-        'Intermédiaire': 2,
-        'Avancé': 3
-    }
+    difficulty_order = {"Débutant": 1, "Intermédiaire": 2, "Avancé": 3}
 
     # Trier les exercices:
     # 1. Par statut (non complétés d'abord, complétés à la fin)
@@ -422,26 +452,30 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
     sorted_exercises = sorted(
         exercises_with_progress,
         key=lambda ex: (
-            ex['_completion_count'] > 0,  # False (0) avant True (1) - non complétés d'abord
-            difficulty_order.get(ex.get('difficulty', 'Débutant'), 1),
-            ex.get('id', 999)
-        )
+            ex["_completion_count"]
+            > 0,  # False (0) avant True (1) - non complétés d'abord
+            difficulty_order.get(ex.get("difficulty", "Débutant"), 1),
+            ex.get("id", 999),
+        ),
     )
 
     # Créer les choix pour le menu interactif
     choices = []
     for exercise in sorted_exercises:
         # Format: "ID. [Domaine] Titre (Difficulté - Durée) [✓ complété X fois]"
-        ex_id = exercise.get('id', '?')
-        ex_domain = exercise.get('primary_domain', 'N/A')
-        ex_title = exercise.get('title', 'N/A')
-        ex_difficulty = exercise.get('difficulty', 'N/A')
-        ex_time = exercise.get('estimated_time', 'N/A')
-        completion_count = exercise.get('_completion_count', 0)
+        ex_id = exercise.get("id", "?")
+        ex_domain = exercise.get("primary_domain", "N/A")
+        ex_title = exercise.get("title", "N/A")
+        ex_difficulty = exercise.get("difficulty", "N/A")
+        ex_time = exercise.get("estimated_time", "N/A")
+        completion_count = exercise.get("_completion_count", 0)
 
         # Ajouter un indicateur si complété
         status = f" [✓×{completion_count}]" if completion_count > 0 else ""
-        choice_text = f"{ex_id:>3}. [{ex_domain:15s}] {ex_title:45s} ({ex_difficulty:15s} - {ex_time}){status}"
+        choice_text = (
+            f"{ex_id:>3}. [{ex_domain:15s}] {ex_title:45s} "
+            f"({ex_difficulty:15s} - {ex_time}){status}"
+        )
         choices.append(choice_text)
 
     choices.append("⬅️  Retour au menu principal")
@@ -450,7 +484,10 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
     questions = [
         inquirer.List(
             "exercise",
-            message="Choisissez un exercice (↑↓ ou j/k, Entrée pour sélectionner, ESC pour quitter)",
+            message=(
+                "Choisissez un exercice (↑↓ ou j/k, Entrée pour sélectionner, "
+                "ESC pour quitter)"
+            ),
             choices=choices,
             carousel=True,
         )
@@ -462,11 +499,11 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
         # Gérer ESC ou annulation (answers est None)
         if answers is None:
             console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
-            return
+            return False
 
         if answers.get("exercise") == "⬅️  Retour au menu principal":
             console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
-            return
+            return False
 
         # Extraire l'ID de l'exercice sélectionné
         selected_text = answers["exercise"]
@@ -484,14 +521,14 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
                 "Exercice introuvable",
                 f"L'ID '{exercise_id}' ne correspond à aucun exercice disponible.",
             )
-            return
+            return False
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Retour au menu principal...[/yellow]\n")
-        return
+        return False
 
     # Récupérer le completion_count (déjà calculé lors du tri)
-    completion_count = selected_exercise.get('_completion_count', 0)
+    completion_count = selected_exercise.get("_completion_count", 0)
 
     # Récupérer la clé unique de l'exercice
     exercise_key = selected_exercise.get("key") or str(selected_exercise.get("id"))
@@ -539,13 +576,14 @@ def reinforce_step(storage_path: Optional[Path] = None) -> None:
             f"Impossible de générer l'exercice: {e}\n\n"
             "Vérifiez que GEMINI_API_KEY est configuré dans .env",
         )
-        return
+        return False
     except Exception as e:
         display_error_message(
             "Erreur",
             f"Une erreur est survenue: {e}",
         )
-        return
+        return False
 
     # Enregistrer la session
     record_exercise_session(selected_exercise, exercise_content, storage_path)
+    return True

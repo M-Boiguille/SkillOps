@@ -1,0 +1,100 @@
+# Operations Guide
+
+## Backups
+
+SkillOps stores all state in SQLite: storage/skillops.db.
+
+### Manual backup
+
+- Copy the database file:
+  - storage/skillops.db
+
+### Automated backup (recommended)
+
+Use the provided script:
+
+- [../setup/backup/backup.sh](../setup/backup/backup.sh)
+
+Make it executable:
+
+- `chmod +x setup/backup/backup.sh setup/backup/restore.sh`
+
+Configuration (optional):
+
+- `STORAGE_PATH` (default: ~/.local/share/skillops)
+- `SKILLOPS_BACKUP_DIR` (default: $STORAGE_PATH/backups)
+- `SKILLOPS_BACKUP_RETENTION_DAYS` (default: 14)
+
+### Export snapshots
+
+- JSON/CSV exports are provided via:
+  - skillops export --format json --output ./exports/skillops_export.json
+  - skillops export --format csv --output ./exports/
+
+## Restore
+
+- Restore the SQLite file from backup:
+  - Replace storage/skillops.db with your backup
+
+- Or import from export snapshots:
+  - skillops import-data ./exports/skillops_export.json
+
+### Automated restore
+
+- [../setup/backup/restore.sh](../setup/backup/restore.sh)
+
+Example:
+
+- `bash setup/backup/restore.sh ~/.local/share/skillops/backups/skillops_YYYYmmdd_HHMMSS.db`
+
+## Migration (legacy JSON → SQLite)
+
+If you have old JSON files (.progress.json, formation_log.json, reinforce_progress.json):
+
+- skillops migrate
+
+## Logging
+
+### Text logs (default)
+
+- SKILLOPS_LOG_FORMAT=text
+
+### JSON logs
+
+- SKILLOPS_LOG_FORMAT=json
+
+## Alerting
+
+SkillOps can send alerts on failures.
+
+Environment variables:
+
+- `SKILLOPS_ALERT_TYPE` = email|webhook|both
+- `SKILLOPS_ALERT_RECIPIENTS` (comma-separated)
+- `SKILLOPS_ALERT_SMTP_HOST`, `SKILLOPS_ALERT_SMTP_PORT`
+- `SKILLOPS_ALERT_SMTP_USER`, `SKILLOPS_ALERT_SMTP_PASS`
+- `SKILLOPS_ALERT_WEBHOOK_URL`
+
+## Day boundary (streaks)
+
+- SKILLOPS_DAY_START_HOUR=4
+- Set to local preference (0–23)
+
+## Preflight checks
+
+- skillops doctor
+
+Verifies:
+- Environment variables
+- Storage write access
+- SQLite connectivity
+- Optional Gemini dependency
+
+## Restore tests
+
+Recommended monthly procedure:
+
+1. Create a fresh backup with `setup/backup/backup.sh`
+2. Restore to a temporary location (copy the backup to a test storage path)
+3. Run `skillops doctor`
+4. Run a read-only command (`skillops version`)

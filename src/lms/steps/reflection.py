@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
 
+from src.lms.paths import get_storage_path
+
 console = Console()
-
-
-def get_storage_path() -> Path:
-    storage = os.getenv("STORAGE_PATH", str(Path.home() / ".local/share/skillops"))
-    return Path(storage).expanduser().absolute()
 
 
 def reflection_step(

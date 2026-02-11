@@ -10,6 +10,8 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from src.lms.persistence import get_context, set_context, save_cards_created
+from src.lms.ai_config import get_gemini_model
 
 # Configuration
 console = Console()
@@ -53,15 +55,17 @@ def _ask_and_validate(
     """Valide la réponse de l'utilisateur via Gemini (Méthode Socratique)."""
 
     system_prompt = f"""
-    Tu es un mentor DevOps expert et pédagogue (Socratic Method).
-    Ton but est de valider la compréhension de l'étudiant sur le sujet : "{topic}".
-    Étape actuelle : {stage} (Definition ou Analogy).
+    Tu es un expert DevOps qui joue le rôle d'un auditeur naïf mais curieux (Technique Feynman).
+    L'utilisateur essaie de t'expliquer le concept : "{topic}".
+    Étape actuelle : {stage}.
 
     Règles de validation :
-     1. Si la réponse est fausse, vague ou techniquement incorrecte : "is_valid": false.
-         Donne un feedback constructif sans donner la réponse complète.
-     2. Si la réponse est correcte : "is_valid": true.
-         Reformule légèrement pour rendre la définition/analogie parfaite.
+     1. Si l'explication utilise trop de jargon technique sans le définir : "is_valid": false.
+        Feedback : "Je ne comprends pas ce mot compliqué, peux-tu expliquer plus simplement ?"
+     2. Si l'explication est fausse ou imprécise : "is_valid": false.
+        Feedback : Corrige l'erreur conceptuelle poliment.
+     3. Si l'explication est claire, simple et juste (vulgarisée) : "is_valid": true.
+        Feedback : Confirme la compréhension et propose une nuance experte.
 
     Réponds UNIQUEMENT avec ce JSON strict :
     {{
@@ -75,7 +79,7 @@ def _ask_and_validate(
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=get_gemini_model(),
             contents=f"{system_prompt}\n{user_prompt}",
         )
 
@@ -115,7 +119,7 @@ def _enrich_content(client: Any, topic: str) -> Dict[str, str]:
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=prompt
+            model=get_gemini_model(), contents=prompt
         )
         cleaned_json = _clean_json_response(response.text)
         return json.loads(cleaned_json)
@@ -127,10 +131,12 @@ def _enrich_content(client: Any, topic: str) -> Dict[str, str]:
         }
 
 
-def tutor_step() -> None:
+def tutor_step() -> bool:
     """Fonction principale du module Tutor."""
     console.clear()
-    console.print(Panel.fit("🎓 Tutor Mode - Smart Note Taker", style="bold cyan"))
+    console.print(
+        Panel.fit("🧠 Feynman Mode - Enseigner pour Apprendre", style="bold cyan")
+    )
 
     # 0. Initialisation
     try:
@@ -138,21 +144,34 @@ def tutor_step() -> None:
         vault_path = _get_vault_path()
     except ValueError as e:
         console.print(f"[bold red]{e}[/bold red]")
-        return
+        return False
 
-    topic = Prompt.ask(
-        "[bold yellow]De quel sujet veux-tu parler aujourd'hui ?[/bold yellow] (ex: Docker Volumes)"
-    )
+    # Check context for existing topic
+    topic = get_context("current_topic")
+    if topic:
+        console.print(
+            f"Sujet détecté depuis le contexte : [bold green]{topic}[/bold green]"
+        )
+        if (
+            not Prompt.ask("Continuer sur ce sujet ?", choices=["y", "n"], default="y")
+            == "y"
+        ):
+            topic = None
+
     if not topic:
-        return
+        topic = Prompt.ask(
+            "[bold yellow]De quel sujet veux-tu parler aujourd'hui ?[/bold yellow] "
+            "(ex: Docker Volumes)"
+        )
 
-    final_note_data = {"topic": topic}
+    if not topic:
+        return False
 
     # 1. Phase Définition
     while True:
         console.print("\n[bold cyan]1. Définition[/bold cyan]")
         console.print(
-            f"Comment définirais-tu [italic]{topic}[/italic] avec tes propres mots ?"
+            f"Explique-moi [italic]{topic}[/italic] comme si j'avais 12 ans (sans jargon)."
         )
         answer = Prompt.ask("❯ ")
 
@@ -165,7 +184,8 @@ def tutor_step() -> None:
         console.print(Markdown(f"**Mentor:** {result['feedback']}"))
 
         if result["is_valid"]:
-            final_note_data["definition"] = result["refined_content"]
+            definition = result["refined_content"]
+            set_context("current_topic", topic)  # Save context on success
             console.print("[green]✅ Définition validée ![/green]")
             break
         else:
@@ -188,7 +208,7 @@ def tutor_step() -> None:
         console.print(Markdown(f"**Mentor:** {result['feedback']}"))
 
         if result["is_valid"]:
-            final_note_data["analogy"] = result["refined_content"]
+            analogy = result["refined_content"]
             console.print("[green]✅ Analogie validée ![/green]")
             break
         else:
@@ -223,10 +243,10 @@ created_at: {os.popen('date -I').read().strip()}
 # {topic}
 
 ## 🧠 Concept
-{final_note_data['definition']}
+{definition}
 
 ## 💡 Analogy
-{final_note_data['analogy']}
+{analogy}
 
 ## 🛠️ Survival Commands
 ```bash
@@ -237,7 +257,7 @@ created_at: {os.popen('date -I').read().strip()}
 ## 📚 Levels
 
 > [!NOTE] Junior Level
-> Compréhension de base : {final_note_data['definition']}
+> Compréhension de base : {definition}
 
 > [!WARNING] Senior Level
 > {enrichment['senior_insight']}
@@ -249,6 +269,9 @@ created_at: {os.popen('date -I').read().strip()}
 
     file_path.write_text(markdown_content, encoding="utf-8")
 
+    # Enregistrer les cartes créées (2 par défaut selon le prompt)
+    save_cards_created(2, source="tutor")
+
     console.print(
         Panel(
             f"[bold green]Note créée avec succès ![/bold green]\n"
@@ -257,3 +280,4 @@ created_at: {os.popen('date -I').read().strip()}
             border_style="green",
         )
     )
+    return True

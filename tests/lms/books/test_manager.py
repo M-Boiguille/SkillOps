@@ -1,9 +1,7 @@
 """Tests for BooksManager class."""
 
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 import yaml
@@ -69,9 +67,9 @@ class TestManifestOperations:
         sample_manifest = {
             "version": "1.0",
             "books": [{"name": "test-book", "status": "pending"}],
-            "statistics": {"total_books": 1}
+            "statistics": {"total_books": 1},
         }
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump(sample_manifest, f)
 
         manager = BooksManager(books_root=tmp_books_dir)
@@ -91,13 +89,13 @@ class TestManifestOperations:
             "imported_at": None,
             "results": {"zettelkasten": None, "flashcards": None, "pareto": None},
             "metadata": {"pages": None, "tokens_estimated": None, "cost_usd": None},
-            "error": None
+            "error": None,
         }
         manager.manifest["books"].append(book_entry)
         manager._save_manifest()
 
         # Verify it's saved to disk
-        with open(manager.manifest_path, 'r') as f:
+        with open(manager.manifest_path, "r") as f:
             loaded = yaml.safe_load(f)
 
         assert len(loaded["books"]) == 1
@@ -124,7 +122,7 @@ class TestBookOperations:
         pdf_path.write_text("test")
 
         manager.add_book("test-book", pdf_path)
-        result = manager.add_book("test-book", pdf_path)
+        _ = manager.add_book("test-book", pdf_path)
 
         assert len(manager.manifest["books"]) == 1
         captured = capsys.readouterr()
@@ -222,7 +220,10 @@ class TestCreateBatchRequests:
             assert req["request"]["model"] == "gemini-2.0-flash-exp"
             assert "contents" in req["request"]
             assert "generationConfig" in req["request"]
-            assert req["request"]["generationConfig"]["responseMimeType"] == "application/json"
+            assert (
+                req["request"]["generationConfig"]["responseMimeType"]
+                == "application/json"
+            )
 
 
 class TestLoadPrompts:
@@ -358,7 +359,9 @@ class TestFetchBooksWithMocks:
     """Tests for fetch_completed_books with mocked API."""
 
     @patch("src.lms.books.manager.genai.Client")
-    def test_fetch_completed_books_no_processing(self, mock_client_class, manager, capsys):
+    def test_fetch_completed_books_no_processing(
+        self, mock_client_class, manager, capsys
+    ):
         """Test fetch when no books are processing."""
         manager.fetch_completed_books("fake-api-key")
 
@@ -366,7 +369,9 @@ class TestFetchBooksWithMocks:
         assert "No books currently processing" in captured.out
 
     @patch("src.lms.books.manager.genai.Client")
-    def test_fetch_completed_books_with_specific_book(self, mock_client_class, manager, tmp_path, capsys):
+    def test_fetch_completed_books_with_specific_book(
+        self, mock_client_class, manager, tmp_path, capsys
+    ):
         """Test fetch with specific book name."""
         pdf_path = tmp_path / "test.pdf"
         pdf_path.write_text("test")
@@ -446,7 +451,9 @@ class TestCommandFunctions:
 
         fetch_books_command(api_key="test-key", book_name="test-book")
 
-        mock_manager.fetch_completed_books.assert_called_once_with("test-key", "test-book")
+        mock_manager.fetch_completed_books.assert_called_once_with(
+            "test-key", "test-book"
+        )
 
     @patch("src.lms.books.manager.BooksManager")
     def test_import_books_command(self, mock_manager_class):
@@ -458,4 +465,6 @@ class TestCommandFunctions:
 
         import_books_command(vault_path="/vault", book_name="test-book")
 
-        mock_manager.import_books_to_vault.assert_called_once_with("/vault", "test-book")
+        mock_manager.import_books_to_vault.assert_called_once_with(
+            "/vault", "test-book"
+        )
