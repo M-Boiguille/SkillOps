@@ -1,12 +1,28 @@
-# Configuration Gemini API (2026)
+# Configuration Gemini API (Février 2026)
 
-## Changements API en 2026
+## Modèles Gratuits Disponibles
 
-Le package `google-generativeai` est **déprécié** depuis 2026.
+| Modèle             | Capacités                  | Contexte Max | Multimodal  |
+|--------------------|----------------------------|--------------|-------------|
+| Gemini 2.5 Pro    | Raisonnement avancé, code  | 1M tokens    | Texte/Image |
+| **Gemini 2.5 Flash** ⭐ | Rapide, généraliste    | 1M tokens    | Texte/Image |
+| Gemini 2.5 Flash-Lite | Ultra-rapide, low-latency | 1M tokens  | Texte only  |
 
-**Migration effectuée:**
-- ❌ `google-generativeai` (0.8.6) → ✅ `google-genai` (1.62.0)
-- ❌ `gemini-1.5-flash` → ✅ `gemini-2.0-flash-exp`
+**SkillOps utilise:** `gemini-2.5-flash` (meilleur rapport rapidité/limites)
+
+## Limites Free Tier (par projet, reset minuit PT)
+
+| Modèle            | RPM (req/min) | TPM (tokens/min) | RPD (req/jour) | Images/min |
+|-------------------|---------------|------------------|----------------|------------|
+| Gemini 2.5 Pro   | 5             | 250K             | 100            | 1          |
+| **Gemini 2.5 Flash** | **15**    | **250K**         | **1000**       | **2**      |
+| Flash-Lite       | 15            | 250K             | 1000           | N/A        |
+
+**Avantages Flash pour SkillOps:**
+- 3x plus de requêtes/minute que Pro (15 vs 5)
+- 10x plus de requêtes/jour (1000 vs 100)
+- Latence plus faible
+- Suffisant pour génération d'incidents
 
 ## Configuration
 
@@ -15,7 +31,7 @@ Le package `google-generativeai` est **déprécié** depuis 2026.
 Visite: https://aistudio.google.com/app/apikey
 
 - Clique sur "Create API Key"
-- Copie la clé
+- Copie la clé (gratuit, pas de carte de crédit requise)
 
 ### 2. Configurer la variable d'environnement
 
@@ -38,46 +54,73 @@ python -c "from google import genai; import os; client = genai.Client(api_key=os
 skillops oncall
 ```
 
-## Utilisation du nouveau package
+## Implémentation Python (SDK google-genai)
 
-### Ancien code (déprécié)
+### Installation
 
-```python
-import google.generativeai as genai
-
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
-response = model.generate_content(prompt)
+```bash
+pip install -q -U google-genai
 ```
 
-### Nouveau code (2026)
+### Chat Basique (utilisé dans SkillOps)
 
 ```python
 from google import genai
 
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key="YOUR_API_KEY")
 response = client.models.generate_content(
-    model="gemini-2.0-flash-exp",
-    contents=prompt
+    model='gemini-2.5-flash',
+    contents="Ton prompt ici"
 )
+print(response.text)
 ```
 
-## Modèles disponibles (2026)
+### Streaming
 
-- **gemini-2.0-flash-exp** ⭐ (recommandé pour SkillOps)
-  - Plus rapide
-  - Moins cher
-  - Parfait pour génération d'incidents
+```python
+client = genai.Client(api_key="YOUR_API_KEY")
+for chunk in client.models.generate_content_stream(
+    model='gemini-2.5-flash',
+    contents="Prompt streaming"
+):
+    print(chunk.text, end="")
+```
 
-- **gemini-2.0-pro-exp**
-  - Plus puissant
-  - Plus lent
-  - Pour tâches complexes
+### Multimodal (Image)
+
+```python
+client = genai.Client(api_key="YOUR_API_KEY")
+img = client.files.upload(file_path="image.jpg")
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents=["Analyse cette image", img]
+)
+print(response.text)
+```
+
+## Architecture SkillOps
+
+```python
+# src/lms/oncall_ai.py
+from google import genai
+
+def generate_incident_with_ai(api_key, storage_path, difficulty):
+    client = genai.Client(api_key=api_key)
+
+    context = get_incident_context(storage_path)
+    prompt = build_prompt(context, difficulty)
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+    return parse_incident(response.text)
+```
 
 ## Dépendances
 
 ```txt
-google-genai==1.62.0
+google-genai
 google-auth==2.47.0
 ```
 
@@ -92,15 +135,28 @@ google-auth==2.47.0
 export GEMINI_API_KEY="ta-clé"
 ```
 
+### Erreur: "429 Rate Limit"
+
+**Cause:** Trop de requêtes (15 req/min dépassés)
+
+**Solution:**
+```python
+import time
+time.sleep(60)  # Attendre reset
+```
+
 ### Erreur: "404 model not found"
 
-**Cause:** Utilisation d'un ancien nom de modèle
+**Cause:** Nom de modèle incorrect
 
-**Solution:** Le code utilise maintenant `gemini-2.0-flash-exp` automatiquement
+**Solution:** Le code utilise maintenant `gemini-2.5-flash` (correct pour 2026)
 
 ### Warning: "google.generativeai package has ended"
 
 **Status:** ✅ Résolu - migration vers `google-genai` effectuée
+- Package: `google-genai` (nouveau, maintenu)
+- Plus de warning de dépréciation
+- API moderne et stable
 
 ## Tests
 
@@ -115,16 +171,34 @@ pytest tests/ -q
 # Résultat: 457 passed ✅
 ```
 
+## Comparaison des Modèles pour SkillOps
+
+| Critère         | Gemini 2.5 Pro | Gemini 2.5 Flash ⭐ | Flash-Lite |
+|----------------|----------------|---------------------|------------|
+| Qualité        | Excellent      | Très bon            | Bon        |
+| Vitesse        | Moyen          | **Rapide**          | Ultra      |
+| RPM Free       | 5              | **15**              | 15         |
+| RPD Free       | 100            | **1000**            | 1000       |
+| Use case       | Raisonnement   | **Génération**      | Simple     |
+
+**Pourquoi Flash ?**
+- ✅ Suffisant pour générer des incidents réalistes
+- ✅ 3x plus de requêtes/minute que Pro
+- ✅ Génère hints et validation questions rapidement
+- ✅ Coût gratuit avec limites généreuses
+
 ## Documentation officielle
 
-- Nouveau package: https://ai.google.dev/gemini-api/docs/quickstart?lang=python
-- Migration guide: https://github.com/google-gemini/deprecated-generative-ai-python
+- Pricing & Limits: https://ai.google.dev/gemini-api/docs/pricing
+- Python SDK: https://ai.google.dev/gemini-api/docs/quickstart?lang=python
+- Models: https://ai.google.dev/gemini-api/docs/models
 
 ## Résumé
 
 ✅ **Configuration complète**
-- Package mis à jour: `google-genai 1.62.0`
-- Modèle moderne: `gemini-2.0-flash-exp`
-- API 2026 compatible
+- Package: `google-genai` (nouveau SDK maintenu)
+- Modèle: `gemini-2.5-flash` (15 RPM, 1000 RPD)
+- API: `client = genai.Client()` + `client.models.generate_content()`
 - Tous les tests passent (457/457)
-- Code plus propre avec la nouvelle API
+- Free tier suffisant pour usage SkillOps
+- Plus de warnings de dépréciation

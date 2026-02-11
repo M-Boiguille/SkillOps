@@ -3,13 +3,14 @@
 Generates contextual incidents based on past performance and skill gaps.
 """
 
+import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
 
 from src.lms.database import get_connection, init_db
 
@@ -124,8 +125,7 @@ def generate_incident_with_ai(
     if not api_key:
         raise ValueError("GEMINI_API_KEY required for AI incident generation")
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    client = genai.Client(api_key=api_key)
 
     context = get_incident_context(storage_path)
 
@@ -167,7 +167,7 @@ Return a JSON object with:
 Make it challenging but solvable for a {context.skill_level} DevOps engineer.
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     text = response.text.strip()
 
     # Extract JSON from markdown code blocks if present
@@ -226,8 +226,15 @@ def generate_hints_for_incident(
 
     title, description, symptoms, system = row
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    # Decode JSON symptoms if it's a string
+    if isinstance(symptoms, str):
+        try:
+            symptoms = json.loads(symptoms)
+        except json.JSONDecodeError:
+            # Keep as string if not valid JSON
+            pass
+
+    client = genai.Client(api_key=api_key)
 
     hint_instructions = {
         1: "Ask a Socratic question to guide thinking (don't give the answer)",
@@ -248,7 +255,7 @@ Provide a hint (level {current_hint_level}/3):
 Keep it concise (1-2 sentences).
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     return response.text.strip()
 
 
@@ -293,8 +300,7 @@ def generate_validation_questions(
 
     title, description, system = row
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    client = genai.Client(api_key=api_key)
 
     prompt = f"""You are evaluating a DevOps engineer's understanding after resolving an incident.
 
@@ -311,7 +317,7 @@ Generate 2-3 validation questions to test their understanding of:
 Return as JSON array: ["question1", "question2", "question3"]
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     text = response.text.strip()
 
     if "```json" in text:

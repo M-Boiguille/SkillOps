@@ -3,6 +3,7 @@
 AI-powered incident generation with spaced repetition and progressive hints.
 """
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -93,6 +94,14 @@ def create_incident(
 
     conn = get_connection(storage_path)
     cursor = conn.cursor()
+
+    # Convert lists to JSON for SQLite storage
+    symptoms_json = (
+        json.dumps(incident.symptoms)
+        if isinstance(incident.symptoms, list)
+        else incident.symptoms
+    )
+
     cursor.execute(
         """
         INSERT INTO incidents (timestamp, severity, title, description,
@@ -106,7 +115,7 @@ def create_incident(
             incident.title,
             incident.description,
             incident.affected_system,
-            incident.symptoms,
+            symptoms_json,
             incident.status,
             incident.difficulty_level,
             incident.generated_by,
@@ -147,6 +156,15 @@ def get_open_incidents(storage_path: Optional[Path] = None) -> list[Incident]:
 
     incidents = []
     for row in rows:
+        # Decode JSON symptoms if it's a string
+        symptoms = row[6]
+        if isinstance(symptoms, str):
+            try:
+                symptoms = json.loads(symptoms)
+            except json.JSONDecodeError:
+                # Fallback: keep as string if not valid JSON
+                pass
+
         incidents.append(
             Incident(
                 id=row[0],
@@ -155,7 +173,7 @@ def get_open_incidents(storage_path: Optional[Path] = None) -> list[Incident]:
                 title=row[3],
                 description=row[4],
                 affected_system=row[5],
-                symptoms=row[6],
+                symptoms=symptoms,
                 status=row[7],
                 resolution=row[8],
                 postmortem_id=row[9],
@@ -492,8 +510,52 @@ def oncall_step(storage_path: Optional[Path] = None) -> bool:
     display_incident(incident)
 
     console.print(
-        "\n[yellow]💡 Actions: 'investigate' to view | 'hint' for help | "
-        "'resolve' when fixed[/yellow]\n"
+        "\n[yellow]💡 What would you like to do with this incident?[/yellow]\n"
     )
+
+    # Interactive loop for the newly generated incident
+    action = Prompt.ask(
+        "Choose action",
+        choices=["investigate", "hint", "resolve", "quit"],
+        default="investigate",
+    )
+
+    if action == "investigate":
+        display_incident(incident)
+        console.print(
+            "\n[dim]Run 'skillops oncall' again to continue working on this incident[/dim]"
+        )
+        return True
+
+    elif action == "hint":
+        request_hint_for_incident(incident, storage_path)
+        console.print(
+            "\n[dim]Run 'skillops oncall' again to continue working on this incident[/dim]"
+        )
+        return True
+
+    elif action == "resolve":
+        console.print("\n[bold]Describe your resolution:[/bold]")
+        resolution = Prompt.ask("Resolution")
+
+        # Validate with AI
+        validation_passed = validate_resolution(incident, resolution, storage_path)
+
+        # Update incident
+        update_incident_status(incident.id, "resolved", resolution, storage_path)
+        console.print("\n[green]✅ Incident resolved![/green]")
+
+        if validation_passed:
+            console.print("[cyan]✅ Good! Next review in 3 days[/cyan]")
+        else:
+            console.print("[yellow]⚠️  Needs practice. Next review in 1 day[/yellow]")
+
+        console.print(
+            "\n[yellow]💡 Write a post-mortem: skillops post-mortem[/yellow]\n"
+        )
+        return True
+
+    elif action == "quit":
+        return True
 
     return True
