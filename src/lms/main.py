@@ -311,6 +311,45 @@ def dashboard(
     display_recommendations(storage_path=storage_path)
 
 
+@app.command("predict")
+def predict(
+    days: int = typer.Option(30, "--days", help="Window in days"),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Display predictive analytics (Phase 6)."""
+    from rich.table import Table
+    from rich.panel import Panel
+    from src.lms.predictive_analytics import generate_predictive_insights
+
+    insights = generate_predictive_insights(days=days, storage_path=storage_path)
+
+    summary = Table(title="🔮 Predictive Insights")
+    summary.add_column("Metric")
+    summary.add_column("Value")
+    summary.add_row("Series count", str(insights["series_count"]))
+    summary.add_row("Activity streak", str(insights["streak"]))
+    summary.add_row("Next study date", str(insights["next_study_date"]))
+    summary.add_row(
+        "Forecast next week",
+        f"{int(insights['forecast_total_next_week_seconds'] // 3600)}h",
+    )
+    summary.add_row("Trend slope/day", f"{insights['slope_per_day']:.2f}")
+
+    anomalies = insights["anomalies"]
+    if anomalies:
+        anomaly_lines = [
+            f"{a.date} {a.metric}={a.value} (z={a.z_score:.2f})" for a in anomalies
+        ]
+        anomaly_text = "\n".join(anomaly_lines)
+    else:
+        anomaly_text = "No anomalies detected."
+
+    typer.echo(summary)
+    typer.echo(Panel(anomaly_text, title="Anomalies"))
+
+
 @app.command()
 def chaos(
     user_id: str = typer.Option(
