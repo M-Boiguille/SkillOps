@@ -9,7 +9,7 @@ from typing import Optional
 from src.lms.paths import get_storage_path
 
 DB_NAME = "skillops.db"
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 def get_db_path(storage_path: Optional[Path] = None) -> Path:
@@ -176,6 +176,34 @@ def init_db(storage_path: Optional[Path] = None):
     """
     )
 
+    # User Learning Profile
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS user_learning_profile (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT UNIQUE,
+        current_topics TEXT, -- JSON list
+        recent_achievements TEXT,
+        learning_difficulty TEXT
+    );
+    """
+    )
+
+    # Chaos History (adaptive templates)
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS chaos_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        template_name TEXT,
+        attempt_date TEXT,
+        user_answer TEXT,
+        ai_feedback TEXT,
+        success BOOLEAN
+    );
+    """
+    )
+
     # Incidents (On-Call)
     cursor.execute(
         """
@@ -257,6 +285,11 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
         _migration_add_quiz_cards(cursor)
         cursor.execute("INSERT INTO schema_version (version) VALUES (5)")
 
+    if current_version < 6:
+        _migration_add_learning_profile(cursor)
+        _migration_add_chaos_history(cursor)
+        cursor.execute("INSERT INTO schema_version (version) VALUES (6)")
+
 
 def _column_exists(cursor: sqlite3.Cursor, table: str, column: str) -> bool:
     cursor.execute(f"PRAGMA table_info({table})")
@@ -335,6 +368,38 @@ def _migration_add_quiz_cards(cursor: sqlite3.Cursor) -> None:
             last_reviewed TEXT,
             review_count INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+    )
+
+
+def _migration_add_learning_profile(cursor: sqlite3.Cursor) -> None:
+    """Add user_learning_profile table if missing."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_learning_profile (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT UNIQUE,
+            current_topics TEXT,
+            recent_achievements TEXT,
+            learning_difficulty TEXT
+        );
+        """
+    )
+
+
+def _migration_add_chaos_history(cursor: sqlite3.Cursor) -> None:
+    """Add chaos_history table if missing."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS chaos_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            template_name TEXT,
+            attempt_date TEXT,
+            user_answer TEXT,
+            ai_feedback TEXT,
+            success BOOLEAN
         );
         """
     )

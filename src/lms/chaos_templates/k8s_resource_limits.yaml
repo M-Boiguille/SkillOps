@@ -1,0 +1,33 @@
+name: "Kubernetes Resource Limits"
+learning_topics:
+  - kubernetes
+  - resources
+  - reliability
+difficulty: "intermediate"
+
+description: "Le pod est OOMKilled en production. Corrige le manifest."
+
+bug_inject: |
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: api-service
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: api-service
+    template:
+      metadata:
+        labels:
+          app: api-service
+      spec:
+        containers:
+          - name: api
+            image: my-api:latest
+            resources:
+              limits:
+                memory: "32Mi"  # BUG: too low
+                cpu: "50m"
+
+expected_solution: "Ajuster les limits/requests mémoire"

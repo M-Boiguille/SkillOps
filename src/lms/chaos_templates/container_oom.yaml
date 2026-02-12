@@ -1,0 +1,13 @@
+name: "Container OOM"
+learning_topics:
+  - containers
+  - memory
+  - debugging
+difficulty: "beginner"
+
+description: "Le container se fait tuer par le kernel (OOM)."
+
+bug_inject: |
+  docker run --memory=64m my-worker:latest  # BUG: memory trop faible
+
+expected_solution: "Augmenter la limite mémoire"

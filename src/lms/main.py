@@ -39,6 +39,16 @@ from src.lms.steps.share import share_step  # noqa: E402
 from src.lms.commands.setup_wizard import setup_command  # noqa: E402
 from src.lms.steps.migrate import migrate as migrate_legacy_data  # noqa: E402
 from src.lms.chaos import ChaosConfig, run_chaos  # noqa: E402
+from src.lms.chaos_templates import (  # noqa: E402
+    apply_chaos,
+    get_ai_feedback,
+    pick_chaos_template,
+    record_chaos_history,
+    upsert_learning_profile,
+)
+from rich.console import Console  # noqa: E402
+from rich.panel import Panel  # noqa: E402
+from rich.prompt import Prompt  # noqa: E402
 from src.lms.oncall import oncall_step  # noqa: E402
 from src.lms.postmortem import postmortem_step  # noqa: E402
 from src.lms.books import (  # noqa: E402
@@ -55,6 +65,8 @@ app = typer.Typer(
     help="SkillOps - Your Daily Learning Management System",
     add_completion=False,
 )
+
+console = Console()
 
 
 @app.command("secret-set")
@@ -247,6 +259,71 @@ def metrics(
 
 @app.command()
 def chaos(
+    user_id: str = typer.Option(
+        "default",
+        "--user-id",
+        help="User identifier for profile matching",
+    ),
+    topics: Optional[str] = typer.Option(
+        None,
+        "--topics",
+        help="Comma-separated learning topics to seed the profile",
+    ),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Adaptive chaos templates with bug injection."""
+    if topics:
+        topic_list = [t.strip() for t in topics.split(",") if t.strip()]
+        if topic_list:
+            upsert_learning_profile(
+                user_id=user_id,
+                current_topics=topic_list,
+                storage_path=storage_path,
+            )
+
+    template = pick_chaos_template(user_id=user_id, storage_path=storage_path)
+    if not template:
+        display_info_panel(
+            "Chaos",
+            "Aucun template disponible. Ajoute des fichiers YAML dans src/lms/chaos_templates.",
+            border_color="yellow",
+        )
+        raise typer.Exit(code=1)
+
+    manifest = apply_chaos(template)
+    console.print(
+        Panel(
+            f"[bold]{template.get('name', 'Chaos')}[/bold]\n\n"
+            f"{template.get('description', '')}\n\n"
+            f"[bold]Bug injecté:[/bold]\n{manifest}",
+            border_style="magenta",
+        )
+    )
+
+    user_answer = Prompt.ask("Ta correction")
+    feedback = get_ai_feedback(user_answer, template)
+    record_chaos_history(
+        user_id=user_id,
+        template=template,
+        user_answer=user_answer,
+        feedback=feedback.get("feedback", ""),
+        success=bool(feedback.get("success")),
+        storage_path=storage_path,
+    )
+
+    console.print(
+        Panel(
+            feedback.get("feedback", ""),
+            title="Feedback",
+            border_style="green" if feedback.get("success") else "yellow",
+        )
+    )
+
+
+@app.command("chaos-run")
+def chaos_run(
     level: int = typer.Option(
         1,
         "--level",
@@ -310,7 +387,7 @@ def chaos(
         None, "--storage-path", help="Custom storage directory"
     ),
 ):
-    """Run SkillOps Chaos Monkey (local) scenarios."""
+    """Run legacy SkillOps Chaos Monkey scenarios."""
     config = ChaosConfig(
         level=level,
         mode=mode,

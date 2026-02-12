@@ -1,0 +1,31 @@
+name: "Kubernetes Healthchecks"
+learning_topics:
+  - kubernetes
+  - deployment
+  - reliability
+difficulty: "intermediate"
+
+description: "Le pod redémarre en boucle. Identifie et corrige la cause."
+
+bug_inject: |
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: broken-app
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: broken-app
+    template:
+      metadata:
+        labels:
+          app: broken-app
+      spec:
+        containers:
+          - name: app
+            image: nginx:latest
+            livenessProbe: null  # BUG: missing healthcheck
+            readinessProbe: null
+
+expected_solution: "Ajouter des probes liveness/readiness"

@@ -1,0 +1,15 @@
+name: "Systemd Timeout"
+learning_topics:
+  - systemd
+  - linux
+  - reliability
+difficulty: "beginner"
+
+description: "Le service échoue au démarrage (timeout)."
+
+bug_inject: |
+  [Service]
+  ExecStart=/usr/local/bin/my-service
+  TimeoutStartSec=2  # BUG: trop court
+
+expected_solution: "Augmenter TimeoutStartSec"

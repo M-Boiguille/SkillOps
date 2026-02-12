@@ -1,0 +1,25 @@
+name: "Docker Network Isolation"
+learning_topics:
+  - docker
+  - networking
+  - troubleshooting
+difficulty: "beginner"
+
+description: "Le service ne peut pas joindre la base de données."
+
+bug_inject: |
+  version: "3.8"
+  services:
+    api:
+      image: my-api:latest
+      networks:
+        - frontend
+    db:
+      image: postgres:15
+      networks:
+        - backend  # BUG: api et db sur réseaux différents
+  networks:
+    frontend: {}
+    backend: {}
+
+expected_solution: "Mettre api et db sur le même réseau"
