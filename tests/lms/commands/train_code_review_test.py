@@ -26,7 +26,7 @@ def test_code_command(tmp_path, monkeypatch):
     result = runner.invoke(app, ["code"])
 
     assert result.exit_code == 0
-    assert "Mode code" in result.stdout
+    assert "Passive Tracking" in result.stdout or "Phase 3" in result.stdout
 
 
 def test_review_command_no_session(tmp_path, monkeypatch):

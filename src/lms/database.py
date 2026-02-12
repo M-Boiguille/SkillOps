@@ -9,7 +9,7 @@ from typing import Optional
 from src.lms.paths import get_storage_path
 
 DB_NAME = "skillops.db"
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def get_db_path(storage_path: Optional[Path] = None) -> Path:
@@ -290,6 +290,10 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
         _migration_add_chaos_history(cursor)
         cursor.execute("INSERT INTO schema_version (version) VALUES (6)")
 
+    if current_version < 7:
+        _migration_add_passive_tracking_tables(cursor)
+        cursor.execute("INSERT INTO schema_version (version) VALUES (7)")
+
 
 def _column_exists(cursor: sqlite3.Cursor, table: str, column: str) -> bool:
     cursor.execute(f"PRAGMA table_info({table})")
@@ -515,3 +519,48 @@ def get_current_session_id(storage_path: Optional[Path] = None) -> int:
     if session_id is None:
         raise RuntimeError("Failed to create session id")
     return int(session_id)
+
+
+def _migration_add_passive_tracking_tables(cursor: sqlite3.Cursor) -> None:
+    """Add tables for passive tracking (Phase 3)."""
+    # Code sessions from git hooks
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS code_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        commit_hash TEXT UNIQUE NOT NULL,
+        commit_time TEXT NOT NULL,
+        commit_msg TEXT,
+        files_changed INTEGER,
+        lines_added INTEGER,
+        lines_deleted INTEGER,
+        recorded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        date TEXT NOT NULL
+    );
+    """
+    )
+
+    # Tracking summary (consolidated daily metrics)
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS tracking_summary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT UNIQUE NOT NULL,
+        wakatime_seconds INTEGER DEFAULT 0,
+        git_commits INTEGER DEFAULT 0,
+        git_files_changed INTEGER DEFAULT 0,
+        git_lines_added INTEGER DEFAULT 0,
+        git_lines_deleted INTEGER DEFAULT 0,
+        activity_level TEXT,
+        recorded_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    """
+    )
+
+    # Add indexes for performance
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_code_sessions_date ON code_sessions(date)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_tracking_summary_date ON tracking_summary(date)"
+    )
