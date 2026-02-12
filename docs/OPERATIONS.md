@@ -88,6 +88,20 @@ Environment variables:
 - `SKILLOPS_ALERT_SMTP_USER`, `SKILLOPS_ALERT_SMTP_PASS`
 - `SKILLOPS_ALERT_WEBHOOK_URL`
 
+## Dependency Lockfile
+
+For reproducible installs, use the lockfile:
+
+```
+pip install -r requirements-lock.txt
+```
+
+Update it after dependency changes:
+
+```
+python -m pip freeze | sort > requirements-lock.txt
+```
+
 ## Data Retention (optional)
 
 By default, no data is deleted. To enable cleanup of old records on startup:
@@ -95,12 +109,12 @@ By default, no data is deleted. To enable cleanup of old records on startup:
 ```
 export SKILLOPS_RETENTION_DAYS=90
 export SKILLOPS_RETENTION_RUN_ON_START=true
+```
 
 Manual cleanup (recommended for cron/systemd):
 
 ```
 skillops retention --days 90 --vacuum
-```
 ```
 
 This will purge old:
