@@ -193,7 +193,7 @@ class TestAnkiError:
         """Test default message for Anki error."""
         error = AnkiError()
         assert "Anki sync failed" in str(error)
-        assert "AnkiConnect" in str(error)
+        assert "format texte" in str(error)
 
     def test_anki_error_custom_message(self) -> None:
         """Test custom message for Anki error."""
@@ -204,9 +204,8 @@ class TestAnkiError:
         """Test that error contains helpful hints."""
         error = AnkiError()
         error_str = str(error)
-        assert "AnkiConnect" in error_str
-        assert "8765" in error_str
-        assert "apkg" in error_str
+        assert "format texte" in error_str
+        assert "UTF-8" in error_str
 
     def test_anki_error_can_be_caught(self) -> None:
         """Test Anki error can be caught."""

@@ -9,7 +9,7 @@ from typing import Optional
 from src.lms.paths import get_storage_path
 
 DB_NAME = "skillops.db"
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 def get_db_path(storage_path: Optional[Path] = None) -> Path:
@@ -111,6 +111,22 @@ def init_db(storage_path: Optional[Path] = None):
         source TEXT, -- 'tutor', 'create', etc.
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (session_id) REFERENCES sessions(id)
+    );
+    """
+    )
+
+    # Quiz Cards (SQLite-native flashcards)
+    cursor.execute(
+        """
+    CREATE TABLE IF NOT EXISTS quiz_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT NOT NULL,
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        difficulty INTEGER,
+        last_reviewed TEXT,
+        review_count INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     """
     )
@@ -237,6 +253,10 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
         _migration_add_indexes(cursor)
         cursor.execute("INSERT INTO schema_version (version) VALUES (4)")
 
+    if current_version < 5:
+        _migration_add_quiz_cards(cursor)
+        cursor.execute("INSERT INTO schema_version (version) VALUES (5)")
+
 
 def _column_exists(cursor: sqlite3.Cursor, table: str, column: str) -> bool:
     cursor.execute(f"PRAGMA table_info({table})")
@@ -300,6 +320,24 @@ def _migration_add_indexes(cursor: sqlite3.Cursor) -> None:
         cursor.execute(
             "CREATE INDEX idx_chaos_events_timestamp ON chaos_events(timestamp)"
         )
+
+
+def _migration_add_quiz_cards(cursor: sqlite3.Cursor) -> None:
+    """Add quiz_cards table if missing."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS quiz_cards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT NOT NULL,
+            question TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            difficulty INTEGER,
+            last_reviewed TEXT,
+            review_count INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+    )
 
 
 def _cleanup_old_records(conn: sqlite3.Connection) -> None:

@@ -101,11 +101,10 @@ class AnkiError(SkillOpsError):
     def __init__(self, message: str = "Anki sync failed") -> None:
         """Initialize Anki error with helpful hint."""
         hint = (
-            "1. Check AnkiConnect is installed and running: "
-            "https://github.com/FooSoft/anki-connect\n"
-            "2. Ensure Anki is running with correct port (default 8765)\n"
-            "3. Check deck format is valid (apkg or genanki format)\n"
-            "4. Restart Anki and try again"
+            "1. Vérifie que ton export est bien en format texte (CSV/TSV)\n"
+            "2. Assure-toi que le fichier est lisible et encodé en UTF-8\n"
+            "3. Re-lance la commande d'import si besoin\n"
+            "4. Redémarre l'app puis ré-essaye"
         )
         super().__init__(message, hint)
 

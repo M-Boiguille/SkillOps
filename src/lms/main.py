@@ -23,7 +23,7 @@ from typing import Optional  # noqa: E402
 
 import typer  # noqa: E402
 
-from src.lms.commands import run_train, run_code, run_review  # noqa: E402
+from src.lms.commands import run_train, run_code, run_review, run_quiz  # noqa: E402
 from src.lms.commands.health import health_check  # noqa: E402
 from src.lms.commands.export import DataExporter  # noqa: E402
 from src.lms.commands.data_import import DataImporter  # noqa: E402
@@ -137,6 +137,18 @@ def review(
 ):
     """Afficher les stats du jour et le streak."""
     run_review(storage_path=storage_path)
+
+
+@app.command()
+def quiz(
+    topic: str = typer.Argument(..., help="Sujet du quiz"),
+    count: int = typer.Option(5, "--count", "-n", help="Nombre de cartes"),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Quiz local (SQLite) sans AnkiConnect."""
+    run_quiz(topic=topic, count=count, storage_path=storage_path)
 
 
 @app.command()
