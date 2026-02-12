@@ -197,31 +197,26 @@ skillops notify --storage-path storage --respect-schedule
 
 ---
 
-## 🧭 9-Step Workflow
+## 🧭 Workflow
 
 ### Overview
-- **1. Daily Stand-up:** View yesterday’s coding metrics and streak.
-- **2. Read:** Capture articles and notes.
-- **3. Tutor:** AI Q&A and concept reinforcement.
-- **4. Reinforce:** Practice exercises.
-- **5. Create:** Generate flashcards from Obsidian notes and export for Anki.
-- **6. Flashcards:** Review due cards via AnkiConnect.
-- **7. Mission Control:** Solve tickets and incidents with acceptance criteria.
-- **8. Pull Request:** Detect local labs, create GitHub repos, generate README, push.
-- **9. Reflection:** Journal your day and wrap up.
+- **train:** Apprentissage + quiz rapide.
+- **code:** Session coding (tracking passif en Phase 3).
+- **review / stats:** Streak et métriques du jour.
+- **quiz:** Flashcards locales (SQLite).
 
 ### Commands
 ```bash
-# Interactive menu (all 9 steps)
+# Commands
+skillops train kubernetes
+skillops code
+skillops review
+skillops quiz kubernetes
+
+# Legacy steps (deprecated menu)
 skillops start
 
-# Learning mode (morning: steps 1-3)
-skillops start --mode=learning
-
-# Engineering mode (afternoon: steps 4-9)
-skillops start --mode=engineering
-
-# Run specific steps
+# Run legacy steps directly
 skillops create --vault-path ~/Obsidian --anki-sync-path ~/Anki/sync
 skillops share --labs-path ~/labs
 skillops notify --respect-schedule

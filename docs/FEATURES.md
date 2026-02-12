@@ -383,10 +383,9 @@ skillops create \
 After running `skillops create`:
 
 1. Open Anki
-2. Tools → Add-ons → AnkiConnect (install if needed)
-3. Create new deck or select existing
-4. File → Import → Select TSV from `~/Anki/sync/`
-5. Cards appear in your deck
+2. Create new deck or select existing
+3. File → Import → Select TSV from `~/Anki/sync/`
+4. Cards appear in your deck
 
 ### Configuration
 
@@ -398,21 +397,13 @@ ANKI_SYNC_PATH=~/Anki/sync
 
 ---
 
-## Flashcards (Anki Review)
+## Flashcards (Quiz local)
 
-**Purpose:** Review due cards and optionally sync via AnkiConnect.
+**Purpose:** Review due cards from SQLite.
 
-**Command (interactive):**
+**Command:**
 ```bash
-skillops start
-```
-
-Select **Flashcards** in the menu.
-
-**Configuration:**
-```bash
-ANKI_CONNECT_URL=http://localhost:8765
-ANKI_AUTO_SYNC=true
+skillops quiz <topic>
 ```
 
 ---

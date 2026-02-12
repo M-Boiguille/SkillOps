@@ -25,7 +25,7 @@ src/lms/                          # Main application
 │   └── exercises_catalog.yaml     # 105 exercises in YAML format
 ├── steps/
 │   ├── __init__.py
-│   ├── anki.py                   # Anki review (AnkiConnect)
+│   ├── anki.py                   # Quiz review (SQLite)
 │   ├── create.py                 # Flashcard generation
 │   ├── missions.py               # Mission Control
 │   ├── read.py                   # Reading & notes
@@ -37,7 +37,7 @@ src/lms/                          # Main application
 │   └── ...
 ├── classes/
 ├── utils/
-└── cli.py                        # CLI entry point
+└── cli.py                        # Legacy interactive menu
 ```
 
 ### tests/ - Automated Tests
