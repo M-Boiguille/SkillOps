@@ -52,3 +52,11 @@ Recommended approach:
 Data source:
 
 - `storage/skillops.db`
+
+## CLI Metrics Summary
+
+Quick summary from the CLI:
+
+```
+skillops metrics --hours 24
+```

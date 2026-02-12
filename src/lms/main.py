@@ -1,13 +1,24 @@
 """Main entry point for SkillOps LMS CLI application."""
 
 # CRITICAL: Load environment variables FIRST, before any imports
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
+config_env = Path.home() / ".config" / "skillops" / "skillops.env"
+if config_env.exists():
+    load_dotenv(config_env, override=False)
+
+try:
+    from src.lms.secrets import load_keyring_secrets
+
+    load_keyring_secrets()
+except Exception:
+    pass
 
 import os  # noqa: E402
 import time  # noqa: E402
-from pathlib import Path  # noqa: E402
 from typing import Optional  # noqa: E402
 
 import typer  # noqa: E402
@@ -39,12 +50,36 @@ from src.lms.books import (  # noqa: E402
     import_books_command,
     process_pipeline_command,
 )
+from src.lms.database import cleanup_old_records  # noqa: E402
 
 app = typer.Typer(
     name="skillops",
     help="SkillOps - Your Daily Learning Management System",
     add_completion=False,
 )
+
+
+@app.command("secret-set")
+def secret_set(
+    key: str = typer.Argument(..., help="Secret key name"),
+    value: str = typer.Option(
+        ..., prompt=True, hide_input=True, confirmation_prompt=True
+    ),
+):
+    """Store a secret in the OS keyring."""
+    from src.lms.secrets import set_keyring_secret
+
+    set_keyring_secret(key, value)
+    typer.echo("✅ Secret stored in keyring")
+
+
+@app.command("secret-unset")
+def secret_unset(key: str = typer.Argument(..., help="Secret key name")):
+    """Delete a secret from the OS keyring."""
+    from src.lms.secrets import delete_keyring_secret
+
+    delete_keyring_secret(key)
+    typer.echo("✅ Secret removed from keyring")
 
 
 def _alert_type() -> str:
@@ -175,6 +210,67 @@ def doctor():
 def migrate():
     """Migrate legacy JSON files to SQLite."""
     migrate_legacy_data()
+
+
+@app.command()
+def retention(
+    days: Optional[int] = typer.Option(
+        None,
+        "--days",
+        "-d",
+        help="Retention window in days (overrides SKILLOPS_RETENTION_DAYS)",
+    ),
+    vacuum: bool = typer.Option(False, "--vacuum", help="Run VACUUM after cleanup"),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Run data retention cleanup manually."""
+    deleted = cleanup_old_records(
+        storage_path=storage_path, retention_days=days, vacuum=vacuum
+    )
+    typer.echo(f"✅ Retention cleanup complete. Rows deleted: {deleted}")
+
+
+@app.command()
+def metrics(
+    hours: int = typer.Option(24, "--hours", "-h", help="Window in hours"),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Display a summary of execution metrics."""
+    from rich.table import Table
+
+    collector = MetricsCollector(storage_path=storage_path)
+    overall = collector.get_overall_stats()
+    daily = collector.get_daily_metrics(hours=hours)
+
+    table = Table(title=f"📊 SkillOps Metrics (last {hours}h)")
+    table.add_column("Step")
+    table.add_column("Exec")
+    table.add_column("Success")
+    table.add_column("Fail")
+    table.add_column("Rate")
+    table.add_column("Avg(s)")
+
+    for step_id, stats in sorted(daily.items()):
+        rate = f"{stats['success_rate'] * 100:.1f}%"
+        table.add_row(
+            step_id,
+            str(stats["executions"]),
+            str(stats["successful"]),
+            str(stats["failed"]),
+            rate,
+            f"{stats['avg_duration_seconds']:.2f}",
+        )
+
+    typer.echo(table)
+    typer.echo(
+        f"Overall: {overall.get('total_executions', 0)} runs, "
+        f"{overall.get('success_rate', 0) * 100:.1f}% success, "
+        f"avg {overall.get('avg_duration_seconds', 0):.2f}s"
+    )
 
 
 @app.command()

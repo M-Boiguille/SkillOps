@@ -5,12 +5,15 @@ Generates contextual incidents based on past performance and skill gaps.
 
 import json
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
 from google import genai
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from src.lms.database import get_connection, init_db
 
@@ -23,6 +26,95 @@ class IncidentContext:
     weak_areas: list[str]
     skill_level: str  # beginner, intermediate, advanced
     recent_chaos_events: list[dict]
+
+
+class IncidentPayload(BaseModel):
+    """Validated incident payload from AI."""
+
+    severity: str
+    title: str
+    description: str
+    affected_system: str
+    symptoms: str | list[str]
+    hints: list[str] = Field(default_factory=list)
+
+    @field_validator("severity")
+    @classmethod
+    def validate_severity(cls, value: str) -> str:
+        allowed = {"P1", "P2", "P3", "P4"}
+        if value not in allowed:
+            raise ValueError("severity must be one of P1, P2, P3, P4")
+        return value
+
+    @field_validator("hints")
+    @classmethod
+    def normalize_hints(cls, value: list[str]) -> list[str]:
+        if not isinstance(value, list):
+            raise ValueError("hints must be a list")
+        cleaned = [str(item).strip() for item in value if str(item).strip()]
+        return cleaned[:3]
+
+
+def _extract_json_payload(text: str) -> str:
+    if "```json" in text:
+        return text.split("```json")[1].split("```")[0].strip()
+    if "```" in text:
+        return text.split("```")[1].split("```")[0].strip()
+    return text.strip()
+
+
+def _parse_incident_payload(text: str, difficulty_level: int) -> dict:
+    payload = _extract_json_payload(text)
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise ValueError("AI returned invalid JSON") from exc
+
+    try:
+        parsed = IncidentPayload.model_validate(data)
+    except ValidationError as exc:
+        raise ValueError("AI returned invalid incident schema") from exc
+
+    incident_data = parsed.model_dump()
+    if isinstance(incident_data["symptoms"], list):
+        incident_data["symptoms"] = [
+            str(item).strip() for item in incident_data["symptoms"] if str(item).strip()
+        ]
+
+    incident_data["difficulty_level"] = difficulty_level
+    incident_data["generated_by"] = "ai"
+    return incident_data
+
+
+def _generate_content_with_retry(
+    client: genai.Client,
+    model: str,
+    contents: str,
+    max_retries: int = 3,
+    base_delay: float = 1.0,
+    timeout_seconds: float = 20.0,
+):
+    last_exc: Exception | None = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    client.models.generate_content, model=model, contents=contents
+                )
+                return future.result(timeout=timeout_seconds)
+        except FuturesTimeoutError as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise TimeoutError("AI request timed out") from exc
+            time.sleep(base_delay * (2 ** (attempt - 1)))
+        except Exception as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise
+            time.sleep(base_delay * (2 ** (attempt - 1)))
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("Failed to generate content after retries")
 
 
 def get_incident_context(storage_path: Optional[Path] = None) -> IncidentContext:
@@ -167,20 +259,12 @@ Return a JSON object with:
 Make it challenging but solvable for a {context.skill_level} DevOps engineer.
 """
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-    text = response.text.strip()
-
-    # Extract JSON from markdown code blocks if present
-    if "```json" in text:
-        text = text.split("```json")[1].split("```")[0].strip()
-    elif "```" in text:
-        text = text.split("```")[1].split("```")[0].strip()
-
-    import json
-
-    incident_data = json.loads(text)
-    incident_data["difficulty_level"] = difficulty_level
-    incident_data["generated_by"] = "ai"
+    response = _generate_content_with_retry(
+        client=client,
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+    incident_data = _parse_incident_payload(response.text, difficulty_level)
 
     return incident_data
 
@@ -255,7 +339,11 @@ Provide a hint (level {current_hint_level}/3):
 Keep it concise (1-2 sentences).
 """
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = _generate_content_with_retry(
+        client=client,
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
     return response.text.strip()
 
 
@@ -317,18 +405,17 @@ Generate 2-3 validation questions to test their understanding of:
 Return as JSON array: ["question1", "question2", "question3"]
 """
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = _generate_content_with_retry(
+        client=client,
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
     text = response.text.strip()
 
-    if "```json" in text:
-        text = text.split("```json")[1].split("```")[0].strip()
-    elif "```" in text:
-        text = text.split("```")[1].split("```")[0].strip()
-
-    import json
+    payload = _extract_json_payload(text)
 
     try:
-        questions = json.loads(text)
+        questions = json.loads(payload)
         return questions if isinstance(questions, list) else []
     except json.JSONDecodeError:
         return []

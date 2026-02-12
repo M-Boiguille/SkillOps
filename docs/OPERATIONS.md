@@ -7,11 +7,11 @@
 - Backups/restore scripts
 - Logging + alerting hooks
 - Chaos Monkey (local) via `skillops chaos`
+- `skillops oncall` (incident simulation)
+- `skillops post-mortem` (incident write-ups)
 
 **Planned (not implemented yet):**
-- `skillops oncall` (incident simulation)
 - `skillops review` (automated code review gate)
-- `skillops post-mortem` (incident write-ups)
 
 ## Backups
 
@@ -87,6 +87,26 @@ Environment variables:
 - `SKILLOPS_ALERT_SMTP_HOST`, `SKILLOPS_ALERT_SMTP_PORT`
 - `SKILLOPS_ALERT_SMTP_USER`, `SKILLOPS_ALERT_SMTP_PASS`
 - `SKILLOPS_ALERT_WEBHOOK_URL`
+
+## Data Retention (optional)
+
+By default, no data is deleted. To enable cleanup of old records on startup:
+
+```
+export SKILLOPS_RETENTION_DAYS=90
+export SKILLOPS_RETENTION_RUN_ON_START=true
+
+Manual cleanup (recommended for cron/systemd):
+
+```
+skillops retention --days 90 --vacuum
+```
+```
+
+This will purge old:
+- performance metrics
+- chaos events
+- resolved incidents
 
 ## Day boundary (streaks)
 

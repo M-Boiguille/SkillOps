@@ -5,6 +5,22 @@
 - Do not commit real secrets to the repo.
 - Use `.env` locally and protect it with `chmod 600`.
 - Prefer per-user config in `~/.config/skillops/skillops.env`.
+- For production, prefer OS keyring storage (`skillops secret-set`).
+
+## OS Keyring (recommended)
+
+Enable keyring usage:
+
+```bash
+export SKILLOPS_USE_KEYRING=true
+```
+
+Store secrets securely:
+
+```bash
+skillops secret-set GEMINI_API_KEY
+skillops secret-set GITHUB_TOKEN
+```
 
 ## Rotation
 

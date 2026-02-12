@@ -3,6 +3,8 @@
 import json
 import os
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
 from typing import Any, Dict
 from rich.console import Console
@@ -10,6 +12,7 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from pydantic import BaseModel, ValidationError
 from src.lms.persistence import get_context, set_context, save_cards_created
 from src.lms.ai_config import get_gemini_model
 
@@ -24,7 +27,7 @@ def _get_gemini_client() -> Any:
         raise ValueError("❌ GEMINI_API_KEY environment variable not set.")
     import importlib
 
-    genai_module = importlib.import_module("google.generativeai")
+    genai_module = importlib.import_module("google.genai")
     return genai_module.Client(api_key=api_key)
 
 
@@ -47,6 +50,50 @@ def _clean_json_response(text: str) -> str:
     if match:
         return match.group(1)
     return text
+
+
+class ValidationPayload(BaseModel):
+    is_valid: bool
+    feedback: str
+    refined_content: str
+
+
+class EnrichPayload(BaseModel):
+    survival_commands: str
+    senior_insight: str
+    flashcards: str
+
+
+def _generate_with_retry(
+    client: Any,
+    prompt: str,
+    max_retries: int = 3,
+    base_delay: float = 1.0,
+    timeout_seconds: float = 20.0,
+):
+    last_exc: Exception | None = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    client.models.generate_content,
+                    model=get_gemini_model(),
+                    contents=prompt,
+                )
+                return future.result(timeout=timeout_seconds)
+        except FuturesTimeoutError as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise TimeoutError("AI request timed out") from exc
+            time.sleep(base_delay * (2 ** (attempt - 1)))
+        except Exception as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise
+            time.sleep(base_delay * (2 ** (attempt - 1)))
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("Failed to generate content after retries")
 
 
 def _ask_and_validate(
@@ -78,14 +125,12 @@ def _ask_and_validate(
     user_prompt = f"Réponse de l'étudiant : {user_answer}"
 
     try:
-        response = client.models.generate_content(
-            model=get_gemini_model(),
-            contents=f"{system_prompt}\n{user_prompt}",
-        )
-
+        response = _generate_with_retry(client, f"{system_prompt}\n{user_prompt}")
         cleaned_json = _clean_json_response(response.text)
-        return json.loads(cleaned_json)
-    except (ValueError, json.JSONDecodeError, RuntimeError) as e:
+        data = json.loads(cleaned_json)
+        payload = ValidationPayload.model_validate(data)
+        return payload.model_dump()
+    except (ValueError, json.JSONDecodeError, RuntimeError, ValidationError) as e:
         console.print(f"[red]Erreur de validation IA : {e}[/red]")
         # Fallback pour ne pas bloquer l'utilisateur
         return {
@@ -118,12 +163,12 @@ def _enrich_content(client: Any, topic: str) -> Dict[str, str]:
     """
 
     try:
-        response = client.models.generate_content(
-            model=get_gemini_model(), contents=prompt
-        )
+        response = _generate_with_retry(client, prompt)
         cleaned_json = _clean_json_response(response.text)
-        return json.loads(cleaned_json)
-    except (ValueError, json.JSONDecodeError, RuntimeError):
+        data = json.loads(cleaned_json)
+        payload = EnrichPayload.model_validate(data)
+        return payload.model_dump()
+    except (ValueError, json.JSONDecodeError, RuntimeError, ValidationError):
         return {
             "survival_commands": "# Erreur de génération",
             "senior_insight": "Impossible de générer le contenu avancé.",

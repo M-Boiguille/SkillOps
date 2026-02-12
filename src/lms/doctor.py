@@ -3,10 +3,12 @@
 import os
 import importlib.util
 import sqlite3
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from src.lms.database import get_connection
 from src.lms.paths import get_storage_path
+from src.lms.secrets import _keyring_available
 
 console = Console()
 
@@ -62,6 +64,59 @@ def check_database() -> tuple[bool, str]:
         return False, f"[red]Error:[/red] {e}"
 
 
+def check_database_integrity() -> tuple[bool, str]:
+    """Run SQLite integrity check."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA integrity_check")
+        result = cursor.fetchone()[0]
+        conn.close()
+        if result.lower() == "ok":
+            return True, "[green]OK[/green]"
+        return False, f"[red]{result}[/red]"
+    except sqlite3.Error as e:
+        return False, f"[red]Error:[/red] {e}"
+
+
+def check_database_consistency() -> tuple[bool, str]:
+    """Check basic relational consistency between incidents and postmortems."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM incidents
+            WHERE postmortem_id IS NOT NULL
+              AND postmortem_id NOT IN (SELECT id FROM postmortems)
+            """
+        )
+        missing_postmortems = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM postmortems
+            WHERE incident_id NOT IN (SELECT id FROM incidents)
+            """
+        )
+        orphan_postmortems = cursor.fetchone()[0]
+
+        conn.close()
+
+        if missing_postmortems == 0 and orphan_postmortems == 0:
+            return True, "[green]OK[/green]"
+        details = (
+            "missing_postmortems="
+            f"{missing_postmortems}, orphan_postmortems={orphan_postmortems}"
+        )
+        return False, f"[red]{details}[/red]"
+    except sqlite3.Error as e:
+        return False, f"[red]Error:[/red] {e}"
+
+
 def check_storage() -> tuple[bool, str]:
     """Check storage directory permissions."""
     path = get_storage_path()
@@ -73,6 +128,24 @@ def check_storage() -> tuple[bool, str]:
         return True, f"[green]Writable[/green] ({path})"
     except OSError as e:
         return False, f"[red]Error:[/red] {e}"
+
+
+def check_keyring() -> tuple[bool, str]:
+    """Check if keyring backend is available."""
+    if _keyring_available():
+        return True, "[green]Available[/green]"
+    return False, "[yellow]Not available[/yellow]"
+
+
+def check_config_permissions() -> tuple[bool, str]:
+    """Check permissions for user config env file."""
+    config_env = Path.home() / ".config" / "skillops" / "skillops.env"
+    if not config_env.exists():
+        return True, "[yellow]Not found[/yellow]"
+    mode = config_env.stat().st_mode & 0o777
+    if mode <= 0o600:
+        return True, f"[green]{oct(mode)}[/green]"
+    return False, f"[red]{oct(mode)}[/red] (should be 0o600)"
 
 
 def run_doctor() -> bool:
@@ -100,8 +173,8 @@ def run_doctor() -> bool:
     ]
 
     # 2. Dependencies
-    checks.append(("DEP: google.generativeai", *check_module("google.generativeai")))
     checks.append(("DEP: google.genai", *check_module("google.genai")))
+    checks.append(("DEP: keyring", *check_keyring()))
     checks.append(("DEP: typer", *check_module("typer")))
     checks.append(("DEP: rich", *check_module("rich")))
     checks.append(("DEP: inquirer", *check_module("inquirer")))
@@ -112,6 +185,9 @@ def run_doctor() -> bool:
     # 3. System
     checks.append(("SYS: Storage", *check_storage()))
     checks.append(("SYS: Database", *check_database()))
+    checks.append(("SYS: Database Integrity", *check_database_integrity()))
+    checks.append(("SYS: Database Consistency", *check_database_consistency()))
+    checks.append(("SYS: Config Env Perms", *check_config_permissions()))
 
     all_ok = True
     for name, success, details in checks:

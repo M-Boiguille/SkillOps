@@ -9,7 +9,7 @@ from typing import Optional
 from src.lms.paths import get_storage_path
 
 DB_NAME = "skillops.db"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 
 def get_db_path(storage_path: Optional[Path] = None) -> Path:
@@ -21,7 +21,11 @@ def get_db_path(storage_path: Optional[Path] = None) -> Path:
 
 def get_connection(storage_path: Optional[Path] = None) -> sqlite3.Connection:
     """Get a connection to the SQLite database."""
-    return sqlite3.connect(get_db_path(storage_path))
+    conn = sqlite3.connect(get_db_path(storage_path))
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA busy_timeout = 5000")
+    return conn
 
 
 def init_db(storage_path: Optional[Path] = None):
@@ -202,6 +206,7 @@ def init_db(storage_path: Optional[Path] = None):
     )
 
     _apply_migrations(conn)
+    _cleanup_old_records(conn)
     conn.commit()
     conn.close()
 
@@ -224,10 +229,29 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
         _migration_add_wakatime_minutes(cursor)
         cursor.execute("INSERT INTO schema_version (version) VALUES (2)")
 
+    if current_version < 3:
+        _migration_add_incident_srs_columns(cursor)
+        cursor.execute("INSERT INTO schema_version (version) VALUES (3)")
+
+    if current_version < 4:
+        _migration_add_indexes(cursor)
+        cursor.execute("INSERT INTO schema_version (version) VALUES (4)")
+
 
 def _column_exists(cursor: sqlite3.Cursor, table: str, column: str) -> bool:
     cursor.execute(f"PRAGMA table_info({table})")
     return any(row[1] == column for row in cursor.fetchall())
+
+
+def _index_exists(cursor: sqlite3.Cursor, index_name: str) -> bool:
+    cursor.execute("PRAGMA index_list(incidents)")
+    if any(row[1] == index_name for row in cursor.fetchall()):
+        return True
+    cursor.execute("PRAGMA index_list(performance_metrics)")
+    if any(row[1] == index_name for row in cursor.fetchall()):
+        return True
+    cursor.execute("PRAGMA index_list(chaos_events)")
+    return any(row[1] == index_name for row in cursor.fetchall())
 
 
 def _migration_add_wakatime_minutes(cursor: sqlite3.Cursor) -> None:
@@ -236,6 +260,128 @@ def _migration_add_wakatime_minutes(cursor: sqlite3.Cursor) -> None:
         cursor.execute(
             "ALTER TABLE formation_logs ADD COLUMN wakatime_minutes INTEGER DEFAULT 0"
         )
+
+
+def _migration_add_incident_srs_columns(cursor: sqlite3.Cursor) -> None:
+    """Add SRS-related columns to incidents if missing."""
+    if not _column_exists(cursor, "incidents", "resolution_score"):
+        cursor.execute("ALTER TABLE incidents ADD COLUMN resolution_score INTEGER")
+    if not _column_exists(cursor, "incidents", "next_review_date"):
+        cursor.execute("ALTER TABLE incidents ADD COLUMN next_review_date TEXT")
+    if not _column_exists(cursor, "incidents", "hints_used"):
+        cursor.execute("ALTER TABLE incidents ADD COLUMN hints_used INTEGER DEFAULT 0")
+    if not _column_exists(cursor, "incidents", "parent_incident_id"):
+        cursor.execute("ALTER TABLE incidents ADD COLUMN parent_incident_id INTEGER")
+    if not _column_exists(cursor, "incidents", "difficulty_level"):
+        cursor.execute(
+            "ALTER TABLE incidents ADD COLUMN difficulty_level INTEGER DEFAULT 1"
+        )
+    if not _column_exists(cursor, "incidents", "generated_by"):
+        cursor.execute(
+            "ALTER TABLE incidents ADD COLUMN generated_by TEXT DEFAULT 'template'"
+        )
+
+
+def _migration_add_indexes(cursor: sqlite3.Cursor) -> None:
+    """Add indexes for common queries if missing."""
+    if not _index_exists(cursor, "idx_incidents_status_timestamp"):
+        cursor.execute(
+            "CREATE INDEX idx_incidents_status_timestamp ON incidents(status, timestamp)"
+        )
+    if not _index_exists(cursor, "idx_incidents_review_status"):
+        cursor.execute(
+            "CREATE INDEX idx_incidents_review_status ON incidents(next_review_date, status)"
+        )
+    if not _index_exists(cursor, "idx_performance_metrics_timestamp"):
+        cursor.execute(
+            "CREATE INDEX idx_performance_metrics_timestamp ON performance_metrics(timestamp)"
+        )
+    if not _index_exists(cursor, "idx_chaos_events_timestamp"):
+        cursor.execute(
+            "CREATE INDEX idx_chaos_events_timestamp ON chaos_events(timestamp)"
+        )
+
+
+def _cleanup_old_records(conn: sqlite3.Connection) -> None:
+    """Optional data retention cleanup controlled by env variable.
+
+    Set SKILLOPS_RETENTION_DAYS to enable cleanup.
+    """
+    run_on_start = os.getenv("SKILLOPS_RETENTION_RUN_ON_START", "false").lower()
+    if run_on_start not in {"1", "true", "yes"}:
+        return
+    retention_raw = os.getenv("SKILLOPS_RETENTION_DAYS", "").strip()
+    if not retention_raw:
+        return
+    try:
+        retention_days = int(retention_raw)
+    except ValueError:
+        return
+    if retention_days <= 0:
+        return
+
+    cleanup_old_records(retention_days=retention_days, connection=conn)
+
+
+def cleanup_old_records(
+    storage_path: Optional[Path] = None,
+    retention_days: Optional[int] = None,
+    vacuum: bool = False,
+    connection: Optional[sqlite3.Connection] = None,
+) -> int:
+    """Run data retention cleanup and return number of rows deleted."""
+    retention_raw = retention_days
+    if retention_raw is None:
+        raw_env = os.getenv("SKILLOPS_RETENTION_DAYS", "").strip()
+        retention_raw = int(raw_env) if raw_env.isdigit() else None
+
+    if not retention_raw or retention_raw <= 0:
+        return 0
+
+    conn = connection or get_connection(storage_path)
+    cursor = conn.cursor()
+    cutoff = f"-{retention_raw} days"
+
+    total_deleted = 0
+
+    cursor.execute(
+        """
+        DELETE FROM performance_metrics
+        WHERE timestamp < datetime('now', ?)
+        """,
+        (cutoff,),
+    )
+    total_deleted += cursor.rowcount
+
+    cursor.execute(
+        """
+        DELETE FROM chaos_events
+        WHERE timestamp < datetime('now', ?)
+        """,
+        (cutoff,),
+    )
+    total_deleted += cursor.rowcount
+
+    cursor.execute(
+        """
+        DELETE FROM incidents
+        WHERE status = 'resolved'
+          AND timestamp < datetime('now', ?)
+        """,
+        (cutoff,),
+    )
+    total_deleted += cursor.rowcount
+
+    if connection is None:
+        conn.commit()
+        conn.close()
+
+    if vacuum:
+        vacuum_conn = get_connection(storage_path)
+        vacuum_conn.execute("VACUUM")
+        vacuum_conn.close()
+
+    return total_deleted
 
 
 def get_logical_date() -> str:
