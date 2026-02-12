@@ -210,6 +210,10 @@ class TestPassiveTracking:
         """Test retrieving stored tracking summary."""
         monkeypatch.setenv("STORAGE_PATH", str(tmp_path))
         monkeypatch.setattr("src.lms.database.get_logical_date", lambda: "2026-02-12")
+        monkeypatch.setattr(
+            "src.lms.api_clients.wakatime_client.WakaTimeClient.get_today_stats",
+            lambda *_args, **_kwargs: {"total_seconds": 0},
+        )
 
         init_db(tmp_path)
 

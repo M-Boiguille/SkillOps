@@ -2,7 +2,7 @@
 
 **Status**: ✅ Complete & Deployed
 **Commit**: fc78e34
-**Tests**: 12/12 passing (386 total tests passing)
+**Tests**: 12/12 passing (424 total tests passing)
 
 ## Overview
 
@@ -43,7 +43,7 @@ Phase 4 implements an interactive terminal user interface (TUI) dashboard for vi
     - High WakaTime → "Take more breaks"
     - Learning patterns → "Review knowledge gaps"
 
-- **`dashboard(storage_path=None)`**
+- **`display_dashboard(storage_path=None)`**
   - Main dashboard display function
   - Creates Rich Layout with:
     - Header: "SkillOps Learning Dashboard"
