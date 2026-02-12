@@ -281,7 +281,13 @@ def get_step_durations_for_date(
 
 
 def calculate_streak(storage_path: Optional[Path] = None) -> int:
-    """Calculate current streak from sessions."""
+    """Calculate current streak with flexible rest days.
+
+    Rules:
+    - Allow up to 2 consecutive rest days without breaking the streak
+    - But must have at least 5 active days in the last 8 days
+    - If no activity in last 3 days, streak is 0
+    """
     conn = get_connection(storage_path)
     cursor = conn.cursor()
     cursor.execute("SELECT date FROM sessions ORDER BY date DESC")
@@ -291,24 +297,41 @@ def calculate_streak(storage_path: Optional[Path] = None) -> int:
     if not dates:
         return 0
 
-    streak = 0
-    check_date = datetime.strptime(get_logical_date(), "%Y-%m-%d")
+    today = datetime.strptime(get_logical_date(), "%Y-%m-%d")
+    session_dates = set(datetime.strptime(d, "%Y-%m-%d").date() for d in dates)
 
-    # If most recent session is not today or yesterday, streak is broken (0)
-    last_session_date = datetime.strptime(dates[0], "%Y-%m-%d")
-    diff = (check_date - last_session_date).days
-    if diff > 1:
+    # No activity in last 3 days = streak broken
+    last_session_date = max(session_dates)
+    days_since_last = (today.date() - last_session_date).days
+    if days_since_last > 3:
         return 0
 
-    # Count backwards
-    for date_str in dates:
-        d = datetime.strptime(date_str, "%Y-%m-%d")
-        if d == check_date:
-            streak += 1
-            check_date -= timedelta(days=1)
-        elif d > check_date:
-            continue  # Should not happen if sorted desc
-        else:
-            break  # Gap found
+    # Check activity in last 8 days (must have at least 5)
+    days_to_check = 8
+    active_days_count = 0
+    for i in range(days_to_check):
+        check_date = today.date() - timedelta(days=i)
+        if check_date in session_dates:
+            active_days_count += 1
 
-    return streak
+    if active_days_count < 5:
+        return 0
+
+    # Calculate streak with up to 2 consecutive rest days allowed
+    streak_length = 0
+    consecutive_rest_days = 0
+    max_consecutive_rest = 2
+
+    for i in range(365):  # Check last year
+        check_date = today.date() - timedelta(days=i)
+
+        if check_date in session_dates:
+            streak_length += 1
+            consecutive_rest_days = 0  # Reset rest counter
+        else:
+            consecutive_rest_days += 1
+            # If more than 2 consecutive rest days, streak is broken
+            if consecutive_rest_days > max_consecutive_rest:
+                break
+
+    return streak_length
