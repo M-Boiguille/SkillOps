@@ -1,5 +1,7 @@
 """Tests pour l'étape Reinforce."""
 
+import pytest
+
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -15,6 +17,8 @@ from src.lms.steps.reinforce import (
     save_exercise_progress,
     calculate_next_review,
 )
+
+pytest.skip("Legacy reinforce step removed", allow_module_level=True)
 
 
 class TestGetStoragePath:

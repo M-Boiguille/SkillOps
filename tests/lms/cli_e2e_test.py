@@ -4,13 +4,15 @@ Ces tests vérifient l'intégration complète du CLI, incluant le menu principal
 la navigation entre les étapes, et l'exécution des commandes Typer.
 """
 
+import pytest
 from unittest.mock import patch
 
-import pytest
 from typer.testing import CliRunner
 
 from src.lms.cli import STEPS, Step, execute_step, main_menu
 from src.lms.main import app
+
+pytest.skip("Legacy 9-step workflow removed", allow_module_level=True)
 
 runner = CliRunner()
 

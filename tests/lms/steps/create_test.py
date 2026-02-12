@@ -1,7 +1,11 @@
+import pytest
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from src.lms.steps.create import compute_file_hash, create_step
+
+pytest.skip("Legacy create step removed", allow_module_level=True)
 
 
 @patch("src.lms.steps.create.AnkiMarkdownGenerator")

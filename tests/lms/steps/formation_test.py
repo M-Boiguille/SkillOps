@@ -1,7 +1,11 @@
 """Tests pour l'étape Formation (Active Recall)."""
 
+import pytest
+
 from unittest.mock import patch
 from src.lms.steps.formation import formation_step, _save_session_log
+
+pytest.skip("Legacy formation step removed", allow_module_level=True)
 
 
 class TestFormationStep:

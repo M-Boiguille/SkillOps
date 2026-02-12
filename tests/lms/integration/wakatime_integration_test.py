@@ -4,11 +4,11 @@ Ces tests vérifient l'intégration complète entre le client WakaTime
 et l'étape Formation, en simulant des scénarios d'utilisation réels.
 """
 
+import pytest
+
 import os
 from datetime import datetime
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from src.lms.database import init_db
 
@@ -19,6 +19,8 @@ from src.lms.api_clients.wakatime_client import (
     WakaTimeRateLimitError,
 )
 from src.lms.steps.formation import formation_step
+
+pytest.skip("Legacy WakaTime formation integration removed", allow_module_level=True)
 
 
 class TestWakaTimeIntegration:

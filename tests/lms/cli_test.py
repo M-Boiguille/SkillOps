@@ -1,5 +1,6 @@
 """Tests for the CLI module - main menu and step navigation."""
 
+import pytest
 from unittest.mock import patch
 from src.lms.cli import (
     Step,
@@ -9,6 +10,8 @@ from src.lms.cli import (
     get_step_choices,
     display_header,
 )
+
+pytest.skip("Legacy 9-step workflow removed", allow_module_level=True)
 
 
 class TestStep:

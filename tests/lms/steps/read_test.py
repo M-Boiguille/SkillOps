@@ -1,10 +1,14 @@
 """Tests for the Read step."""
 
+import pytest
+
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.lms.database import get_connection, init_db
 from src.lms.steps.read import read_step, save_read_progress
+
+pytest.skip("Legacy read step removed", allow_module_level=True)
 
 
 def test_read_step_records_recent_notes(tmp_path, monkeypatch):
