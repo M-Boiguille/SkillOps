@@ -50,17 +50,22 @@ Un **outil CLI Python** qui :
 
 ---
 
-## ✅ Current Status
+## ✅ Current Status: Production-Ready (Local)
 
-**Implemented and usable now:**
-- Interactive 9-step workflow with **learning/engineering modes**
-- WakaTime metrics + SQLite tracking
-- Obsidian/Anki flashcard pipeline
-- GitHub portfolio automation
-- Telegram notifications + health/doctor checks
-- **Chaos Monkey (local)**: `skillops chaos` with levels 1–3
-- **🤖 AI-Powered On-Call**: `skillops oncall` with adaptive incidents, progressive hints, validation questions, and spaced repetition (Anki-style for debugging skills)
-- **Post-Mortem documentation**: `skillops post-mortem` for incident analysis
+**Fully Production-Ready Features:**
+- ✅ Interactive 9-step workflow with **learning/engineering modes**
+- ✅ WakaTime metrics + SQLite tracking with schema v4 migrations
+- ✅ Obsidian/Anki flashcard pipeline
+- ✅ GitHub portfolio automation
+- ✅ Telegram notifications + health/doctor checks
+- ✅ **Chaos Monkey (local)**: `skillops chaos` with levels 1–3
+- ✅ **🤖 AI-Powered On-Call**: `skillops oncall` with adaptive incidents, progressive hints, validation, retry with exponential backoff, and spaced repetition (Anki-style)
+- ✅ **Post-Mortem documentation**: `skillops post-mortem` for incident analysis
+- ✅ **Secrets Management**: OS keyring support with `skillops secret-set/unset`
+- ✅ **Observability**: `skillops metrics --hours 24` for real-time stats + structured logging
+- ✅ **Data Retention**: Automatic cleanup of performance metrics/chaos events with `skillops retention --days 30`
+- ✅ **Database Hardening**: WAL mode, 5s busy timeout, foreign keys, consistency checks
+- ✅ **Reproducible Installs**: `requirements-lock.txt` with all pinned versions
 
 **Planned (not implemented yet):**
 - `skillops review` (AI code review + guardrails)
@@ -79,27 +84,54 @@ Un **outil CLI Python** qui :
 
 ## 🚀 Quickstart
 
-1. **Installer les dépendances**
-  ```bash
-  python -m venv .venv && source .venv/bin/activate
-  pip install -e .[dev]
-  # ou : pip install -r requirements.txt
-  ```
-2. **Configurer l'environnement**
-  ```bash
-  cp .env.example .env
-  # Renseigner GEMINI_API_KEY, TELEGRAM_*, OBSIDIAN_VAULT_PATH, etc.
-  ```
-3. **Vérifier l'installation**
-  ```bash
-  skillops version
-  skillops doctor
-  pytest -v tests/smoke
-  ```
-4. **Lancer le menu interactif**
-  ```bash
-  skillops start
-  ```
+### Option 1: Development Install (with dev tools)
+```bash
+git clone https://github.com/M-Boiguille/SkillOps.git
+cd SkillOps
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+
+# Install with dev dependencies (recommended for local use)
+pip install -e .[dev]
+
+# Or use the reproducible lockfile for exact versions:
+pip install -r requirements-lock.txt
+```
+
+### Option 2: Production Install (locked dependencies)
+```bash
+git clone https://github.com/M-Boiguille/SkillOps.git
+cd SkillOps
+python -m venv .venv
+source .venv/bin/activate
+
+# Install exact locked versions for reproducibility
+pip install -r requirements-lock.txt
+```
+
+### Configure and Verify
+```bash
+# Setup secrets with OS keyring (recommended)
+export SKILLOPS_USE_KEYRING=true
+skillops secret-set GEMINI_API_KEY  # Interactive prompt, stored securely
+skillops secret-set WAKATIME_API_KEY
+
+# Or use .env file (local only, keep private)
+cp .env.example .env
+# Edit .env and add your API keys
+chmod 600 .env
+
+# Verify installation
+skillops doctor  # Full system check
+pytest -v tests/smoke  # Smoke tests
+```
+
+### Start Learning
+```bash
+skillops start  # Interactive 9-step workflow
+```
+
+> **First time?** See [LOCAL_SETUP.md](docs/LOCAL_SETUP.md) for detailed local installation guide.
 
 ---
 
@@ -134,15 +166,23 @@ python -m pytest -v
 
 ## 📚 Documentation
 
-- [docs/QUICKSTART.md](docs/QUICKSTART.md)
-- [docs/FEATURES.md](docs/FEATURES.md)
-- [docs/OPERATIONS.md](docs/OPERATIONS.md)
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
-- [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)
-- [docs/SECURITY.md](docs/SECURITY.md)
-- [docs/CHAOS.md](docs/CHAOS.md)
-- [docs/RUNBOOKS.md](docs/RUNBOOKS.md)
-- [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
+**Getting Started:**
+- [**LOCAL_SETUP.md**](docs/LOCAL_SETUP.md) ← **Start here!** Complete local installation guide
+- [QUICKSTART.md](docs/QUICKSTART.md) — Quick 5-minute walkthrough
+
+**Operations & Production:**
+- [DEPLOYMENT.md](docs/DEPLOYMENT.md) — Local deployment, backups, rollback procedures
+- [OPERATIONS.md](docs/OPERATIONS.md) — Daily operations, metrics, retention, automation
+- [SECURITY.md](docs/SECURITY.md) — Secrets management, API key rotation, incident response
+
+**Features & Workflow:**
+- [FEATURES.md](docs/FEATURES.md) — Detailed feature descriptions
+- [CHAOS.md](docs/CHAOS.md) — Chaos Monkey testing and observability
+
+**Advanced:**
+- [OBSERVABILITY.md](docs/OBSERVABILITY.md) — Metrics, logging, monitoring
+- [RUNBOOKS.md](docs/RUNBOOKS.md) — Common procedures and troubleshooting
+- [GOVERNANCE.md](docs/GOVERNANCE.md) — Project governance and contribution guidelines
 
 ---
 
