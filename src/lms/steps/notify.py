@@ -12,8 +12,11 @@ from rich.console import Console
 from src.lms.integrations.telegram_client import TelegramClient
 from src.lms.paths import get_storage_path
 from src.lms.database import get_logical_date, init_db
-from src.lms.persistence import get_daily_summary, get_progress_history
-from src.lms.steps.review import calculate_metrics_from_progress
+from src.lms.persistence import (
+    get_daily_summary,
+    get_progress_history,
+    calculate_streak,
+)
 
 console = Console()
 
@@ -54,6 +57,29 @@ def format_daily_report(date_str: str, metrics: dict, progress: dict) -> str:
         lines.append("\n".join(alerts))
 
     return "\n".join(lines)
+
+
+def calculate_metrics_from_progress(
+    today_progress: dict,
+    history: list,
+    storage_path: Optional[Path] = None,
+) -> dict:
+    """Compute daily metrics without legacy review step."""
+    steps_completed = today_progress.get("steps_completed")
+    if steps_completed is None:
+        steps_completed = len(today_progress.get("steps_list", []) or [])
+
+    total_minutes = today_progress.get("total_time_minutes", 0) or 0
+    cards_created = today_progress.get("cards_created", 0) or 0
+    streak = calculate_streak(storage_path=storage_path)
+
+    return {
+        "steps_completed": steps_completed,
+        "total_time": total_minutes * 60,
+        "cards_created": cards_created,
+        "streak": streak,
+        "history_size": len(history or []),
+    }
 
 
 def notify_step(
