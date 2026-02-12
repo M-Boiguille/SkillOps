@@ -33,8 +33,6 @@ This prevents copy-paste solutions and ensures real learning.
 
 ### 📅 Spaced Repetition System (SRS)
 
-Like Anki for debugging skills:
-
 - **Score 0-2**: Review in 1 day (needs practice)
 - **Score 3**: Review in 3 days (good understanding)
 - **Score 4**: Review in 7 days (solid)
@@ -243,7 +241,6 @@ Expected: Deep dive into service mesh config, traffic patterns, circuit breaker 
 
 - `skillops post-mortem`: Document incident learnings
 - `skillops chaos`: Create realistic failure scenarios
-- `skillops start --mode=engineering`: Practice debugging in engineering workflow
 
 ## Architecture
 

@@ -98,27 +98,6 @@ def _alert_type() -> str:
 
 
 @app.command()
-def start():
-    """Legacy menu entrypoint (deprecated).
-
-    Utilise maintenant :
-        • skillops train <topic>
-        • skillops code
-        • skillops review
-    """
-    display_info_panel(
-        "Nouveau workflow",
-        "Le menu 9 étapes est déprécié.\n"
-        "Utilise désormais :\n"
-        "• skillops train <topic>\n"
-        "• skillops code\n"
-        "• skillops review",
-        border_color="cyan",
-    )
-    raise typer.Exit(code=0)
-
-
-@app.command()
 def train(
     topic: str = typer.Argument(..., help="Sujet d'apprentissage"),
     questions: int = typer.Option(3, "--questions", "-q", help="Nombre de questions"),
