@@ -267,6 +267,39 @@ def metrics(
     )
 
 
+@app.command("perf-profile")
+def perf_profile(
+    output_format: str = typer.Option(
+        "json", "--format", help="Report format: json or csv"
+    ),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Run a lightweight performance profile (Phase 5)."""
+    from src.lms.performance_profiling import (
+        generate_report,
+        profile_cpu,
+        profile_memory,
+    )
+    from src.lms.dashboard import get_historical_tracking
+
+    def _profile_target():
+        return get_historical_tracking(days=7, storage_path=storage_path)
+
+    cpu_profile = profile_cpu(_profile_target)
+    mem_profile = profile_memory(_profile_target)
+
+    entry = {
+        "name": "get_historical_tracking",
+        "cpu_duration_seconds": cpu_profile["duration_seconds"],
+        "memory_usage_mb": mem_profile.get("memory_usage_mb"),
+    }
+
+    report = generate_report([entry], output_format=output_format)
+    typer.echo(report)
+
+
 @app.command()
 def dashboard(
     storage_path: Optional[Path] = typer.Option(
