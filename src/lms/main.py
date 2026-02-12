@@ -23,7 +23,7 @@ from typing import Optional  # noqa: E402
 
 import typer  # noqa: E402
 
-from src.lms.cli import main_menu, execute_step  # noqa: E402
+from src.lms.commands import run_train, run_code, run_review  # noqa: E402
 from src.lms.commands.health import health_check  # noqa: E402
 from src.lms.commands.export import DataExporter  # noqa: E402
 from src.lms.commands.data_import import DataImporter  # noqa: E402
@@ -33,10 +33,8 @@ from src.lms.monitoring import (  # noqa: E402
     MetricsCollector,
     send_alert_from_aggregator,
 )
+from src.lms.display import display_info_panel  # noqa: E402
 from src.lms.steps.notify import notify_step  # noqa: E402
-from src.lms.display import display_error_message  # noqa: E402
-from src.lms.steps.pagerduty import pagerduty_check  # noqa: E402
-from src.lms.steps.missions import missions_step  # noqa: E402
 from src.lms.steps.share import share_step  # noqa: E402
 from src.lms.commands.setup_wizard import setup_command  # noqa: E402
 from src.lms.steps.migrate import migrate as migrate_legacy_data  # noqa: E402
@@ -88,95 +86,57 @@ def _alert_type() -> str:
 
 
 @app.command()
-def start(
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Enable verbose debug logging output",
-    ),
-    enable_monitoring: bool = typer.Option(
-        False,
-        "--enable-monitoring",
-        help="Record metrics and send alerts on failures",
-    ),
-    mode: str = typer.Option(
-        "full",
-        "--mode",
-        "-m",
-        help="Workflow mode: learning (steps 1-3), engineering (steps 4-9), or full (all steps)",
+def start():
+    """Legacy menu entrypoint (deprecated).
+
+    Utilise maintenant :
+        • skillops train <topic>
+        • skillops code
+        • skillops review
+    """
+    display_info_panel(
+        "Nouveau workflow",
+        "Le menu 9 étapes est déprécié.\n"
+        "Utilise désormais :\n"
+        "• skillops train <topic>\n"
+        "• skillops code\n"
+        "• skillops review",
+        border_color="cyan",
+    )
+    raise typer.Exit(code=0)
+
+
+@app.command()
+def train(
+    topic: str = typer.Argument(..., help="Sujet d'apprentissage"),
+    questions: int = typer.Option(3, "--questions", "-q", help="Nombre de questions"),
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
     ),
 ):
-    """Start the interactive SkillOps LMS menu.
+    """Apprentissage rapide avec quiz."""
+    run_train(topic=topic, questions=questions, storage_path=storage_path)
 
-    Launch the daily learning workflow with 9 steps:
-    1. 📊 Daily Stand-up - Metrics recap + WakaTime stats
-    2. 📖 Read - Learn from technical articles
-    3. 🧠 Tutor - AI Q&A and concept reinforcement
-    4. 💪 Reinforce - Practice exercises
-    5. 📝 Create - Generate flashcards from Obsidian
-    6. 🗂️ Flashcards - Review flashcards
-    7. 🚀 Mission Control - Solve tickets & incidents
-    8. 🌐 Pull Request - Publish learnings or insights
-    9. 🌅 Reflection - Journal your progress
 
-    Modes:
-        • learning: Steps 1-3 (acquisition phase, morning)
-        • engineering: Steps 4-9 (production phase, afternoon)
-        • full: All 9 steps (default)
+@app.command()
+def code(
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Session code (tracking passif en Phase 3)."""
+    run_code(storage_path=storage_path)
 
-    Navigation:
-        • Use ↑↓ or j/k to navigate
-        • Press Enter to select
-        • Press Ctrl+C to quit
-    """
-    if verbose:
-        from src.lms.logging_config import setup_logging
 
-        setup_logging(verbose=True)
-
-    from src.lms.logging_config import get_logger
-
-    logger = get_logger(__name__)
-    aggregator = ErrorAggregator() if enable_monitoring else None
-    metrics = MetricsCollector() if enable_monitoring else None
-    alert_type = _alert_type() if enable_monitoring else "email"
-    logger.debug("Starting SkillOps interactive menu with mode=%s", mode)
-
-    continue_to_menu = pagerduty_check(on_incident=missions_step)
-    if not continue_to_menu:
-        logger.debug("PagerDuty check halted the session")
-        return
-
-    while True:
-        step = main_menu(mode=mode)
-        if step is None:
-            logger.debug("User exited interactive menu")
-            break
-        step_started = time.monotonic()
-        success = True
-        try:
-            execute_step(step)
-        except (RuntimeError, ValueError, OSError) as exc:  # pragma: no cover
-            success = False
-            if aggregator:
-                is_new = aggregator.record_error(exc, f"step_{step.number}")
-                if is_new:
-                    send_alert_from_aggregator(aggregator, alert_type)
-            logger.error("Step %s failed: %s", step.number, exc)
-            display_error_message(
-                f"Step {step.number} failed. Returning to menu.\n\n{exc}",
-                title="Step Error",
-            )
-        finally:
-            if metrics:
-                metrics.record_step_execution(
-                    f"step_{step.number}",
-                    time.monotonic() - step_started,
-                    success,
-                    metadata={"step_name": step.name},
-                )
-    logger.debug("SkillOps menu session completed")
+@app.command("review")
+@app.command("stats")
+def review(
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Afficher les stats du jour et le streak."""
+    run_review(storage_path=storage_path)
 
 
 @app.command()
