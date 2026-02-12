@@ -46,6 +46,10 @@ from src.lms.chaos_templates import (  # noqa: E402
     record_chaos_history,
     upsert_learning_profile,
 )
+from src.lms.dashboard import (  # noqa: E402
+    display_dashboard,
+    display_recommendations,
+)
 from rich.console import Console  # noqa: E402
 from rich.panel import Panel  # noqa: E402
 from rich.prompt import Prompt  # noqa: E402
@@ -261,6 +265,17 @@ def metrics(
         f"{overall.get('success_rate', 0) * 100:.1f}% success, "
         f"avg {overall.get('avg_duration_seconds', 0):.2f}s"
     )
+
+
+@app.command()
+def dashboard(
+    storage_path: Optional[Path] = typer.Option(
+        None, "--storage-path", help="Custom storage directory"
+    ),
+):
+    """Display interactive learning dashboard with analytics (Phase 4)."""
+    display_dashboard(storage_path=storage_path)
+    display_recommendations(storage_path=storage_path)
 
 
 @app.command()
