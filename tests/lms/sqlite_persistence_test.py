@@ -104,12 +104,18 @@ def test_calculate_streak_counts_consecutive_days(sqlite_env, monkeypatch):
     cursor = conn.cursor()
     cursor.executemany(
         "INSERT INTO sessions (date) VALUES (?)",
-        [("2026-02-10",), ("2026-02-09",)],
+        [
+            ("2026-02-10",),
+            ("2026-02-09",),
+            ("2026-02-08",),
+            ("2026-02-07",),
+            ("2026-02-06",),
+        ],
     )
     conn.commit()
     conn.close()
 
-    assert calculate_streak() == 2
+    assert calculate_streak() == 5
 
 
 def test_schema_version_table_created(sqlite_env):

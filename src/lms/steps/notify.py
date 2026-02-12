@@ -129,7 +129,9 @@ def notify_step(
         )
         return False
 
-    metrics = calculate_metrics_from_progress(today_progress, all_progress)
+    metrics = calculate_metrics_from_progress(
+        today_progress, all_progress, storage_path=storage_dir
+    )
     report = format_daily_report(today_date, metrics, today_progress)
 
     try:
